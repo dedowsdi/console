@@ -5,7 +5,6 @@
 #include "pacIntrinsicCmd.h"
 #include <boost/regex.hpp>
 
-
 namespace pac
 {
 
@@ -173,8 +172,50 @@ void Console::endBuffer()
 {
 	PacAssert(mIsBuffering, "It'w wrong to end buffer without start it");
 	mIsBuffering = false;
-	//@TODO implement
-	throw new std::runtime_error("unimplemented function called");
+
+	Real textwidth = static_cast<Real>(()mUi->getTextWidth());
+
+	//sort buffer
+	std::sort(mBuffer.begin(), mBuffer.end());
+	int numCol, totalColWidth;
+	IntVector colWidthes;
+	getColumnNumber(numCol, totalColWidth, colWidthes);
+
+	//determine spacing
+	int spacing = (textwidth  - totalColWidth) / (numCol - 1);
+	int colSize = static_cast<int>(mBuffer.size() / numCol);
+
+	//output horizental. Becareful, item seq in mBuffers is vertical.
+	for (int i = 0; i < mBuffer.size(); ++i) 
+	{
+		int col = i % numCol;	
+		int row = i / numCol;
+		int colWidth = colWidthes[col] + spacing;
+		int itemIndex = col * colSize  + row; 
+		mUi->outputNoAutoWrap(StringUtil::toFixedLength(mBuffer[itemIndex]), colWidth);
+		//line break at last column
+		if(col == numCol - 1)	
+			mUi->endl();
+	}
+
+	mBuffer.clear();
+}
+
+//------------------------------------------------------------------
+void Console::rollCommand(bool backWard /*= true*/)
+{
+	if(mCmdHistory.size() == 0)
+		return;
+
+	if(backWard)
+	{
+		this->updateCommand(mCmdHistory.previous());
+	}
+	else
+	{
+		if(mCmdHistory.isRolling())
+		this->updateCommand(mCmdHistory.next());
+	}
 }
 
 //------------------------------------------------------------------
@@ -221,14 +262,79 @@ void Console::fakeOutputDirAndCmd(const String& cmdLine)
 //------------------------------------------------------------------
 void Console::addCmdLineToHistory(const String& cmdLine)
 {
-	//@TODO implement
-	throw new std::runtime_error("unimplemented function called");
+	mCmdHistory.push(cmdLine);
+}
+
+//------------------------------------------------------------------
+void Console::appendBuffer( const String& v)
+{
+	mBuffer.push_back(v);
+}
+
+//------------------------------------------------------------------
+int Console::getColumnWidth(StringVector::iterator beg, StringVector::iterator end)
+{
+	int l = 0;
+	std::for_each(beg, end, [&](const String& v)->void
+	{
+		if(v.length() > l)	
+			l = v.length()
+	});
+
+	return l;
+}
+
+//------------------------------------------------------------------
+void Console::getColumnNumber(int &numCol, int &totalColWidth, IntVector& colWidthes)
+{
+	//find max length item, use it to determine least column number
+	int maxItemWidth = getColumnWidth(mBuffer.begin(), mBuffer.end());
+	numCol = ceil(textwidth / (maxItemWidth + 1);	//maxItemWidth + 1 spacing
+
+	if(numCol >= mBuffer.size()) //one line is enough 
+	{
+		numCol = mBuffer.size();
+		std::for_each(mBuffer.begin(), mBuffer.end(), [&](const String& v)->void
+		{
+			totalColWidth += v.size();	
+			colWidthes.push_back(v.size());
+		});
+	}
+	else
+	{
+		//loop to find max numCol 
+		while(true)
+		{
+			++numCol;
+			int colSize = static_cast<int>(mBuffer.size() / numCol);
+			int _totalColWidth = 0;
+			IntVector _colWidthes;
+			//loop column, accumulate length of each column 
+			for (i = 0; i < numCol; ++i) 
+			{
+				StringVector::iterator beg = mBuffer.begin() + colSize * i;
+				StringVector::iterator end = i == numCol - 1 ?
+					mBuffer.end() : mBuffer.begin() + colSize * (i + 1);
+				
+				int w = getColumnWidth(beg, end);
+				_colWidthes.push_back(w);
+				_totalColWidth += w;
+			}
+
+			if(_totalColWidth + numCol > textwidth)	//overflow check
+			{
+				--numCol;
+				colWidthes.assign(_colWidthes.begin(), _colWidthes.end());
+				totalColWidth = _totalColWidth;
+				break;
+			}
+		}
+	}
 }
 
 //------------------------------------------------------------------
 RaiiConsoleBuffer::RaiiConsoleBuffer()
 {
-	PacAssert(sgConsole().getBuffer().empty(), "Do you forget to flash buffer?");
 	sgConsole.startBuffer();
 }
 

@@ -46,6 +46,15 @@ public:
 	virtual UiConsole& outputLine(const String& output, int type =1);
 
 	/**
+	 * Fake stdout and stderr. No Wrap line.
+	 * @param output : outout content
+	 * @param type : 1 stdout, 2 stderr 
+	 * @return : *this
+	 */
+	virtual UiConsole& outputNoAutoWrap(const String& output, int type = 1) = 0;
+
+
+	/**
 	 * Complete current typing. 
 	 * @param s : content
 	 */

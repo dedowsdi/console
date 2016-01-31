@@ -1,35 +1,8 @@
-/*
------------------------------------------------------------------------------
-This source file is part of OGRE
-    (Object-oriented Graphics Rendering Engine)
-For the latest info, see http://www.ogre3d.org/
-
-Copyright (c) 2000-2014 Torus Knot Software Ltd
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
------------------------------------------------------------------------------
-*/
 #ifndef PACSTRINGUTIL_H
 #define PACSTRINGUTIL_H
 
 #include "pacConsolePreRequisite.h"
-
+#include "pacException.h"
 
 namespace pac {
 	/** \addtogroup Core
@@ -150,9 +123,16 @@ namespace pac {
 		 * @return : joined string 
 		 */
 		static String join(const StringVector& sv, const String& sep = " ");
-		
-	
 
+		/**
+		 * Extend string to fixed length 
+		 * @param s : strign 
+		 * @param length : fixed length
+		 * @param c : char used to extend 
+		 * @return : new string in fixed length 
+		 */
+		static String toFixLength(const String& s, size_t length,  char c = ' ');
+		
 
         /** Simple pattern-matching routine allowing a wildcard pattern.
         @param str String to test
@@ -375,10 +355,46 @@ namespace pac {
         static bool isNumber(const String& val);
 
 		/**
-		 * Checks the String is a valid int value
+		 * check if path starts with delim 
+		 * @param path : path 
+		 * @return : true if it's absolute path 
+		 */
+		static bool isAbsolutePath(const String& path);
+
+		/**
+		 * Checks the String is a valid decimal type . This should work from
+		 * unsigned short, short ..... until long long.
 		 * @param val : string value 
 		 */
-		static bool isInt(const String& val);
+		static template<class T> 
+		bool isPrimitiveDecimal(const String& val)
+		{
+			StringStream str(val);
+			if (msUseLocale)
+				str.imbue(msLocale);
+			T tst;
+			str >> tst;
+			return !str.fail() && str.eof();
+		}
+
+		/**
+		 * parse string to decimal type . This should work from unsigned short,
+		 * short ..... until long long.
+		 * @param val : string value 
+		 */
+		static template<class T> 
+		T parsePrimitiveDecimal(const String& val)
+		{
+			StringStream str(val);
+			if (msUseLocale)
+				str.imbue(msLocale);
+			T t;
+			str >> t;
+			if(!str.fail() && str.eof())
+				PAC_EXCEPT(Exception::ERR_INVALIDPARAMS,
+						val +  " is not paseable", __FUNCTION__);
+			return t;
+		}
 
         //-----------------------------------------------------------------------
         static void setDefaultStringLocale(String loc)
@@ -395,13 +411,16 @@ namespace pac {
         //-----------------------------------------------------------------------
 		
 		/**
-		 * Remove last path component
+		 * Remove last path component. If path ends with pac::delim, only the
+		 * delim will be removed. If path has no pac::delim, . will be be
+		 * returned. if path equals to pac::delim, pac::delim will be returned.
 		 * @param path : path
 		 */
 		static String getHead(const String& path);
 
 		/**
-		 * Get last part of path component
+		 * Get last part of path component, If path ends with pac::delim, you
+		 * get blank. If path has no pac:delim you get original path
 		 * @param path : 
 		 */
 		static String getTail(const String& path);

@@ -11,6 +11,7 @@ ArgHandlerLib* Singleton<ArgHandlerLib>::msSingleton = 0;
 //------------------------------------------------------------------
 ArgHandler::ArgHandler(const String& name)
 	:mName(name)
+	 ,mNode(0)
 {
 }
 
@@ -104,6 +105,18 @@ NodeArgHandler* NodeArgHandler::getChildNode(const String& name, bool recursive 
 	}
 
 	return 0;
+}
+
+//------------------------------------------------------------------
+NodeArgHandler* NodeArgHandler::getParentNode(const String& name)
+{
+	if(!mParent)
+		return 0;
+
+	if(mParent->getName() == name)
+		return mParent;
+	else
+		return mParent->getParentNode(name);
 }
 
 
@@ -201,6 +214,7 @@ ArgHandler* NodeArgHandler::getArgHandler()
 	if(!mArgHandler)	
 	{
 		mArgHandler = sgArgLib.createArgHandler(mAhName);
+		mArgHandler->setNode(this);
 	}
 
 	return mArgHandler;
@@ -432,11 +446,35 @@ void ArgHandlerLib::registerArgHandler(ArgHandler* handler)
 void ArgHandlerLib::init()
 {
 	this->registerArgHandler(new BlankArgHandler());
-	this->registerArgHandler(new IntArgHandler());
 	this->registerArgHandler(new BoolArgHandler());
-	this->registerArgHandler(new RealArgHandler());
+	//primitive decimal arg handlers 
+	this->registerArgHandler(new PriDecArgHandler<short>("short"));
+	this->registerArgHandler(new PriDecArgHandler<unsigned short>("ushort"));
+	this->registerArgHandler(new PriDecArgHandler<int>("int"));
+	this->registerArgHandler(new PriDecArgHandler<unsigned int>("uint"));
+	this->registerArgHandler(new PriDecArgHandler<long>("long"));
+	this->registerArgHandler(new PriDecArgHandler<unsigned long>("ulong"));
+	this->registerArgHandler(new PriDecArgHandler<Real>("real"));
+	//normalized real
+	this->registerArgHandler(new PrcDecRangeArgHandler<Real>("nreal",-1.0, 1.0));
+	//int 2..int5, real2..real5, matrix2, matrix3, matrix4
+	this->registerArgHandler(sgArgLib.createMonoTree("int2","int", 2));
+	this->registerArgHandler(sgArgLib.createMonoTree("int3","int", 3));
+	this->registerArgHandler(sgArgLib.createMonoTree("int4","int", 4));
+	this->registerArgHandler(sgArgLib.createMonoTree("int5","int", 5));
+	this->registerArgHandler(sgArgLib.createMonoTree("real2","real", 2));
+	this->registerArgHandler(sgArgLib.createMonoTree("real3","real", 3));
+	this->registerArgHandler(sgArgLib.createMonoTree("real4","real", 4));
+	this->registerArgHandler(sgArgLib.createMonoTree("real5","real", 5));
+	this->registerArgHandler(sgArgLib.createMonoTree("matrix2","real", 4));
+	this->registerArgHandler(sgArgLib.createMonoTree("matrix3","real", 9));
+	this->registerArgHandler(sgArgLib.createMonoTree("matrix4","real", 16));
+
+	//special handlers
 	this->registerArgHandler(new PathArgHandler());
 	this->registerArgHandler(new CmdArgHandler());
+	this->registerArgHandler(new ParameterArgHandler());
+	this->registerArgHandler(new ValueArgHandler());
 }
 
 //------------------------------------------------------------------
@@ -460,6 +498,19 @@ NodeArgHandler* ArgHandlerLib::createLeafNode(int branch, const String& name /*=
 	NodeArgHandler* node = new NodeArgHandler(name, "", NT_LEAF);
 	node->setBranch(branch);
 	return node;
+}
+
+//------------------------------------------------------------------
+TreeArgHandler* ArgHandlerLib::createMonoTree(const String& name, const String& ahName, int num)
+{
+	TreeArgHandler* tree = new TreeArgHandler(name);
+	for (int i = 0; i < num; ++i) 
+	{
+		tree->addChildNode(name + StringUtil::toString(i), ahName);
+	}
+	tree->endBranch(0);
+
+	return tree;
 }
 
 }

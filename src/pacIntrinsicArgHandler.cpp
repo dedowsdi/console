@@ -1,29 +1,9 @@
 #include "pacStable.h"
 #include "pacIntrinsicArgHandler.h"
-#include "pacConsole.h"
-#include "pacStringUtil.h"
+#include "pacAbsDir.h"
 
 namespace pac
 {
-
-//------------------------------------------------------------------
-IntArgHandler::IntArgHandler():
-	ArgHandler("int")
-{
-}
-
-//------------------------------------------------------------------
-void IntArgHandler::doPrompt(const String& s)
-{
-	sgConsole.output("@@int@@");
-}
-
-//------------------------------------------------------------------
-bool IntArgHandler::doValidate(const String& s)
-{
-	return StringUtil::isInt(s);
-}
-
 
 //------------------------------------------------------------------
 BoolArgHandler::BoolArgHandler():
@@ -41,25 +21,6 @@ void BoolArgHandler::doPrompt(const String& s)
 bool BoolArgHandler::doValidate(const String& s)
 {
 	return s == "true" || s == "false";
-}
-
-
-//------------------------------------------------------------------
-RealArgHandler::RealArgHandler():
-	ArgHandler("Real")
-{
-}
-
-//------------------------------------------------------------------
-void RealArgHandler::doPrompt(const String& s)
-{
-	sgConsole.output("@@Real@@");
-}
-
-//------------------------------------------------------------------
-bool RealArgHandler::doValidate(const String& s)
-{
-	return StringUtil::isNumber(s);
 }
 
 //------------------------------------------------------------------
@@ -148,21 +109,28 @@ bool BlankArgHandler::doValidate(const String& s)
 //------------------------------------------------------------------
 PathArgHandler::PathArgHandler()
 	:ArgHandler("path")
+	 ,mDir(0)
 {
+}
+
+//------------------------------------------------------------------
+PathArgHandler::PathArgHandler(const PathArgHandler& rhs):
+	ArgHandler(rhs->getName())
+{
+	setDir(sgConsole.getDirectory());
 }
 
 //------------------------------------------------------------------
 void PathArgHandler::doPrompt(const String& s)
 {
 	RaiiConsoleBuffer();
-	AbsDir* curDir = sgConsole.getDirectory();
 
 	const String&& head = StringUtil::getHead(s);
 	const String&& tail = StringUtil::getTail(s);
 
-	AbsDir* headDir = AbsDirUtil::findPath(curDir, head);
+	AbsDir* headDir = AbsDirUtil::findPath(mDir, head);
 
-	std::for_each(headDIr->beginChildIter(), headDir->endChildIter() , [&](AbsDir* v)->void
+	std::for_each(headDir->beginChildIter(), headDir->endChildIter() , [&](AbsDir* v)->void
 	{
 		if (StringUtil::startsWith(v->getName(), s)) 
 		{
@@ -174,8 +142,7 @@ void PathArgHandler::doPrompt(const String& s)
 //------------------------------------------------------------------
 bool PathArgHandler::doValidate(const String& s)
 {
-	AbsDir* curDir = sgConsole.getDirectory();
-	return findPath(curDir, s) != 0;
+	return findPath(mDir, s) != 0;
 }
 
 
@@ -188,6 +155,67 @@ CmdArgHandler::CmdArgHandler():
 	{
 		mStrings.insert(s);
 	});
+}
+
+//------------------------------------------------------------------
+ParameterArgHandler::ParameterArgHandler():
+	ArgHandler("parameter")
+	,mDir(0)
+{
+}
+
+//------------------------------------------------------------------
+ParameterArgHandler::ParameterArgHandler(const ParameterArgHandler& rhs):
+	ArgHandler(rhs->getName())
+{
+	setDir(sgConsole.getDirectory()); 
+	StringVector&& sv = mDir->getParameters();
+	this->insert(sv.begin(), sv.end());
+}
+
+//------------------------------------------------------------------
+ValueArgHandler::ValueArgHandler():
+	ArgHandler("value")
+	,mDir(0)
+	,mHandler(0)
+{
+}
+
+//------------------------------------------------------------------
+ValueArgHandler::ValueArgHandler(const ValueArgHandler& rhs):
+	ArgHandler(rhs->getName())
+	,mDir(0)
+	,mHandler(0)
+{
+	setDir(sgConsole.getDirectory()); 
+	NodeArgHandler* valueNode = this->getNode();	
+	PacAssert(valueNode, Exception::ERR_INVALID_STATE, 
+			"Do you forget to hook node with arg handler?", __FUNCTION__)
+	
+	NodeArgHandler* paramNode = valueNode->getParentNode("parameter");
+	PacAssert(paramNode, Exception::ERR_INVALID_STATE, 
+			"can no find paramNode", __FUNCTION__)
+
+	const String& param = paramNode->getValue();
+	const String& ahName = mDir->getValueArgHandler(param);
+
+	setHandler(sgArgLib.createArgHandler(ahName));
+}
+
+//------------------------------------------------------------------
+void ValueArgHandler::doPrompt(const String& s)
+{
+	PacAssert(mHandler, Exception::ERR_INVALID_STATE,
+			"0 handler in value handler", __FUNCTION__)
+	return mHandler->prompt(s);
+}
+
+//------------------------------------------------------------------
+bool ValueArgHandler::doValidate(const String& s)
+{
+	PacAssert(mHandler, Exception::ERR_INVALID_STATE,
+			"0 handler in value handler", __FUNCTION__)
+	return mHandler->validate(s);
 }
 
 }

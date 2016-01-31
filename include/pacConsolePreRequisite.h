@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <assert.h>
 
+#include "pacConfig.h"
+
 //@TODO, fix manual define PAC_STATIC_LIB
 #define PAC_STATIC_LIB
 // If we're not including this from a client build, specify that the stuff
@@ -41,6 +43,7 @@ namespace pac
 	typedef std::vector<float> FloatVector;
 	typedef std::set<std::string> StringSet;
 	typedef std::stringstream StringStream;
+	typedef std::map<String, String> NameValuePairList;
 
 	class Console;
 	class Command;
@@ -49,10 +52,12 @@ namespace pac
 	class ArgHandler;
 	class NodeArgHandler;
 	class TreeArgHandler;
+	class StringInterface;
 	//easy singleton
 }
 
 #define sgConsole pac::Console::getSingleton()
 #define sgArgLib pac::ArgHandlerLib::getSingleton()
+#define sgDirRoot pac::RootDir::getSingleton()
 
 #endif /* PACCONSOLEPREREQUISITE_H */

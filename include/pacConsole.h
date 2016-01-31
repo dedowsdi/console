@@ -2,6 +2,7 @@
 #define PACCONSOLE_H 
 
 #include "pacSingleton.h"
+#include "pacRollStack.h"
 
 namespace pac
 {
@@ -79,6 +80,11 @@ public:
 	 */
 	void endBuffer();
 
+	/**
+	 * Roll command history 
+	 * @param backWard : roll back or roll front
+	 */
+	void rollCommand(bool backWard = true);
 
 	CmdMap::const_iterator beginCmdMapIterator() const;
 	CmdMap::const_iterator endCmdMapIterator() const;
@@ -112,9 +118,26 @@ private:
 	 */
 	void addCmdLineToHistory(const String& cmdLine);
 
-	const String& getBuffer() const { return mBuffer; }
-	void setBuffer( const String& v){mBuffer = v;}
-	void appendBuffer( const String& v){mBuffer += v;}
+	void appendBuffer( const String& v);
+
+	/**
+	 * Get max lenth of string item 
+	 * @param beg : begin iterator
+	 * @param end : end iterator 
+	 * @return : length of longest string  
+	 */
+	int getColumnWidth(StringVector::iterator beg, StringVector::iterator end);
+
+	/**
+	 * Determine column number and width of each column in buffer. Just a place
+	 * to shrink endBuffer().  
+	 * @param numCol : column number
+	 * @param totalColWidth : total column width without spacing
+	 * @param colWidthes : vectoer of column width 
+	 * @return : 
+	 */
+	void getColumnNumber(int &numCol, int &totalColWidth, IntVector& colWidthes);
+
 
 private:
 
@@ -123,7 +146,9 @@ private:
 	AbsDir* mDir;
 	UiConsole* mUi;
 	CmdMap mCmdMap;
-	String mBuffer;
+	StringVector mBuffer;
+
+	RollStack<String> mCmdHistory;
 
 };
 

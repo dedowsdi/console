@@ -33,7 +33,7 @@ namespace pac {
 	const String StringUtil::BLANK;
     String StringUtil::msDefaultStringLocale = "C";
     std::locale StringUtil::msLocale = std::locale(msDefaultStringLocale.c_str());
-    bool StringUtil::msUseLocale = false;
+	bool StringUtil::msUseLocale = false;
 
 	//-----------------------------------------------------------------------
     void StringUtil::trim(String& str, bool left, bool right)
@@ -371,6 +371,47 @@ namespace pac {
         }
 
     }
+
+	//------------------------------------------------------------------
+	void StringUtil::splitFullFilename(const String& qualifiedName, 
+			String& outBasename, String& outExtention, 
+			String& outPath)
+	{
+		//@TODO implement
+		throw new std::runtime_error("unimplemented function called");
+	}
+
+	//------------------------------------------------------------------
+	void StringUtil::splitBaseFilename(const String& fullName, 
+			String& outBasename, String& outExtention)
+	{
+		//@TODO implement
+		throw new std::runtime_error("unimplemented function called");
+	}
+
+	//------------------------------------------------------------------
+	String StringUtil::join(const StringVector& sv, const String& sep /*= " "*/)
+	{
+		String s;
+		std::for_each(sv.begin(), sv.end(), [&](const String& v)->void
+		{
+			s += s.empty() ? v : sep + v;
+		});
+
+		return s; 
+	}
+
+	//------------------------------------------------------------------
+	String StringUtil::toFixLength(const String& s, size_t length,  char c /*= ' '*/)
+	{
+		//do nothing if it's long enough
+		if(s.size() >= length)
+			return s;
+
+		String s1(length - s.size(), c);
+
+		return s + s1;
+	}
 	//-----------------------------------------------------------------------
 	void StringUtil::splitBaseFilename(const Ogre::String& fullName, 
 		Ogre::String& outBasename, Ogre::String& outExtention)
@@ -479,12 +520,36 @@ namespace pac {
 		return result;
 	}
 
+	//------------------------------------------------------------------
+	String StringUtil::getHead(const String& path)
+	{
+		if(path == path::delim)
+			return path::delim;
+
+		int pos = path.find_last_of(pac::delim);
+		if(pos == -1)
+		{
+			return "."
+		}
+		else
+		{
+			return path.substr(0, pos);
+		}
+	}
 
 	//------------------------------------------------------------------
-	bool StringUtil::isInt(const String& val)
+	String StringUtil::getTail(const String& path)
 	{
-		//@TODO implement
-		throw new std::runtime_error("unimplemented function called");
+		int pos = path.find_last_of(pac::delim);
+
+		if(pos == -1)
+		{
+			return path;
+		}
+		else
+		{
+			return path.substr(pos + 1);
+		}
 	}
 
     //-----------------------------------------------------------------------
@@ -1022,5 +1087,11 @@ namespace pac {
         str >> tst;
         return !str.fail() && str.eof();
     }
+
+	//------------------------------------------------------------------
+	bool StringUtil::isAbsolutePath(const String& path)
+	{
+		return !path.empty() && path.startsWith(pac::delim);
+	}
 
 }

@@ -1,43 +1,44 @@
 #ifndef PACABSDIR_H
 #define PACABSDIR_H 
 #include "pacConsolePreRequisite.h"
+#include "pacSingleton.h"
 
 namespace pac
 {
 
 
-typedef std::vector<AbsDir*> DirVector;
+typedef std::vector<AbsDir*> AbsDirs;
 
 /**
- * Abstract directory. Used to get set property of what every you want.
+ * Abstract directory. Used to get set parameter of what every you want.
  */
 class AbsDir 
 {
 public:
-	AbsDir(const String& name);
-	~AbsDir();
+	AbsDir(const String& name, StringInterface* si);
+	virtual ~AbsDir();
 
 	/**
-	 * Get property value. 
-	 * @param name : property name
-	 * @return : property value
+	 * Get parameter value. 
+	 * @param name : parameter name
+	 * @return : parameter value
 	 */
-	String getProperty(const String& name);
+	String getParameter(const String& name);
 	/**
-	 * Set property value. This is only used for the most simple case.
-	 * @param name : property name
-	 * @param value : property value
+	 * Set parameter value. This is only used for the most simple case.
+	 * @param name : parameter name
+	 * @param value : parameter value
 	 */
-	void setProperty(const String& name, const String& value);
+	bool setParameter(const String& name, const String& value);
 
 	/**
-	 * Set property value. You can get specific value components from
+	 * Set parameter value. You can get specific value components from
 	 * valueHandler, it's primitive arghandler for simple case, treearghandler
 	 * for intricate case.
-	 * @param name : property name
-	 * @param valueHander : property value handler
+	 * @param name : parameter name
+	 * @param valueHander : parameter value handler
 	 */
-	void setProperty(const String& name, ArgHandler* valueHandler);
+	void setParameter(const String& name, ArgHandler* valueHandler);
 
 	const String& getName() const { return mName; }
 	void setName( const String& v){mName = v;}
@@ -45,38 +46,99 @@ public:
 	AbsDir* getParent() const { return mParent; }
 	void setParent( AbsDir* v){mParent = v;}
 
+	StringInterface* getStringInterface() const { return mStringInterface; }
+	void setStringInterface( StringInterface* v){mStringInterface = v;}
+
+	/**
+	 * Add dir to children.  
+	 * @param dir : child dir
+	 */
+	void addChild(AbsDir* dir);
+
+	/**
+	 * for . and .. 
+	 * @return : target dir 
+	 */
+	virtual AbsDir* enterPath();
+
 	/**
 	 * Get full path until root 
 	 * @return : full path
 	 */
 	String getFullPath();
+	
+	/**
+	 * Throw if i overflow. 
+	 * @param i : index
+	 * @return : 
+	 */
+	AbsDir* getChildAt(size_t i);
 
-	DirVector::iterator beginChildIter();
-	DirVector::iterator endChildIter();
+	/**
+	 * Return 0 if not found.
+	 * @param name : child dir name
+	 * @return : 0 or child dir 
+	 */
+	AbsDir* getChildByName(const String& name);
 
+	AbsDirs::iterator beginChildIter();
+	AbsDirs::iterator endChildIter();
 
 protected:
 
 	String mName;
 	AbsDir* mParent;
-	DirVector mChildren;
-	
+	StringInterface* mStringInterface;
+	AbsDirs mChildren;
 };
+
+/*
+ *root dir, the same as path delimiter, it's singleton.
+ */
+class RootDir: public AbsDir, public Singleton<RootDir>
+{
+public:
+	RootDir();
+};
+
+class DotDir: public AbsDir
+{
+public:
+	DotDir();
+
+	/**
+	 * return self 
+	 */
+	virtual AbsDir* enterPath();
+};
+
+class DotDotDir: public AbsDir
+{
+public:
+	DotDotDir();
+
+	/**
+	 * return parent
+	 */
+	virtual AbsDir* enterPath();
+};
+
 
 class AbsDirUtil
 {
+
 private:
-	AbsDirUtil();
+	AbsDirUtil(){}
 
 public:
 
 	/**
 	 * Find dir by path. Path can be relative or absolute. 
-	 * @param curDir : current dir
 	 * @param path : target path
+	 * @param curDir : current dir
 	 * @return : target dir
 	 */
-	static AbsDir* findPath(AbsDir* curDir, const String& path);
+	static AbsDir* findPath(const String& path, AbsDir* curDir);
 
 	/**
 	 * find dir by absolute path
@@ -94,8 +156,6 @@ public:
 
 };
 
-
 }
-
 
 #endif /* PACABSDIR_H */

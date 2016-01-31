@@ -87,7 +87,8 @@ CdCmd::CdCmd():
 //------------------------------------------------------------------
 bool CdCmd::doExecute()
 {
-	sgConsole->changeDirectory(AbsDirUtil::findDir(mArgHandler->getValue()));
+	AbsDir* targetDir = AbsDirUtil::findDir(mArgHandler->getValue());
+	sgConsole->changeDirectory(targetDir);
 }
 
 //------------------------------------------------------------------

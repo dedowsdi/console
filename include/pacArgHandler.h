@@ -9,13 +9,16 @@ namespace pac
 #define defArgCom(type)\
 virtual ArgHandler* clone(){return new type(*this);}
 /**
- * Base class of all Argument handler.
+ * Base class of all Argument handler. Arghandler such as int2, real2 don't have
+ * real class prototype, what they have is object prototype, so i choose
+ * prototype to create them. Some handler such as "parameter" , "value", "path",
+ * they need to be initialized at run time, for this handlers most job is done
+ * at copy ctor.
  */
 class ArgHandler 
 {
 public:
 	
-
 	ArgHandler(const String& name);
 	virtual ~ArgHandler(){}
 
@@ -40,12 +43,29 @@ public:
 
 	virtual const String& getValue() const { return mValue; }
 	virtual void setValue( const String& v){mValue = v;}
+
+	/**
+	 * Populate a vector with parameter name and return. 
+	 * @return : parameter names vector
+	 */
+	StringVector getParameters();
+
+	/**
+	 * Get parameter value arg handler name
+	 * @param name : parameter name
+	 * @return : argument handler name for parameter
+	 */
+	const String& getParameterArgHandler(const String& name) const;
 	
 	virtual ArgHandler* clone() = 0;
+
+	NodeArgHandler* getNode() const { return mNode; }
+	void setNode( NodeArgHandler* v){mNode = v;}
 
 private:
 	String mName;
 	String mValue;
+	NodeArgHandler* mNode; //only used when this arghandler is inside a node arghandler
 
 };
 
@@ -94,6 +114,9 @@ public:
 	 */
 	NodeArgHandler* addChildNode(NodeArgHandler* child);
 
+	NodeArgHandler* addChildNode(const String& name, const String& ahName, 
+			NodeType = NT_NORMAL);
+
 	/**
 	 * Create child node, add it to children. 
 	 * @param name child node name
@@ -110,9 +133,14 @@ public:
 	 */
 	NodeArgHandler* getChildNode(const String& name, bool recursive = 1);
 
+	/**
+	 * Get parent node by name. This is always a recursive operation.
+	 * @param name : parent node name
+	 * @return : ancestor node with specified name 
+	 */
+	NodeArgHandler* getParentNode(const String& name);
 
-	NodeArgHandler* addChildNode(const String& name, const String& ahName, 
-			NodeType = NT_NORMAL);
+
 
 	/**
 	 * Add leaf node, end current buranch.
@@ -157,7 +185,6 @@ public:
 
 	NodeType getNodeType() const { return mNodeType; }
 	void setNodeType( NodeType v){mNodeType = v;}
-
 
 	int getBranch();
 	void setBranch(int v);
@@ -249,6 +276,37 @@ private:
 
 };
 
+/**
+ * Registered with following type:
+ *
+ * blank
+ * bool
+ * real
+ * short
+ * ushort
+ * int
+ * uint
+ * long
+ * ulong
+ * real
+ * nreal
+ * int2
+ * int3
+ * int4
+ * int5
+ * real2
+ * real3
+ * real4
+ * real5
+ * matrix2
+ * matrix3
+ * matrix4
+ * path
+ * cmd
+ * parameter
+ * value
+ *
+ */
 class ArgHandlerLib: public Singleton<ArgHandlerLib>
 {
 public:
@@ -277,6 +335,17 @@ public:
 
 	NodeArgHandler* createRootNode(const String& name = "");
 	NodeArgHandler* createLeafNode(int branch, const String& name = "");
+
+	/**
+	 * Create 1 branch only tree with sequence of the 1 type argument
+	 * handler. This can be used to create int2 int3, real2, real3.......  Child
+	 * node will be named as name_0, name_1.... name_n
+	 * @param name : tree name
+	 * @param ahName : item argument handler name 
+	 * @param num : number of items 
+	 * @return : newly created tree argument handler
+	 */
+	TreeArgHandler* createMonoTree(const String& name, const String& ahName, int num);
 
 private:
 	ArgHandlerMap mArgHandlerMap;
