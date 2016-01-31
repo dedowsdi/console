@@ -16,7 +16,7 @@ public:
 	
 	friend class RaiiConsoleBuffer;
 
-	typedef std::map<String, Command*> CmdMap;
+	typedef std::map<std::string, Command*> CmdMap;
 
 	Console(UiConsole* ui);
 	virtual ~Console();
@@ -27,12 +27,12 @@ public:
 	 * Execute cmdLine. Add cmdLine to command history. 
 	 * @param cmdLine : cmd line to be executed
 	 */
-	bool execute(const String& cmdLine);
+	bool execute(const std::string& cmdLine);
 	/**
 	 * Output prompt for cmdLine 
 	 * @param cmdLine : current typing cmd line.
 	 */
-	void prompt(const String& cmdLine);
+	void prompt(const std::string& cmdLine);
 	/**
 	 * Output to ui console or buffer. Call startBuffer before this if you want
 	 * to out put to buffer, call endBuffer after you finished output. Context
@@ -41,9 +41,9 @@ public:
 	 * @param type : 1 stdout, 2 stderr 
 	 * @return : Console&
 	 */
-	Console& output(const String& s, int type = 1);
+	Console& output(const std::string& s, int type = 1);
 
-	Console& outputLine(const String& s, int type = 1);
+	Console& outputLine(const std::string& s, int type = 1);
 	/**
 	 * End current line
 	 */
@@ -53,7 +53,7 @@ public:
 	 * Complete current typing. 
 	 * @param s : string to be added after current cursor
 	 */
-	Console& complete(const String& s);
+	Console& complete(const std::string& s);
 
 	/**
 	 * Change current working dir 
@@ -97,28 +97,28 @@ private:
 	 * @param cmdName : command name
 	 * @return : newly created command or 0 
 	 */
-	Command* createCommand(const String& cmdName);
+	Command* createCommand(const std::string& cmdName);
 
 	/**
 	 * Prompt for command name .
 	 * @param cmdLine : 
 	 */
-	void promptCommandName(const String& cmdName);
+	void promptCommandName(const std::string& cmdName);
 
 	/**
 	 * When you hit tab or enter in term, there will be a record of cwd and
 	 * command line. This is used to fake that.
 	 * @param cmdLine : current command line
 	 */
-	void fakeOutputDirAndCmd(const String& cmdLine);
+	void fakeOutputDirAndCmd(const std::string& cmdLine);
 
 	/**
 	 * Add cmdLine to history 
 	 * @param cmdLine : command line
 	 */
-	void addCmdLineToHistory(const String& cmdLine);
+	void addCmdLineToHistory(const std::string& cmdLine);
 
-	void appendBuffer( const String& v);
+	void appendBuffer( const std::string& v);
 
 	/**
 	 * Get max lenth of string item 
@@ -136,7 +136,7 @@ private:
 	 * @param colWidthes : vectoer of column width 
 	 * @return : 
 	 */
-	void getColumnNumber(int &numCol, int &totalColWidth, IntVector& colWidthes);
+	void getColumnNumber(size_t &numCol, size_t &totalColWidth, IntVector& colWidthes);
 
 
 private:
@@ -148,7 +148,7 @@ private:
 	CmdMap mCmdMap;
 	StringVector mBuffer;
 
-	RollStack<String> mCmdHistory;
+	RollStack<std::string> mCmdHistory;
 
 };
 

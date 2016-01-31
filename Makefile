@@ -1,11 +1,11 @@
 LIBS = \
--lboost_system\
 -lboost_regex\
 
 INCLUDES = \
 -Iinclude\
 -Isrc\
 -I/usr/local/include\
+
 
 SRCDIR = src/
 SRCS = src/*.cpp
@@ -15,29 +15,23 @@ OBJS =\
 ${OBJDIR}pacAbsDir.o\
 ${OBJDIR}pacArgHandler.o\
 ${OBJDIR}pacCommand.o\
-${OBJDIR}pacConfig.o\
 ${OBJDIR}pacConsole.o\
-${OBJDIR}pacConsolePreRequisite.o\
 ${OBJDIR}pacException.o\
 ${OBJDIR}pacIntrinsicArgHandler.o\
 ${OBJDIR}pacIntrinsicCmd.o\
-${OBJDIR}pacRollStack.o\
-${OBJDIR}pacSingleton.o\
-${OBJDIR}pacStable.o\
 ${OBJDIR}pacStdUtil.o\
 ${OBJDIR}pacStringInterface.o\
 ${OBJDIR}pacStringUtil.o\
 ${OBJDIR}pacUiConsole.o
 
-
 UBS = ub/*.cpp
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -std=c++11 -fPIC
 
 #--------------------------------------------------------------------
 #build shared lib
 .PHONY : console
 console : obj
-	gcc -shared -fPIC -o bin/${@}.so obj/*.o
+	gcc -shared -fPIC -o bin/${@}.so ${OBJS} 
 
 #--------------------------------------------------------------------
 #implicit obj

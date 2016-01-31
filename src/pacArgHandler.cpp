@@ -6,36 +6,36 @@
 
 namespace pac
 {
-ArgHandlerLib* Singleton<ArgHandlerLib>::msSingleton = 0;
+template<> ArgHandlerLib* Singleton<ArgHandlerLib>::msSingleton = 0;
 
 //------------------------------------------------------------------
-ArgHandler::ArgHandler(const String& name)
+ArgHandler::ArgHandler(const std::string& name)
 	:mName(name)
 	 ,mNode(0)
 {
 }
 
 //------------------------------------------------------------------
-void ArgHandler::prompt(const String& s)
+void ArgHandler::prompt(const std::string& s)
 {
 	this->doPrompt(s);
 }
 
 //------------------------------------------------------------------
-bool ArgHandler::validate(const String& s)
+bool ArgHandler::validate(const std::string& s)
 {
-	this->doValidate(s);
+	return this->doValidate(s);
 }
 
 //------------------------------------------------------------------
-void ArgHandler::outputErrMessage(const String& s)
+void ArgHandler::outputErrMessage(const std::string& s)
 {
 	sgConsole.output(s + " is not a valid " + getName());
 }
 
 //------------------------------------------------------------------
-NodeArgHandler::NodeArgHandler(const String& name, 
-		const String& ahName, 
+NodeArgHandler::NodeArgHandler(const std::string& name, 
+		const std::string& ahName, 
 		NodeType nt /*= NT_NORMAL*/):
 	ArgHandler(name)
 	,mNodeType(nt)
@@ -53,7 +53,7 @@ NodeArgHandler::~NodeArgHandler()
 	{
 		delete v;	
 	});
-	mChildren->clear();
+	mChildren.clear();
 }
 
 
@@ -82,21 +82,22 @@ NodeArgHandler* NodeArgHandler::addChildNode(NodeArgHandler* child)
 	mChildren.push_back(child);
 	if(child != this)	 //loop type can add it self to child
 		child->setParent(this);
+	return child;
 }
 
 //------------------------------------------------------------------
-NodeArgHandler* NodeArgHandler::getChildNode(const String& name, bool recursive /*= 1*/)
+NodeArgHandler* NodeArgHandler::getChildNode(const std::string& name, bool recursive /*= 1*/)
 {
 	for (NodeVector::iterator iter = mChildren.begin(); iter != mChildren.end(); ++iter) 
 	{
 		if(isLeaf())
 			continue;
 
-		if(iter->getName() == name)			
+		if((*iter)->getName() == name)			
 			return *iter;
 		else if(recursive)
 		{
-			NodeArgHandler* node = iter->getChildNode(name, 1);
+			NodeArgHandler* node = (*iter)->getChildNode(name, 1);
 			if(node)
 			{
 				return node;
@@ -108,7 +109,7 @@ NodeArgHandler* NodeArgHandler::getChildNode(const String& name, bool recursive 
 }
 
 //------------------------------------------------------------------
-NodeArgHandler* NodeArgHandler::getParentNode(const String& name)
+NodeArgHandler* NodeArgHandler::getAncestorNode(const std::string& name)
 {
 	if(!mParent)
 		return 0;
@@ -116,7 +117,7 @@ NodeArgHandler* NodeArgHandler::getParentNode(const String& name)
 	if(mParent->getName() == name)
 		return mParent;
 	else
-		return mParent->getParentNode(name);
+		return mParent->getAncestorNode(name);
 }
 
 
@@ -127,9 +128,9 @@ NodeArgHandler* NodeArgHandler::endBranch(int branch)
 }
 
 //------------------------------------------------------------------
-void NodeArgHandler::doPrompt(const String& s)
+void NodeArgHandler::doPrompt(const std::string& s)
 {
-	PacAssert(!isRoot && !isLeaf, "It's wrong to prompt with nodetype: root" 
+	PacAssert(!isRoot() && !isLeaf(), "It's wrong to prompt with nodetype: root");
 	//do nothing if it's leaf
 	if(isLeaf())	
 		return;
@@ -138,9 +139,9 @@ void NodeArgHandler::doPrompt(const String& s)
 }
 
 //------------------------------------------------------------------
-bool NodeArgHandler::doValidate(const String& s)
+bool NodeArgHandler::doValidate(const std::string& s)
 {
-	PacAssert(!isRoot() , "It's wrong to validate with nodetype: root" ;
+	PacAssert(!isRoot() , "It's wrong to validate with nodetype: root");
 	//always fail if it's leaf
 	if(isLeaf())	
 		return false;
@@ -150,7 +151,7 @@ bool NodeArgHandler::doValidate(const String& s)
 
 
 //------------------------------------------------------------------
-void NodeArgHandler::setValue(const String& v)
+void NodeArgHandler::setValue(const std::string& v)
 {
 	if(this->isNormal())
 		ArgHandler::setValue(v);
@@ -161,21 +162,14 @@ void NodeArgHandler::setValue(const String& v)
 
 }
 
-//------------------------------------------------------------------
-const String& NodeArgHandler::getValue() const
-{
-	PacAssert(isNormal(), "getValue can not be called with nodetype:" 
-			+ StringUtil::toString(static_cast<int>(mNodeType)));
-	return getArgHandler()->getValue();
-}
 
 //------------------------------------------------------------------
 NodeVector NodeArgHandler::getLeaves()
 {
 	NodeVector nv;
-	if(isLeaf)
+	if(isLeaf())
 	{
-		nv->push_back(this);
+		nv.push_back(this);
 		return nv;
 	}
 	else
@@ -192,19 +186,19 @@ NodeVector NodeArgHandler::getLeaves()
 
 
 //------------------------------------------------------------------
-String NodeArgHandler::getArgPath()
+std::string NodeArgHandler::getArgPath()
 {
-	PacAssert(isLeaf(), "You can not call getArgPath with type :" 
+	PacAssertS(isLeaf(), "You can not call getArgPath with type :" 
 			+ StringUtil::toString(static_cast<int>(mNodeType)));
 
 	StringVector sv;
 	NodeArgHandler* node;
-	while(node = getParent() && !node->isRoot())
+	while( (node = getParent()) && !node->isRoot())
 	{
-		sv->push_back(sv->getValue());
+		sv.push_back(node->getValue());
 	}
 
-	return StringUtil::join();
+	return StringUtil::join(sv);
 
 }
 
@@ -220,10 +214,11 @@ ArgHandler* NodeArgHandler::getArgHandler()
 	return mArgHandler;
 }
 
+
 //------------------------------------------------------------------
 int NodeArgHandler::getBranch()
 {
-	PacAssert(isLeaf(), "You can not call getBranch with type :" 
+	PacAssertS(isLeaf(), "You can not call getBranch with type :" 
 			+ StringUtil::toString(static_cast<int>(mNodeType)));
 	return mBranch;
 }
@@ -231,7 +226,7 @@ int NodeArgHandler::getBranch()
 //------------------------------------------------------------------
 void NodeArgHandler::setBranch(int v)
 {
-	PacAssert(isLeaf(), "You can not call getBranch with type :" 
+	PacAssertS(isLeaf(), "You can not call getBranch with type :" 
 			+ StringUtil::toString(static_cast<int>(mNodeType)));
 	mBranch = v;
 }
@@ -249,19 +244,19 @@ NodeVector::const_iterator NodeArgHandler::endChildIter()const
 }
 
 //------------------------------------------------------------------
-NodeVector::const_iterator NodeArgHandler::beginValueIter()const
+StringVector::const_iterator NodeArgHandler::beginValueIter()const
 {
 	return mValues.begin();
 }
 
 //------------------------------------------------------------------
-NodeVector::const_iterator NodeArgHandler::endValueIter()const
+StringVector::const_iterator NodeArgHandler::endValueIter()const
 {
 	return mValues.end();
 }
 
 //------------------------------------------------------------------
-TreeArgHandler::TreeArgHandler(const String& name)
+TreeArgHandler::TreeArgHandler(const std::string& name)
 	:ArgHandler(name)
 	 ,mMatchedLeaf(0)
 {
@@ -276,24 +271,25 @@ TreeArgHandler::TreeArgHandler(const TreeArgHandler& rhs)
 	mRoot = new NodeArgHandler(*rhs.getRoot());
 	//make sure no duplicate branch exists
 	NodeVector&& leaves = mRoot->getLeaves();
+	NodeVector::iterator iter = std::unique(leaves.begin(), leaves.end());
+	PacAssert(iter == leaves.end(), "duplicate tree branes");
 }
 
 
 //------------------------------------------------------------------
-void TreeArgHandler::doPrompt(const String& s)
+void TreeArgHandler::doPrompt(const std::string& s)
 {
 	//split by space, add extra empty item if s ends with space
 	//split will return 1item StringVector if s is empty, that's ok.
 	StringVector&& sv = StringUtil::split(s);
 	if (!s.empty() && s[s.length()-1] == ' ') 
-
+		sv.push_back("");
+		
 	//init candidate node
 	NodeVector nodes(mRoot->beginChildIter(), mRoot->endChildIter());
 
 	//get candidate branch node vector 
-	StringVector::iterator iterLast2 = sv.end() - 1;
-	
-	std::for_each(sv.begin(), sv.end() - 1, [&](const String& v)->void
+	std::for_each(sv.begin(), sv.end() - 1, [&](const std::string& v)->void
 	{
 		nodes = validAndGetCandidate(nodes, v);
 	});
@@ -303,15 +299,14 @@ void TreeArgHandler::doPrompt(const String& s)
 	{
 		//output head if multiple candidate exists
 		if (!node->isLeaf() && nodes.size() > 1) 
-			sgConsole.output(node->getArgpath());
+			sgConsole.output(node->getArgPath());
 
 		node->prompt(sv[sv.size() - 1]);
 	});
-
 }
 
 //------------------------------------------------------------------
-bool TreeArgHandler::doValidate(const String& s)
+bool TreeArgHandler::doValidate(const std::string& s)
 {
 	//split by space
 	StringVector sv;
@@ -322,13 +317,13 @@ bool TreeArgHandler::doValidate(const String& s)
 	NodeVector nodes(mRoot->beginChildIter(), mRoot->endChildIter());
 
 	//test candidate nodes
-	std::for_each(sv.begin(), sv.end(), [&](const String& v)->void
+	std::for_each(sv.begin(), sv.end(), [&](const std::string& v)->void
 	{
 		nodes = validAndGetCandidate(nodes, v);
 	});
 
 	//filter normal and loop nodes
-	StringVector matchedNodes;
+	NodeVector matchedNodes;
 	std::for_each(nodes.begin(), nodes.end(), [&](NodeArgHandler* node)->void
 	{
 		if(node->isLeaf())
@@ -345,21 +340,21 @@ bool TreeArgHandler::doValidate(const String& s)
 		});
 		return false;
 	}
-	else if(matchedNodes().size() == 0)
+	else if(matchedNodes.size() == 0)
 	{
 		sgConsole.outputLine("illegal args or options");
 		return false;
 	}
 	else
 	{
-		mMatchedLeaf = matchedNodes[0];
+		setMatchedLeaf(matchedNodes[0]);
 		return true;
 	}
 	
 }
 
 //------------------------------------------------------------------
-void TreeArgHandler::outputErrMessage(const String& s)
+void TreeArgHandler::outputErrMessage(const std::string& s)
 {
 	sgConsole.outputLine("Illigal format,  " + getName() + " takes following formats:");
 	NodeVector&& nv = getLeaves();
@@ -370,16 +365,17 @@ void TreeArgHandler::outputErrMessage(const String& s)
 }
 
 //------------------------------------------------------------------
-NodeArgHandler* TreeArgHandler::getNode(const String& name)
+NodeArgHandler* TreeArgHandler::getNode(const std::string& name)
 {
 	NodeArgHandler* node = mRoot->getChildNode(name);
 	if(node == 0)
 		PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
 				name + " not found in tree handler" + getName());
+	return node;
 }
 
 //------------------------------------------------------------------
-const String& TreeArgHandler::getNodeValue(const String& name)
+const std::string& TreeArgHandler::getNodeValue(const std::string& name)
 {
 	return getNode(name)->getValue();
 }
@@ -393,20 +389,26 @@ NodeVector TreeArgHandler::getLeaves()
 //------------------------------------------------------------------
 int TreeArgHandler::getMatchedBranch()
 {
-	PacAssert(mMatchedLeaf, "Havn't found matched leaf for " + getName());
+	PacAssertS(mMatchedLeaf, "Havn't found matched leaf for " + getName());
 	return mMatchedLeaf->getBranch();
 }
 
 //------------------------------------------------------------------
-NodeVector TreeArgHandler::validAndGetCandidate(const NodeVector& nv, const String& s)
+NodeArgHandler* TreeArgHandler::getMatchedNode(const std::string& name)
 {
-	NodeVector nv;
+	return getMatchedLeaf()->getAncestorNode(name);
+}
+
+//------------------------------------------------------------------
+NodeVector TreeArgHandler::validAndGetCandidate(const NodeVector& nv, const std::string& s)
+{
+	NodeVector candidates;
 	std::for_each(nv.begin(), nv.end(), [&](NodeArgHandler* v)->void
 	{
 		if(v->validate(s))	
-			nv.insert(nv.end(), v->beginChildIter(), v->endChildIter());
+			candidates.insert(candidates.end(), v->beginChildIter(), v->endChildIter());
 	});
-	return nv;
+	return candidates;
 }
 
 //------------------------------------------------------------------
@@ -434,7 +436,7 @@ void ArgHandlerLib::registerArgHandler(ArgHandler* handler)
 
 	if (iter != mArgHandlerMap.end()) 
 	{
-		mArgHandlerMap[handler->getCmdName()]	= handler;
+		mArgHandlerMap[handler->getName()] = handler;
 	}
 	else
 	{
@@ -448,15 +450,15 @@ void ArgHandlerLib::init()
 	this->registerArgHandler(new BlankArgHandler());
 	this->registerArgHandler(new BoolArgHandler());
 	//primitive decimal arg handlers 
-	this->registerArgHandler(new PriDecArgHandler<short>("short"));
-	this->registerArgHandler(new PriDecArgHandler<unsigned short>("ushort"));
-	this->registerArgHandler(new PriDecArgHandler<int>("int"));
-	this->registerArgHandler(new PriDecArgHandler<unsigned int>("uint"));
-	this->registerArgHandler(new PriDecArgHandler<long>("long"));
-	this->registerArgHandler(new PriDecArgHandler<unsigned long>("ulong"));
-	this->registerArgHandler(new PriDecArgHandler<Real>("real"));
+	this->registerArgHandler(new PriDeciArgHandler<short>("short"));
+	this->registerArgHandler(new PriDeciArgHandler<unsigned short>("ushort"));
+	this->registerArgHandler(new PriDeciArgHandler<int>("int"));
+	this->registerArgHandler(new PriDeciArgHandler<unsigned int>("uint"));
+	this->registerArgHandler(new PriDeciArgHandler<long>("long"));
+	this->registerArgHandler(new PriDeciArgHandler<unsigned long>("ulong"));
+	this->registerArgHandler(new PriDeciArgHandler<Real>("real"));
 	//normalized real
-	this->registerArgHandler(new PrcDecRangeArgHandler<Real>("nreal",-1.0, 1.0));
+	this->registerArgHandler(new PriDeciRangeArgHandler<Real>("nreal",-1.0, 1.0));
 	//int 2..int5, real2..real5, matrix2, matrix3, matrix4
 	this->registerArgHandler(sgArgLib.createMonoTree("int2","int", 2));
 	this->registerArgHandler(sgArgLib.createMonoTree("int3","int", 3));
@@ -478,37 +480,39 @@ void ArgHandlerLib::init()
 }
 
 //------------------------------------------------------------------
-ArgHandler* ArgHandlerLib::createArgHandler(const String& protoName)
+ArgHandler* ArgHandlerLib::createArgHandler(const std::string& protoName)
 {
-	ArgHandlerMap::iterator iter = mArgHandlerMap->find(protoName);
+	ArgHandlerMap::iterator iter = mArgHandlerMap.find(protoName);
 	if(iter == mArgHandlerMap.end())
 		PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, protoName + " not found in arg libs");
 	return iter->second->clone();
 }
 
 //------------------------------------------------------------------
-NodeArgHandler* ArgHandlerLib::createRootNode(const String& name /*= ""*/)
+NodeArgHandler* ArgHandlerLib::createRootNode(const std::string& name /*= ""*/)
 {
-	return new NodeArgHandler(name, "", NT_ROOT);
+	return new NodeArgHandler(name, "", NodeArgHandler::NT_ROOT);
 }
 
 //------------------------------------------------------------------
-NodeArgHandler* ArgHandlerLib::createLeafNode(int branch, const String& name /*= ""*/)
+NodeArgHandler* ArgHandlerLib::createLeafNode(int branch, const std::string& name /*= ""*/)
 {
-	NodeArgHandler* node = new NodeArgHandler(name, "", NT_LEAF);
+	NodeArgHandler* node = new NodeArgHandler(name, "", NodeArgHandler::NT_LEAF);
 	node->setBranch(branch);
 	return node;
 }
 
 //------------------------------------------------------------------
-TreeArgHandler* ArgHandlerLib::createMonoTree(const String& name, const String& ahName, int num)
+TreeArgHandler* ArgHandlerLib::createMonoTree(const std::string& name, const std::string& ahName, int num)
 {
 	TreeArgHandler* tree = new TreeArgHandler(name);
+
+	NodeArgHandler* node = tree->getRoot();
 	for (int i = 0; i < num; ++i) 
 	{
-		tree->addChildNode(name + StringUtil::toString(i), ahName);
+		node = node->addChildNode(name + StringUtil::toString(i), ahName);
 	}
-	tree->endBranch(0);
+	node->endBranch(0);
 
 	return tree;
 }

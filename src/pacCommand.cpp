@@ -6,7 +6,7 @@ namespace pac
 {
 
 //------------------------------------------------------------------
-Command::Command(const String& name)
+Command::Command(const std::string& name)
 	:mName(name)
 	 ,mArgHandler(0)
 {
@@ -58,17 +58,17 @@ bool Command::execute()
 }
 
 //------------------------------------------------------------------
-void Command::setArgsAndOptions( const String& v)
+void Command::setArgsAndOptions( const std::string& v)
 {
 	//extract options
-	boost::regex reOptions("-(\w+)");
+	boost::regex reOptions("-(\\w+)");
 	//word not after -, plus surround space
-	boost::regex reArgs("\s*[^-]?\<\w+\>\s*"); 
+	boost::regex reArgs("\\s*[^-]?\\<\\w+\\>\\s*"); 
 
 	boost::smatch m;
 	//get options
-	String::const_iterator start  = v.begin();
-	String::const_iterator end = v.end();
+	std::string::const_iterator start  = v.begin();
+	std::string::const_iterator end = v.end();
 	while(boost::regex_search(start, end, m, reOptions))
 	{
 		mOptions += m[1];

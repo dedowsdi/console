@@ -1,10 +1,9 @@
 #ifndef PACUICONSOLE_H
 #define PACUICONSOLE_H 
+#include "pacConsolePreRequisite.h"
 
 namespace pac
 {
-
-#include "pacConsolePreRequisite.h"
 
 class UiConsole 
 {
@@ -28,7 +27,7 @@ public:
 	 * @param type : 1 stdout, 2 stderr 
 	 * @return : *this
 	 */
-	virtual UiConsole& output(const String& output, int type =1);
+	virtual UiConsole& output(const std::string& output, int type =1);
 
 	/**
 	 * End current line 
@@ -43,7 +42,7 @@ public:
 	 * @param type : 1 stdout, 2 stderr 
 	 * @return : *this
 	 */
-	virtual UiConsole& outputLine(const String& output, int type =1);
+	virtual UiConsole& outputLine(const std::string& output, int type =1);
 
 	/**
 	 * Fake stdout and stderr. No Wrap line.
@@ -51,26 +50,26 @@ public:
 	 * @param type : 1 stdout, 2 stderr 
 	 * @return : *this
 	 */
-	virtual UiConsole& outputNoAutoWrap(const String& output, int type = 1) = 0;
+	virtual UiConsole& outputNoAutoWrap(const std::string& output, int type = 1) = 0;
 
 
 	/**
 	 * Complete current typing. 
 	 * @param s : content
 	 */
-	virtual UiConsole& complete(const String& s) = 0;
+	virtual UiConsole& complete(const std::string& s) = 0;
 
 	/**
 	 * Set cwd 
 	 * @param cwd : current working directory
 	 */
-	virtual void updateCwd(const String& cwd) = 0;	
+	virtual void updateCwd(const std::string& cwd) = 0;	
 
 	/**
 	 * Set command line
 	 * @param cmdLine : command line string
 	 */
-	virtual void updateCommandLine(const String& cmdLine = "") = 0;
+	virtual void updateCommandLine(const std::string& cmdLine = "") = 0;
 
 	/**
 	 * line text width, default to 80. You can change it by overloading

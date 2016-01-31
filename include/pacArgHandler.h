@@ -19,30 +19,30 @@ class ArgHandler
 {
 public:
 	
-	ArgHandler(const String& name);
+	ArgHandler(const std::string& name);
 	virtual ~ArgHandler(){}
 
 	/**
 	 * complete, doPrompt for current typing.
 	 */
-	void prompt(const String& s);
+	void prompt(const std::string& s);
 	/**
 	 * check if s is valid. Set mValue to s if it's valid. 
 	 */
-	bool validate(const String& s);
+	bool validate(const std::string& s);
 
-	virtual void doPrompt(const String& s) = 0;
-	virtual bool doValidate(const String& s) = 0;
-	virtual void outputErrMessage(const String& s);
+	virtual void doPrompt(const std::string& s) = 0;
+	virtual bool doValidate(const std::string& s) = 0;
+	virtual void outputErrMessage(const std::string& s);
 
 	/**
 	 * This name will be used at ArgHanderLib to reference this handler.
 	 */
-	const String& getName() const { return mName; }
-	void setName( const String& v){mName = v;}
+	const std::string& getName() const { return mName; }
+	void setName( const std::string& v){mName = v;}
 
-	virtual const String& getValue() const { return mValue; }
-	virtual void setValue( const String& v){mValue = v;}
+	virtual const std::string& getValue() const { return mValue; }
+	virtual void setValue( const std::string& v){mValue = v;}
 
 	/**
 	 * Populate a vector with parameter name and return. 
@@ -55,7 +55,7 @@ public:
 	 * @param name : parameter name
 	 * @return : argument handler name for parameter
 	 */
-	const String& getParameterArgHandler(const String& name) const;
+	const std::string& getParameterArgHandler(const std::string& name) const;
 	
 	virtual ArgHandler* clone() = 0;
 
@@ -63,8 +63,8 @@ public:
 	void setNode( NodeArgHandler* v){mNode = v;}
 
 private:
-	String mName;
-	String mValue;
+	std::string mName;
+	std::string mValue;
 	NodeArgHandler* mNode; //only used when this arghandler is inside a node arghandler
 
 };
@@ -100,7 +100,7 @@ public:
 	 * @param ahName : underlying argument handler name.
 	 * @param NodeType : node type 
 	 */
-	NodeArgHandler(const String& name, const String& ahName, NodeType nt = NT_NORMAL);
+	NodeArgHandler(const std::string& name, const std::string& ahName, NodeType nt = NT_NORMAL);
 	~NodeArgHandler();
 	/**
 	 * deep copy
@@ -114,7 +114,7 @@ public:
 	 */
 	NodeArgHandler* addChildNode(NodeArgHandler* child);
 
-	NodeArgHandler* addChildNode(const String& name, const String& ahName, 
+	NodeArgHandler* addChildNode(const std::string& name, const std::string& ahName, 
 			NodeType = NT_NORMAL);
 
 	/**
@@ -131,16 +131,14 @@ public:
 	 * @param recursive : search child of child until leaf
 	 * @return : child node with specified name 
 	 */
-	NodeArgHandler* getChildNode(const String& name, bool recursive = 1);
+	NodeArgHandler* getChildNode(const std::string& name, bool recursive = 1);
 
 	/**
 	 * Get parent node by name. This is always a recursive operation.
 	 * @param name : parent node name
 	 * @return : ancestor node with specified name 
 	 */
-	NodeArgHandler* getParentNode(const String& name);
-
-
+	NodeArgHandler* getAncestorNode(const std::string& name);
 
 	/**
 	 * Add leaf node, end current buranch.
@@ -150,21 +148,20 @@ public:
 	NodeArgHandler* getParent(){ return mParent; }
 	void setParent( NodeArgHandler* v){mParent = v;}
 	
-	bool isRoot(){ return  mNodeType == NT_ROOT; }
-	bool isNormal(){ return  mNodeType == NT_NORMAL; }
-	bool isLeaf(){ return  mNodeType == NT_LEAF; }
-	bool isLoop(){ return  mNodeType == NT_LOOP; }
+	bool isRoot() const{ return  mNodeType == NT_ROOT; }
+	bool isNormal() const{ return  mNodeType == NT_NORMAL; }
+	bool isLeaf() const{ return  mNodeType == NT_LEAF; }
+	bool isLoop() const{ return  mNodeType == NT_LOOP; }
 	
-	virtual void doPrompt(const String& s);
-	virtual bool doValidate(const String& s);
+	virtual void doPrompt(const std::string& s);
+	virtual bool doValidate(const std::string& s);
 
 	/**
 	 * Set value if it's type of NT_NORMAL, add value if it's NT_LOOP.
 	 * Throw invalid state if it's root or leaf
 	 * @param v : value
 	 */
-	virtual void setValue(const String& v);
-	const String& getValue() const;
+	virtual void setValue(const std::string& v);
 
 	/**
 	 * Recursively get child leaves 
@@ -175,13 +172,14 @@ public:
 	/**
 	 *  Join argument handler type until root. Only for leaf type.
 	 */
-	String getArgPath();
+	std::string getArgPath();
 
 	/**
 	 * Get underlying arg handler. Create it with mAhName if it's 0 
 	 * @return : underlying arg handler
 	 */
 	ArgHandler* getArgHandler(); 
+	ArgHandler* getArgHandler() const; 
 
 	NodeType getNodeType() const { return mNodeType; }
 	void setNodeType( NodeType v){mNodeType = v;}
@@ -192,8 +190,8 @@ public:
 	NodeVector::const_iterator beginChildIter()const;
 	NodeVector::const_iterator endChildIter()const;
 	
-	NodeVector::const_iterator beginValueIter()const;
-	NodeVector::const_iterator endValueIter()const;
+	StringVector::const_iterator beginValueIter()const;
+	StringVector::const_iterator endValueIter()const;
 
 private:
 	NodeType mNodeType;			
@@ -204,9 +202,9 @@ private:
 
 	NodeVector mChildren;		//children
 
-	String mAhName;				//underlying arghandler name
-	String mNodeName;			//node name in current tree
-	String mValue;				//for normal node
+	std::string mAhName;				//underlying arghandler name
+	std::string mNodeName;			//node name in current tree
+	std::string mValue;				//for normal node
 	StringVector mValues;		//for loop node
 };
 
@@ -221,15 +219,15 @@ public:
 	
 	defArgCom(TreeArgHandler)
 
-	TreeArgHandler(const String& name);
+	TreeArgHandler(const std::string& name);
 	/**
 	 * deep copy
 	 */
 	TreeArgHandler(const TreeArgHandler& rhs);
 	
-	virtual void doPrompt(const String& s);
-	virtual bool doValidate(const String& s);
-	virtual void outputErrMessage(const String& s);
+	virtual void doPrompt(const std::string& s);
+	virtual bool doValidate(const std::string& s);
+	virtual void outputErrMessage(const std::string& s);
 
 	NodeArgHandler* getRoot(){ return mRoot; }
 	const NodeArgHandler* getRoot()const { return mRoot; }
@@ -239,14 +237,14 @@ public:
 	 * @param name : child node name
 	 * @return : Child node pointer 
 	 */
-	NodeArgHandler* getNode(const String& name);
+	NodeArgHandler* getNode(const std::string& name);
 
 	/**
 	 * Get string value catched by specified node.
 	 * @param name : node name
 	 * @return : catched value
 	 */
-	const String& getNodeValue(const String& name);
+	const std::string& getNodeValue(const std::string& name);
 
 	/**
 	 * get all leaves 
@@ -259,6 +257,16 @@ public:
 	 */
 	int getMatchedBranch();
 
+	NodeArgHandler* getMatchedLeaf() const { return mMatchedLeaf; }
+	void setMatchedLeaf( NodeArgHandler* v){mMatchedLeaf = v;}
+
+	/**
+	 * Get node at matched branch 
+	 * @param name : node name
+	 * @return : node in matched branch with specified name 
+	 */
+	NodeArgHandler* getMatchedNode(const std::string& name);
+
 private:
 
 	/**
@@ -267,7 +275,7 @@ private:
 	 * @param s : test string
 	 * @return : new candidate nodes 
 	 */
-	NodeVector validAndGetCandidate(const NodeVector& nv, const String& s);
+	NodeVector validAndGetCandidate(const NodeVector& nv, const std::string& s);
 
 
 private:
@@ -311,7 +319,7 @@ class ArgHandlerLib: public Singleton<ArgHandlerLib>
 {
 public:
 
-	typedef std::map<String, ArgHandler*> ArgHandlerMap;
+	typedef std::map<std::string, ArgHandler*> ArgHandlerMap;
 
 	~ArgHandlerLib();
 	/**
@@ -331,10 +339,10 @@ public:
 	 * @param protoName : Previously registered prototype name
 	 * @return : newly created arg handler 
 	 */
-	ArgHandler* createArgHandler(const String& protoName);
+	ArgHandler* createArgHandler(const std::string& protoName);
 
-	NodeArgHandler* createRootNode(const String& name = "");
-	NodeArgHandler* createLeafNode(int branch, const String& name = "");
+	NodeArgHandler* createRootNode(const std::string& name = "");
+	NodeArgHandler* createLeafNode(int branch, const std::string& name = "");
 
 	/**
 	 * Create 1 branch only tree with sequence of the 1 type argument
@@ -345,7 +353,7 @@ public:
 	 * @param num : number of items 
 	 * @return : newly created tree argument handler
 	 */
-	TreeArgHandler* createMonoTree(const String& name, const String& ahName, int num);
+	TreeArgHandler* createMonoTree(const std::string& name, const std::string& ahName, int num);
 
 private:
 	ArgHandlerMap mArgHandlerMap;

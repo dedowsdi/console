@@ -5,47 +5,47 @@ namespace pac {
 ParamDictionaryMap  StringInterface::msDictionary;
 
 //------------------------------------------------------------------
-ParamCmd* ParamDictionary::getParamCmd(const String& name)
+ParamCmd* ParamDictionary::getParamCmd(const std::string& name)
 {
 	ParamMap::iterator iter = mParamMap.find(name);
 	//if(iter == mParamMap.end())
 	//PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
-	//name + " not found ", __FUNCTION__);
+	//name + " not found ");
 
 	return iter == mParamMap.end() ? 0 : iter->second.paramCmd;
 }
 
 //------------------------------------------------------------------
-const ParamCmd* ParamDictionary::getParamCmd(const String& name) const
+const ParamCmd* ParamDictionary::getParamCmd(const std::string& name) const
 {
 	ParamMap::const_iterator iter = mParamMap.find(name);
 	//if(iter == mParamMap.end())
 	//PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
-	//name + " not found ", __FUNCTION__);
+	//name + " not found ");
 
 	return iter == mParamMap.end() ? 0 : iter->second.paramCmd;
 }
 
 //------------------------------------------------------------------
-const String& ParamDictionary::getParamAhName(const String& name) const
+const std::string& ParamDictionary::getParamAhName(const std::string& name) const
 {
 	ParamMap::const_iterator iter = mParamMap.find(name);
 	if(iter == mParamMap.end())
 		PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
-				name + " not found ", __FUNCTION__);
+				name + " not found ");
 
-	return iter->name; 
+	return iter->first; 
 }
 
 //------------------------------------------------------------------
 void ParamDictionary::addParameter(const ParamDef& paramDef)
 {
-	mParamMap[paramDef.name] = paramDef;
+	mParamMap.insert(std::make_pair(paramDef.name, paramDef));
 }
 
 //------------------------------------------------------------------
-void ParamDictionary::addParameter(const String& name, const String& ahName,
-		ParamCmd* paramCmd, const String& desc = "") 
+void ParamDictionary::addParameter(const std::string& name, const std::string& ahName,
+		ParamCmd* paramCmd, const std::string& desc) 
 {
 	ParamDef paramDef(name, ahName, paramCmd, desc);
 	addParameter(paramDef);
@@ -58,7 +58,7 @@ StringVector ParamDictionary::getParameters(void) const
 }
 
 //------------------------------------------------------------------
-bool StringInterface::createParamDict(const String& className)
+bool StringInterface::createParamDict(const std::string& className)
 {
 	ParamDictionaryMap::iterator it = msDictionary.find(className);
 
@@ -77,9 +77,6 @@ bool StringInterface::createParamDict(const String& className)
 	}
 }
 
-StringInterface::msDictionaryMutex;
-ParamDictionaryMap StringInterface::msDictionary;
-
 //-----------------------------------------------------------------------
 StringVector StringInterface::getParameters(void) const
 {
@@ -88,7 +85,7 @@ StringVector StringInterface::getParameters(void) const
 }
 
 //-----------------------------------------------------------------------
-bool StringInterface::setParameter(const String& name, const String& value)
+bool StringInterface::setParameter(const std::string& name, const std::string& value)
 {
 	ParamDictionary* dict = getParamDict();
 
@@ -96,6 +93,22 @@ bool StringInterface::setParameter(const String& name, const String& value)
 	if (cmd)
 	{
 		cmd->doSet(this, value);
+		return true;
+	}
+
+	// Fallback
+	return false;
+}
+
+//------------------------------------------------------------------
+bool StringInterface::setParameter(const std::string& name, ArgHandler* handler)
+{
+	ParamDictionary* dict = getParamDict();
+
+	ParamCmd* cmd = dict->getParamCmd(name);
+	if (cmd)
+	{
+		cmd->doSet(this, handler);
 		return true;
 	}
 
@@ -115,11 +128,18 @@ void StringInterface::setParameterList(const NameValuePairList& paramList)
 }
 
 //------------------------------------------------------------------
-String StringInterface::getParameter(const String& name) const
+std::string StringInterface::getParameter(const std::string& name) const
 {
 	const ParamDictionary* dict = getParamDict();
 	const ParamCmd* cmd = dict->getParamCmd(name);
 	return cmd->doGet(this);
+}
+
+//------------------------------------------------------------------
+const std::string& StringInterface::getValueArgHandler(const std::string& name)
+{
+	const ParamDictionary* dict = getParamDict();
+	return dict->getParamAhName(name);
 }
 
 //------------------------------------------------------------------
@@ -133,10 +153,10 @@ void StringInterface::copyParametersTo(StringInterface* dest) const
 		// Iterate through own parameters
 		ParamMap::const_iterator i;
 
-		for (i = dict->mParams.begin(); 
-				i != dict->mParams.end(); ++i)
+		for (i = dict->mParamMap.begin(); 
+				i != dict->mParamMap.end(); ++i)
 		{
-			dest->setParameter(i->name, getParameter(i->name));
+			dest->setParameter(i->first, getParameter(i->first));
 		}
 	}
 }

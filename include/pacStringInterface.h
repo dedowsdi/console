@@ -14,8 +14,9 @@ namespace pac
 class _PacExport ParamCmd
 {
 public:
-	virtual String doGet(const void* target) const = 0;
-	virtual void doSet(void* target, const String& val) = 0;
+	virtual std::string doGet(const void* target) const = 0;
+	virtual void doSet(void* target, const std::string& val) = 0;
+	virtual void doSet(void* target, ArgHandler* handler) = 0;
 	virtual ~ParamCmd() { }
 };
 
@@ -25,21 +26,21 @@ public:
 class _PacExport ParamDef
 {
 public:
-	String name;	//parameter name
-	String ahName;	//argument handler name
-	String desc;
+	std::string name;	//parameter name
+	std::string ahName;	//argument handler name
+	std::string desc;
 	ParamCmd* paramCmd;	//getset command
 
-	ParamDef(const String& _name, const String& _ahName, 
-			ParamCmd* _paramCmd, const String& _desc = "") : 
+	ParamDef(const std::string& _name, const std::string& _ahName, 
+			ParamCmd* _paramCmd, const std::string& _desc = "") : 
 		name(_name), 
 		ahName(_ahName),
 		desc(_desc),
 		paramCmd(_paramCmd){}
 };
 
-typedef std::map<String, ParamDef> ParamMap;
-//typedef std::vector<String> Params;
+typedef std::map<std::string, ParamDef> ParamMap;
+//typedef std::vector<std::string> Params;
 
 /**
  * Class to hold a dictionary of parameters for a single class.
@@ -56,14 +57,14 @@ protected:
 	 * @param name : parameter name
 	 * @return : parameer command object or 0 if not found. 
 	 */
-	ParamCmd* getParamCmd(const String& name);
+	ParamCmd* getParamCmd(const std::string& name);
 
-	const ParamCmd* getParamCmd(const String& name) const;
+	const ParamCmd* getParamCmd(const std::string& name) const;
 
 	/**
 	 * get parameter argument handler name
 	 */
-	const String& getParamAhName(const String& name) const;
+	const std::string& getParamAhName(const std::string& name) const;
 
 public:
 	ParamDictionary()  {}
@@ -74,8 +75,8 @@ public:
 	 */
 	void addParameter(const ParamDef& paramDef);
 
-	void addParameter(const String& name, const String& ahName,
-			ParamCmd* paramCmd, const String& desc = "") ;
+	void addParameter(const std::string& name, const std::string& ahName,
+			ParamCmd* paramCmd, const std::string& desc = "") ;
 
 	/**
 	 * Retrieve parameter name list.
@@ -84,7 +85,7 @@ public:
 	StringVector getParameters(void) const;
 
 };
-typedef std::map<String, ParamDictionary> ParamDictionaryMap;
+typedef std::map<std::string, ParamDictionary> ParamDictionaryMap;
 
 /**
  * Class defining the common interface which classes can use to present a
@@ -105,7 +106,7 @@ private:
 
 	// Class name for this instance to be used as a lookup (must be
 	// initialised by subclasses)
-	String mParamDictName;
+	std::string mParamDictName;
 	ParamDictionary* mParamDict;
 
 protected:
@@ -118,7 +119,7 @@ protected:
 	 * @param className : unique name for this stringinterface 
 	 * @return : 
 	 */
-	bool createParamDict(const String& className);
+	bool createParamDict(const std::string& className);
 
 public:
 	StringInterface() : mParamDict(NULL) { }
@@ -136,7 +137,15 @@ public:
 	 * @param value : parameter value
 	 * @return : true if success, false fail or parameter not found.
 	 */
-	virtual bool setParameter(const String& name, const String& value);
+	virtual bool setParameter(const std::string& name, const std::string& value);
+	
+	/**
+	 * Use arghandler to
+	 * @param name : parameter name
+	 * @param handler : parameter argument handler 
+	 * @return : true if success, false fail or parameter not found.
+	 */
+	virtual bool setParameter(const std::string& name, ArgHandler* handler);
 
 	/**
 	 * Generic multiple parameter setting method.
@@ -149,7 +158,14 @@ public:
 	 * @param name : parameter name
 	 * @return : parameter value 
 	 */
-	virtual String getParameter(const String& name) const;
+	virtual std::string getParameter(const std::string& name) const;
+
+	/**
+	 * Get param value arg handler  name
+	 * @param name : parameter name
+	 * @return : param value arg handler name 
+	 */
+	const std::string& getValueArgHandler(const std::string& name);
 
 	/**
 	 * Copy parameter values to another stringinterface. These two

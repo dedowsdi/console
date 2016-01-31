@@ -10,6 +10,7 @@
 #include <assert.h>
 
 #include "pacConfig.h"
+#include "pacPlatform.h"
 
 //@TODO, fix manual define PAC_STATIC_LIB
 #define PAC_STATIC_LIB
@@ -32,18 +33,26 @@
 #   	define _PacPrivate
 #	endif
 
+
+#define XSTR(x) STR(x)
+#define STR(x) #x
+#define VAR_NAME_VALUE(var) #var "=" XSTR(var)
+
+//#pragma message(VAR_NAME_VALUE(PAC_PLATFORM))
+//#pragma message(VAR_NAME_VALUE(PAC_COMPILER))
+
+typedef std::map<std::string, std::string> StrStrMap;
+typedef std::vector<std::string> StringVector;
+typedef std::vector<int> IntVector;
+typedef std::vector<float> FloatVector;
+typedef std::set<std::string> StringSet;
+typedef std::stringstream StringStream;
+typedef std::map<std::string, std::string> NameValuePairList;
+
 namespace pac
 {
 
 	typedef float Real;
-	typedef std::string String; 
-	typedef std::map<String, String> StrStrMap;
-	typedef std::vector<String> StringVector;
-	typedef std::vector<int> IntVector;
-	typedef std::vector<float> FloatVector;
-	typedef std::set<std::string> StringSet;
-	typedef std::stringstream StringStream;
-	typedef std::map<String, String> NameValuePairList;
 
 	class Console;
 	class Command;

@@ -15,7 +15,7 @@ typedef std::vector<AbsDir*> AbsDirs;
 class AbsDir 
 {
 public:
-	AbsDir(const String& name, StringInterface* si);
+	AbsDir(const std::string& name, StringInterface* si);
 	virtual ~AbsDir();
 
 	/**
@@ -23,13 +23,26 @@ public:
 	 * @param name : parameter name
 	 * @return : parameter value
 	 */
-	String getParameter(const String& name);
+	std::string getParameter(const std::string& name);
+
+	/**
+	 * Get parameter value argument handler name
+	 * @param name : parameter name
+	 * @return : param value argument handler name 
+	 */
+	const std::string& getValueArgHandler(const std::string& name);
+
+	/**
+	 * Get vector of parameter names 
+	 * @return : vector of parameter names
+	 */
+	StringVector getParameters() const;
 	/**
 	 * Set parameter value. This is only used for the most simple case.
 	 * @param name : parameter name
 	 * @param value : parameter value
 	 */
-	bool setParameter(const String& name, const String& value);
+	bool setParameter(const std::string& name, const std::string& value);
 
 	/**
 	 * Set parameter value. You can get specific value components from
@@ -38,10 +51,10 @@ public:
 	 * @param name : parameter name
 	 * @param valueHander : parameter value handler
 	 */
-	void setParameter(const String& name, ArgHandler* valueHandler);
+	bool setParameter(const std::string& name, ArgHandler* valueHandler);
 
-	const String& getName() const { return mName; }
-	void setName( const String& v){mName = v;}
+	const std::string& getName() const { return mName; }
+	void setName( const std::string& v){mName = v;}
 
 	AbsDir* getParent() const { return mParent; }
 	void setParent( AbsDir* v){mParent = v;}
@@ -65,7 +78,7 @@ public:
 	 * Get full path until root 
 	 * @return : full path
 	 */
-	String getFullPath();
+	std::string getFullPath();
 	
 	/**
 	 * Throw if i overflow. 
@@ -79,14 +92,14 @@ public:
 	 * @param name : child dir name
 	 * @return : 0 or child dir 
 	 */
-	AbsDir* getChildByName(const String& name);
+	AbsDir* getChildByName(const std::string& name);
 
 	AbsDirs::iterator beginChildIter();
 	AbsDirs::iterator endChildIter();
 
 protected:
 
-	String mName;
+	std::string mName;
 	AbsDir* mParent;
 	StringInterface* mStringInterface;
 	AbsDirs mChildren;
@@ -138,21 +151,21 @@ public:
 	 * @param curDir : current dir
 	 * @return : target dir
 	 */
-	static AbsDir* findPath(const String& path, AbsDir* curDir);
+	static AbsDir* findPath(const std::string& path, AbsDir* curDir);
 
 	/**
 	 * find dir by absolute path
 	 * @param path : absolute path
 	 * @return : target dir or 0
 	 */
-	static AbsDir* findAbsolutePath(const String& path);
+	static AbsDir* findAbsolutePath(const std::string& path);
 	/**
 	 * find dir by relative path
 	 * @param &path : relative path
 	 * @param curDir : current working dir
 	 * @return : target dir or 0
 	 */
-	static AbsDir* findRelativePath(const String &path, AbsDir* curDir);
+	static AbsDir* findRelativePath(const std::string &path, AbsDir* curDir);
 
 };
 

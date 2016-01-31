@@ -13,32 +13,33 @@ namespace pac
  * @remark : should work from unsigned short until long long 
  */
 template<class T>
-class _PacExport PriDecArgHandler()
+class _PacExport PriDeciArgHandler : public ArgHandler
 {
-	defArgCom(IntArgHandler)
+public:
+	defArgCom(PriDeciArgHandler)
 
-	PriDecArgHandler(const String& name):
+	PriDeciArgHandler(const std::string& name):
 		ArgHandler(name){}
 	
-	virtual void doPrompt(const String& s)
+	virtual void doPrompt(const std::string& s)
 	{
 		sgConsole.outputLine("@@" + getName() + "@@");
 	}
-	virtual bool doValidate(const String& s)
+	virtual bool doValidate(const std::string& s)
 	{
 		return StringUtil::isPrimitiveDecimal<T>(s);
 	}
-}
+};
 
 
 /**
  * Decimal in range. Used to build normalized Real (-1.0 to 1.0)
  */
 template<class T>
-class _PacExport PriDecRangeArgHandler :public ArgHandler
+class _PacExport PriDeciRangeArgHandler :public ArgHandler
 {
 public:
-	defArgCom(PriDecRangeArgHandler)
+	defArgCom(PriDeciRangeArgHandler)
 	/**
 	 * ctor
 	 * @param name : arg handler name 
@@ -47,27 +48,29 @@ public:
 	 * @param equal : use <= >= or < > 
 	 * @return : 
 	 */
-	PriDecRangeArgHandler(name, T min, T max, bool equal = true):
+	PriDeciRangeArgHandler(const std::string& name, T min, T max, bool equal = true):
 		ArgHandler(name)
 		,mMin(min)
 		,mMax(max)
-		,mEqual(equal)
+		,mEqual(equal){}
 
-	virtual void doPrompt(const String& s)
+	virtual void doPrompt(const std::string& s)
 	{
-		$sgConsole.outputLine("@@" + getName() + " between " 
+		sgConsole.outputLine("@@" + getName() + " between " 
 				+ StringUtil::toString(mMin) + "and " + StringUtil::toString(mMax) + "@@");
 	}
-	virtual bool doValidate(const String& s)
+	virtual bool doValidate(const std::string& s)
 	{
 		if(StringUtil::isPrimitiveDecimal<T>(s))
 		{
 			T t = StringUtil::parsePrimitiveDecimal<T>(s);
 			if(mEqual)
-				return t <= mMax && t >= mMax:
+				return t <= mMax && t >= mMax;
 			else
 				return t < mMax && t > mMax;
 		}
+
+		return false;
 	}
 
 private:
@@ -84,8 +87,8 @@ public:
 	defArgCom(BoolArgHandler)
 	BoolArgHandler();
 
-	virtual void doPrompt(const String& s);
-	virtual bool doValidate(const String& s);
+	virtual void doPrompt(const std::string& s);
+	virtual bool doValidate(const std::string& s);
 };
 
 /**
@@ -95,30 +98,30 @@ class _PacExport StringArgHandler :public ArgHandler
 {
 public:
 	defArgCom(StringArgHandler)
-	StringArgHandler(const String& name);
+	StringArgHandler(const std::string& name);
 
 	/**
 	 * Single string handler
 	 * @param text: item text
 	 */
-	StringArgHandler(const String& name, const String& text);
+	StringArgHandler(const std::string& name, const std::string& text);
 
-	StringArgHandler& insert(const String& s);
+	StringArgHandler& insert(const std::string& s);
 	template<class _InputIterator>
 	void insert(_InputIterator first, _InputIterator last)
 	{
-		mStrings.insert(mStrings.end(), first, last);
+		mStrings.insert(first, last);
 	}
 
 	size_t size(){return mStrings.size();}
-	void remove(const String& s);
+	void remove(const std::string& s);
 
-	virtual void doPrompt(const String& s);
-	virtual bool doValidate(const String& s);
+	virtual void doPrompt(const std::string& s);
+	virtual bool doValidate(const std::string& s);
 
 private:
 
-	bool exist(const String& value);
+	bool exist(const std::string& value);
 
 protected:
 	StringSet mStrings;
@@ -134,8 +137,8 @@ public:
 	defArgCom(BlankArgHandler)
 	BlankArgHandler();
 
-	virtual void doPrompt(const String& s);
-	virtual bool doValidate(const String& s);
+	virtual void doPrompt(const std::string& s);
+	virtual bool doValidate(const std::string& s);
 };
 
 /**
@@ -148,8 +151,8 @@ public:
 	PathArgHandler();
 	PathArgHandler(const PathArgHandler& rhs);
 
-	virtual void doPrompt(const String& s);
-	virtual bool doValidate(const String& s);
+	virtual void doPrompt(const std::string& s);
+	virtual bool doValidate(const std::string& s);
 
 	AbsDir* getDir() const { return mDir; }
 	void setDir( AbsDir* v){mDir = v;}
@@ -201,8 +204,8 @@ public:
 	ArgHandler* getHandler() const { return mHandler; }
 	void setHandler( ArgHandler* v){mHandler = v;}
 
-	virtual void doPrompt(const String& s);
-	virtual bool doValidate(const String& s);
+	virtual void doPrompt(const std::string& s);
+	virtual bool doValidate(const std::string& s);
 
 private:
 	ArgHandler* mHandler;

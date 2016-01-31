@@ -7,7 +7,7 @@ namespace pac
 {
 
 //------------------------------------------------------------------
-AbsDir::AbsDir(const String& name, StringInterface* si)
+AbsDir::AbsDir(const std::string& name, StringInterface* si)
 	:mName(name)
 	 ,mStringInterface(si)
 {
@@ -24,23 +24,35 @@ AbsDir::~AbsDir()
 }
 
 //------------------------------------------------------------------
-String AbsDir::getParameter(const String& name)
+std::string AbsDir::getParameter(const std::string& name)
 {
-	PacAssert(mStringInterface != 0, "0 string interface at " + getName());
+	PacAssertS(mStringInterface != 0, "0 string interface at " + getName());
 	return mStringInterface->getParameter(name);
 }
 
 //------------------------------------------------------------------
-bool AbsDir::setParameter(const String& name, const String& value)
+const std::string& AbsDir::getValueArgHandler(const std::string& name)
 {
-	PacAssert(mStringInterface != 0, "0 string interface at " + getName());
+	return mStringInterface->getValueArgHandler(name);
+}
+
+//------------------------------------------------------------------
+StringVector AbsDir::getParameters() const
+{
+	return mStringInterface->getParameters();
+}
+
+//------------------------------------------------------------------
+bool AbsDir::setParameter(const std::string& name, const std::string& value)
+{
+	PacAssertS(mStringInterface != 0, "0 string interface at " + getName());
 	return mStringInterface->setParameter(name, value);
 }
 
 //------------------------------------------------------------------
-void AbsDir::setParameter(const String& name, ArgHandler* valueHandler)
+bool AbsDir::setParameter(const std::string& name, ArgHandler* valueHandler)
 {
-	PacAssert(mStringInterface != 0, "0 string interface at " + getName());
+	PacAssertS(mStringInterface != 0, "0 string interface at " + getName());
 	return mStringInterface->setParameter(name, valueHandler);
 }
 
@@ -48,10 +60,10 @@ void AbsDir::setParameter(const String& name, ArgHandler* valueHandler)
 void AbsDir::addChild(AbsDir* dir)
 {
 	//check if exists
-	Dirs::iterator iter = std::find_if(mChildren.begin(), mChildren.end());
+	AbsDirs::iterator iter = std::find(mChildren.begin(), mChildren.end(), dir);
 	if(iter != mChildren.end())
 		PAC_EXCEPT(Exception::ERR_DUPLICATE_ITEM,
-				dri->getName() + " already exists", __FUNCTION__);
+				dir->getName() + " already exists");
 	
 	mChildren.push_back(dir);
 	dir->setParent(this);
@@ -64,12 +76,12 @@ AbsDir* AbsDir::enterPath()
 }
 
 //------------------------------------------------------------------
-String AbsDir::getFullPath()
+std::string AbsDir::getFullPath()
 {
 	if(this->getName() == pac::delim)	
-		return this->geTname();
+		return this->getName();
 	else
-		return this->getParent()->getFullPath() + pac::delim +  this->getName();
+		return this->getParent()->getFullPath() + pac::delim + this->getName();
 }
 
 //------------------------------------------------------------------
@@ -77,15 +89,15 @@ AbsDir* AbsDir::getChildAt(size_t i)
 {
 	if(i >= mChildren.size())
 		PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, 
-				"overflow : " + StringUtil::toString(i), __FUNCTION__);
+				"overflow : " + StringUtil::toString(i));
 	return mChildren[i];
 }
 
 //------------------------------------------------------------------
-AbsDir* AbsDir::getChildByName(const String& name)
+AbsDir* AbsDir::getChildByName(const std::string& name)
 {
-	Dirs::iterator iter = std::find_if(mChildren.begin(), mChildren.end(), 
-			[&](Dirs::value_type& v)->bool
+	AbsDirs::iterator iter = std::find_if(mChildren.begin(), mChildren.end(), 
+			[&](AbsDirs::value_type& v)->bool
 			{
 			return v->getName() == name;
 			});
@@ -136,7 +148,7 @@ AbsDir* DotDotDir::enterPath()
 }
 
 //------------------------------------------------------------------
-AbsDir* AbsDirUtil::findPath(const String& path, AbsDir* curDir)
+AbsDir* AbsDirUtil::findPath(const std::string& path, AbsDir* curDir)
 {
 	if(path.empty())
 		return curDir;
@@ -144,13 +156,11 @@ AbsDir* AbsDirUtil::findPath(const String& path, AbsDir* curDir)
 	if(StringUtil::isAbsolutePath(path))	
 		return findAbsolutePath(path);
 	else
-		return findRelativePath(path, curDir)
-	
-	
+		return findRelativePath(path, curDir);
 }
 
 //------------------------------------------------------------------
-AbsDir* AbsDirUtil::findAbsolutePath(const String& path)
+AbsDir* AbsDirUtil::findAbsolutePath(const std::string& path)
 {
 	if(path == pac::delim)
 		return &sgDirRoot;
@@ -159,7 +169,7 @@ AbsDir* AbsDirUtil::findAbsolutePath(const String& path)
 }
 
 //------------------------------------------------------------------
-AbsDir* AbsDirUtil::findRelativePath(const String &path, AbsDir* curDir)
+AbsDir* AbsDirUtil::findRelativePath(const std::string &path, AbsDir* curDir)
 {
 	StringVector sv = StringUtil::split(path, pac::delim);
 

@@ -1,6 +1,7 @@
 #include "pacStable.h"
 #include "pacIntrinsicArgHandler.h"
 #include "pacAbsDir.h"
+#include "pacConsole.h"
 
 namespace pac
 {
@@ -12,25 +13,19 @@ BoolArgHandler::BoolArgHandler():
 }
 
 //------------------------------------------------------------------
-void BoolArgHandler::doPrompt(const String& s)
+void BoolArgHandler::doPrompt(const std::string& s)
 {
 	sgConsole.output("@@bool@@");
 }
 
 //------------------------------------------------------------------
-bool BoolArgHandler::doValidate(const String& s)
+bool BoolArgHandler::doValidate(const std::string& s)
 {
 	return s == "true" || s == "false";
 }
 
 //------------------------------------------------------------------
-StringArgHandler::StringArgHandler(const String& name):
-	ArgHandler(name)
-{
-}
-
-//------------------------------------------------------------------
-StringArgHandler::StringArgHandler(const String& name, const String& text):
+StringArgHandler::StringArgHandler(const std::string& name, const std::string& text):
 	ArgHandler(name)
 {
 	mStrings.insert(text);
@@ -38,34 +33,29 @@ StringArgHandler::StringArgHandler(const String& name, const String& text):
 
 
 //------------------------------------------------------------------
-StringArgHandler::StringArgHandler():
-	ArgHandler("unnamed_string")
+StringArgHandler::StringArgHandler(const std::string& name):
+	ArgHandler(name)
 {
 }
 
 //------------------------------------------------------------------
-StringArgHandler& StringArgHandler::insert(const String& s)
+StringArgHandler& StringArgHandler::insert(const std::string& s)
 {
 	mStrings.insert(s);
+	return *this;
 }
 
 //------------------------------------------------------------------
-void StringArgHandler::remove(const String& s)
+void StringArgHandler::remove(const std::string& s)
 {
 	mStrings.erase(s);
 }
 
 //------------------------------------------------------------------
-const String& StringArgHandler::get(StringVector::size_type i)
-{
-	return mStrings[i];
-}
-
-//------------------------------------------------------------------
-void StringArgHandler::doPrompt(const String& s)
+void StringArgHandler::doPrompt(const std::string& s)
 {
 	RaiiConsoleBuffer();
-	std::for_each(mStrings.begin(), mStrings.end(), [&](const String& v)->void
+	std::for_each(mStrings.begin(), mStrings.end(), [&](const std::string& v)->void
 	{
 		if(StringUtil::startsWith(s, v))
 		{
@@ -75,13 +65,13 @@ void StringArgHandler::doPrompt(const String& s)
 }
 
 //------------------------------------------------------------------
-bool StringArgHandler::doValidate(const String& s)
+bool StringArgHandler::doValidate(const std::string& s)
 {
-	return exists(s);
+	return exist(s);
 }
 
 //------------------------------------------------------------------
-bool StringArgHandler::exist(const String& value)
+bool StringArgHandler::exist(const std::string& value)
 {
 	return mStrings.find(value) != mStrings.end();
 }
@@ -94,13 +84,13 @@ BlankArgHandler::BlankArgHandler()
 }
 
 //------------------------------------------------------------------
-void BlankArgHandler::doPrompt(const String& s)
+void BlankArgHandler::doPrompt(const std::string& s)
 {
-	"@@blank@@"
+	sgConsole.outputLine("@@blank@@");
 }
 
 //------------------------------------------------------------------
-bool BlankArgHandler::doValidate(const String& s)
+bool BlankArgHandler::doValidate(const std::string& s)
 {
 	return s.empty();
 }
@@ -115,24 +105,24 @@ PathArgHandler::PathArgHandler()
 
 //------------------------------------------------------------------
 PathArgHandler::PathArgHandler(const PathArgHandler& rhs):
-	ArgHandler(rhs->getName())
+	ArgHandler(rhs.getName())
 {
 	setDir(sgConsole.getDirectory());
 }
 
 //------------------------------------------------------------------
-void PathArgHandler::doPrompt(const String& s)
+void PathArgHandler::doPrompt(const std::string& s)
 {
 	RaiiConsoleBuffer();
 
-	const String&& head = StringUtil::getHead(s);
-	const String&& tail = StringUtil::getTail(s);
+	const std::string&& head = StringUtil::getHead(s);
+	const std::string&& tail = StringUtil::getTail(s);
 
-	AbsDir* headDir = AbsDirUtil::findPath(mDir, head);
+	AbsDir* headDir = AbsDirUtil::findPath(head, mDir);
 
 	std::for_each(headDir->beginChildIter(), headDir->endChildIter() , [&](AbsDir* v)->void
 	{
-		if (StringUtil::startsWith(v->getName(), s)) 
+		if (StringUtil::startsWith(v->getName(), tail)) 
 		{
 			sgConsole.output(v->getName());
 		}	
@@ -140,33 +130,33 @@ void PathArgHandler::doPrompt(const String& s)
 }
 
 //------------------------------------------------------------------
-bool PathArgHandler::doValidate(const String& s)
+bool PathArgHandler::doValidate(const std::string& s)
 {
-	return findPath(mDir, s) != 0;
+	return AbsDirUtil::findPath(s, mDir) != 0;
 }
 
 
 //------------------------------------------------------------------
 CmdArgHandler::CmdArgHandler():
-	StringHandler("cmd")
+	StringArgHandler("cmd")
 {
 	std::for_each(sgConsole.beginCmdMapIterator(), sgConsole.endCmdMapIterator(), 
-	[&](const String& s)->void
+	[&](const Console::CmdMap::value_type& v)->void
 	{
-		mStrings.insert(s);
+		mStrings.insert(v.first);
 	});
 }
 
 //------------------------------------------------------------------
 ParameterArgHandler::ParameterArgHandler():
-	ArgHandler("parameter")
+	StringArgHandler("parameter")
 	,mDir(0)
 {
 }
 
 //------------------------------------------------------------------
 ParameterArgHandler::ParameterArgHandler(const ParameterArgHandler& rhs):
-	ArgHandler(rhs->getName())
+	StringArgHandler(rhs.getName())
 {
 	setDir(sgConsole.getDirectory()); 
 	StringVector&& sv = mDir->getParameters();
@@ -176,45 +166,45 @@ ParameterArgHandler::ParameterArgHandler(const ParameterArgHandler& rhs):
 //------------------------------------------------------------------
 ValueArgHandler::ValueArgHandler():
 	ArgHandler("value")
-	,mDir(0)
 	,mHandler(0)
+	,mDir(0)
 {
 }
 
 //------------------------------------------------------------------
 ValueArgHandler::ValueArgHandler(const ValueArgHandler& rhs):
-	ArgHandler(rhs->getName())
-	,mDir(0)
+	ArgHandler(rhs.getName())
 	,mHandler(0)
+	,mDir(0)
 {
 	setDir(sgConsole.getDirectory()); 
 	NodeArgHandler* valueNode = this->getNode();	
-	PacAssert(valueNode, Exception::ERR_INVALID_STATE, 
-			"Do you forget to hook node with arg handler?", __FUNCTION__)
+	if(!valueNode)
+		PAC_EXCEPT(Exception::ERR_INVALID_STATE, 
+				"Do you forget to hook node with arg handler?");
 	
-	NodeArgHandler* paramNode = valueNode->getParentNode("parameter");
-	PacAssert(paramNode, Exception::ERR_INVALID_STATE, 
-			"can no find paramNode", __FUNCTION__)
+	NodeArgHandler* paramNode = valueNode->getAncestorNode("parameter");
+	if(!paramNode)
+		PAC_EXCEPT(Exception::ERR_INVALID_STATE, 
+				"can no find paramNode");
 
-	const String& param = paramNode->getValue();
-	const String& ahName = mDir->getValueArgHandler(param);
+	const std::string& param = paramNode->getValue();
+	const std::string& ahName = mDir->getValueArgHandler(param);
 
 	setHandler(sgArgLib.createArgHandler(ahName));
 }
 
 //------------------------------------------------------------------
-void ValueArgHandler::doPrompt(const String& s)
+void ValueArgHandler::doPrompt(const std::string& s)
 {
-	PacAssert(mHandler, Exception::ERR_INVALID_STATE,
-			"0 handler in value handler", __FUNCTION__)
+	PacAssert(mHandler, "0 handler in value handler");
 	return mHandler->prompt(s);
 }
 
 //------------------------------------------------------------------
-bool ValueArgHandler::doValidate(const String& s)
+bool ValueArgHandler::doValidate(const std::string& s)
 {
-	PacAssert(mHandler, Exception::ERR_INVALID_STATE,
-			"0 handler in value handler", __FUNCTION__)
+	PacAssert(mHandler, "0 handler in value handler");
 	return mHandler->validate(s);
 }
 

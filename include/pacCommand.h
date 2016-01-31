@@ -19,7 +19,7 @@ public:
 	 * ctor. 
 	 * @param name : ctor
 	 */
-	Command(const String& name);
+	Command(const std::string& name);
 
 	/**
 	 * copy ctor, it doesn't copy mArgHandler.
@@ -46,15 +46,15 @@ public:
 
 	virtual Command* clone()=0;
 	
-	const String& getName() const { return mName; }
-	void setName( const String& v){mName = v;}
+	const std::string& getName() const { return mName; }
+	void setName( const std::string& v){mName = v;}
 
-	String getCmdLine(){ return mCmdLine; }
+	std::string getCmdLine(){ return mCmdLine; }
 	/**
 	 * Parse args and options 
 	 * @param v : args and options string 
 	 */
-	void setArgsAndOptions( const String& v);
+	void setArgsAndOptions( const std::string& v);
 
 	/**
 	 * Get arg handler from arglib if it's 0. 
@@ -62,8 +62,8 @@ public:
 	 */
 	ArgHandler* getArgHandler();
 
-	const String& getAhName() const { return mAhName; }
-	void setAhName( const String& v){mAhName = v;}
+	const std::string& getAhName() const { return mAhName; }
+	void setAhName( const std::string& v){mAhName = v;}
 
 private:
 	/**
@@ -78,7 +78,7 @@ protected:
 	 * Get default command argument handler name. It's "cmd_"+getName()
 	 * @return : default command argument handler name
 	 */
-	String getDefAhName(){ return "cmd_" + getName(); }
+	std::string getDefAhName(){ return "cmd_" + getName(); }
 
 private:
 	/**
@@ -88,11 +88,11 @@ private:
 	virtual void buildArgHandler(){};
 
 protected:
-	String mName;
-	String mCmdLine;
-	String mOptions;
-	String mArgs;
-	String mAhName;		//argument ahandler name, it's cmd_{mName} by default
+	std::string mName;
+	std::string mCmdLine;
+	std::string mOptions;
+	std::string mArgs;
+	std::string mAhName;		//argument ahandler name, it's cmd_{mName} by default
 
 	ArgHandler* mArgHandler;
 };

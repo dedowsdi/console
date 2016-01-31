@@ -3,16 +3,19 @@
 #include "pacCommand.h"
 #include "pacArgHandler.h"
 #include "pacIntrinsicCmd.h"
+#include "pacUiConsole.h"
+#include "pacAbsDir.h"
 #include <boost/regex.hpp>
 
 namespace pac
 {
 
-Console* Singleton<Console>::msSingleton = 0;
+template<>Console* Singleton<Console>::msSingleton = 0;
 
 //------------------------------------------------------------------
-Console::Console(UiConsole* ui)
-	:mUi(ui)
+Console::Console(UiConsole* ui) :
+	mDir(0)
+	,mUi(ui)
 {
 }
 
@@ -46,7 +49,7 @@ void Console::init()
 }
 
 //------------------------------------------------------------------
-bool Console::execute(const String& cmdLine)
+bool Console::execute(const std::string& cmdLine)
 {
 	fakeOutputDirAndCmd(cmdLine);
 	addCmdLineToHistory(cmdLine);
@@ -54,7 +57,8 @@ bool Console::execute(const String& cmdLine)
 	//clear cmd line
 	mUi->updateCommandLine();
 
-	boost::regex reCmd2("^\s*(\w+)\s*(.*)$");
+	boost::regex reCmd2("^\\s*(\\w+)\\s*(.*)$");
+	boost::smatch m;
 	if(boost::regex_match(cmdLine, m, reCmd2))
 	{
 		Command* cmd = this->createCommand(m[1]);
@@ -68,11 +72,11 @@ bool Console::execute(const String& cmdLine)
 }
 
 //------------------------------------------------------------------
-void Console::prompt(const String& cmdLine)
+void Console::prompt(const std::string& cmdLine)
 {
-	fakeOutputDirAndCmd();
+	fakeOutputDirAndCmd(cmdLine);
 
-	boost::regex reCmd("^\s*(\w*)$");
+	boost::regex reCmd("^\\s*(\\w*)$");
 	boost::smatch m;
 	if(boost::regex_match(cmdLine, m, reCmd))	
 	{
@@ -83,7 +87,7 @@ void Console::prompt(const String& cmdLine)
 	{
 		//prompt argument
 		//extract command name, args and options
-		boost::regex reCmd2("^\s*(\w+)\s*(.*)$");
+		boost::regex reCmd2("^\\s*(\\w+)\\s*(.*)$");
 		if(boost::regex_match(cmdLine, m, reCmd2))
 		{
 			Command* cmd = this->createCommand(m[1]);
@@ -96,13 +100,13 @@ void Console::prompt(const String& cmdLine)
 		else
 		{
 			PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalid state caused by command line :"
-					+ cmdLine, __FUNCTION__);
+					+ cmdLine);
 		}
 	}
 }
 
 //------------------------------------------------------------------
-Console& Console::output(const String& s, int type /*= 1*/)
+Console& Console::output(const std::string& s, int type /*= 1*/)
 {
 	if(type == 1 && mIsBuffering)
 		this->appendBuffer(s);
@@ -113,23 +117,24 @@ Console& Console::output(const String& s, int type /*= 1*/)
 }
 
 //------------------------------------------------------------------
-Console& Console::outputLine(const String& s, int type /*= 1*/)
+Console& Console::outputLine(const std::string& s, int type /*= 1*/)
 {
-	mUi->outputLine(s, type)
+	mUi->outputLine(s, type);
 	return *this;
 }
 
 //------------------------------------------------------------------
-Console& Console::endl(int type = 1)
+Console& Console::endl(int type)
 {
 	mUi->endl(type);
 	return *this;
 }
 
 //------------------------------------------------------------------
-Console& Console::complete(const String& s)
+Console& Console::complete(const std::string& s)
 {
 	mUi->complete(s);
+	return *this;
 }
 
 //------------------------------------------------------------------
@@ -150,11 +155,11 @@ void Console::registerCommand(Command* cmdProto)
 
 	if (iter != mCmdMap.end()) 
 	{
-		mCmdMap[cmdProto->getCmdName()]	= cmdProto;
+		mCmdMap[cmdProto->getName()]	= cmdProto;
 	}
 	else
 	{
-		PAC_EXCEPT(Exception::ERR_DUPLICATE_ITEM, cmdproto->getName() + " already registed!");
+		PAC_EXCEPT(Exception::ERR_DUPLICATE_ITEM, cmdProto->getName() + " already registed!");
 	}
 }
 
@@ -173,26 +178,25 @@ void Console::endBuffer()
 	PacAssert(mIsBuffering, "It'w wrong to end buffer without start it");
 	mIsBuffering = false;
 
-	Real textwidth = static_cast<Real>(()mUi->getTextWidth());
-
+	Real textwidth = static_cast<Real>(mUi->getTextWidth());
 	//sort buffer
 	std::sort(mBuffer.begin(), mBuffer.end());
-	int numCol, totalColWidth;
+	size_t numCol, totalColWidth;
 	IntVector colWidthes;
 	getColumnNumber(numCol, totalColWidth, colWidthes);
 
 	//determine spacing
-	int spacing = (textwidth  - totalColWidth) / (numCol - 1);
-	int colSize = static_cast<int>(mBuffer.size() / numCol);
+	size_t spacing = (textwidth  - totalColWidth) / (numCol - 1);
+	size_t colSize = static_cast<int>(mBuffer.size() / numCol);
 
 	//output horizental. Becareful, item seq in mBuffers is vertical.
-	for (int i = 0; i < mBuffer.size(); ++i) 
+	for (size_t i = 0; i < mBuffer.size(); ++i) 
 	{
-		int col = i % numCol;	
-		int row = i / numCol;
-		int colWidth = colWidthes[col] + spacing;
-		int itemIndex = col * colSize  + row; 
-		mUi->outputNoAutoWrap(StringUtil::toFixedLength(mBuffer[itemIndex]), colWidth);
+		size_t col = i % numCol;	
+		size_t row = i / numCol;
+		size_t colWidth = colWidthes[col] + spacing;
+		size_t itemIndex = col * colSize  + row; 
+		mUi->outputNoAutoWrap(StringUtil::toFixedLength(mBuffer[itemIndex], colWidth));
 		//line break at last column
 		if(col == numCol - 1)	
 			mUi->endl();
@@ -209,29 +213,29 @@ void Console::rollCommand(bool backWard /*= true*/)
 
 	if(backWard)
 	{
-		this->updateCommand(mCmdHistory.previous());
+		mUi->updateCommandLine(mCmdHistory.previous());
 	}
 	else
 	{
 		if(mCmdHistory.isRolling())
-		this->updateCommand(mCmdHistory.next());
+		mUi->updateCommandLine(mCmdHistory.next());
 	}
 }
 
 //------------------------------------------------------------------
-CmdMap::const_iterator Console::beginCmdMapIterator() const
+Console::CmdMap::const_iterator Console::beginCmdMapIterator() const
 {
 	return mCmdMap.begin();
 }
 
 //------------------------------------------------------------------
-CmdMap::const_iterator Console::endCmdMapIterator() const
+Console::CmdMap::const_iterator Console::endCmdMapIterator() const
 {
 	return mCmdMap.end();
 }
 
 //------------------------------------------------------------------
-Command* Console::createCommand(const String& cmdName)
+Command* Console::createCommand(const std::string& cmdName)
 {
 	CmdMap::iterator iter = mCmdMap.find(cmdName);
 	if(iter != mCmdMap.end())
@@ -240,13 +244,13 @@ Command* Console::createCommand(const String& cmdName)
 	}
 	else
 	{
-		PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, cmdName + " not found", __FUNCTION__);
+		PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, cmdName + " not found");
 	}
 }
 
 
 //------------------------------------------------------------------
-void Console::promptCommandName(const String& cmdName)
+void Console::promptCommandName(const std::string& cmdName)
 {
 	ArgHandler* handler = sgArgLib.createArgHandler("cmd");
 	handler->prompt(cmdName);
@@ -254,19 +258,19 @@ void Console::promptCommandName(const String& cmdName)
 }
 
 //------------------------------------------------------------------
-void Console::fakeOutputDirAndCmd(const String& cmdLine)
+void Console::fakeOutputDirAndCmd(const std::string& cmdLine)
 {
 	output(mDir->getFullPath() + ":" + cmdLine);
 }
 
 //------------------------------------------------------------------
-void Console::addCmdLineToHistory(const String& cmdLine)
+void Console::addCmdLineToHistory(const std::string& cmdLine)
 {
 	mCmdHistory.push(cmdLine);
 }
 
 //------------------------------------------------------------------
-void Console::appendBuffer( const String& v)
+void Console::appendBuffer( const std::string& v)
 {
 	mBuffer.push_back(v);
 }
@@ -274,27 +278,29 @@ void Console::appendBuffer( const String& v)
 //------------------------------------------------------------------
 int Console::getColumnWidth(StringVector::iterator beg, StringVector::iterator end)
 {
-	int l = 0;
-	std::for_each(beg, end, [&](const String& v)->void
+	size_t l = 0;
+	std::for_each(beg, end, [&](const std::string& v)->void
 	{
 		if(v.length() > l)	
-			l = v.length()
+			l = v.length();
 	});
 
 	return l;
 }
 
 //------------------------------------------------------------------
-void Console::getColumnNumber(int &numCol, int &totalColWidth, IntVector& colWidthes)
+void Console::getColumnNumber(size_t &numCol, size_t &totalColWidth, IntVector& colWidthes)
 {
 	//find max length item, use it to determine least column number
 	int maxItemWidth = getColumnWidth(mBuffer.begin(), mBuffer.end());
-	numCol = ceil(textwidth / (maxItemWidth + 1);	//maxItemWidth + 1 spacing
+
+	Real textwidth = static_cast<Real>(mUi->getTextWidth());
+	numCol = ceil(textwidth / (maxItemWidth + 1));	//maxItemWidth + 1 spacing
 
 	if(numCol >= mBuffer.size()) //one line is enough 
 	{
 		numCol = mBuffer.size();
-		std::for_each(mBuffer.begin(), mBuffer.end(), [&](const String& v)->void
+		std::for_each(mBuffer.begin(), mBuffer.end(), [&](const std::string& v)->void
 		{
 			totalColWidth += v.size();	
 			colWidthes.push_back(v.size());
@@ -306,17 +312,17 @@ void Console::getColumnNumber(int &numCol, int &totalColWidth, IntVector& colWid
 		while(true)
 		{
 			++numCol;
-			int colSize = static_cast<int>(mBuffer.size() / numCol);
-			int _totalColWidth = 0;
+			size_t colSize = static_cast<int>(mBuffer.size() / numCol);
+			size_t _totalColWidth = 0;
 			IntVector _colWidthes;
 			//loop column, accumulate length of each column 
-			for (i = 0; i < numCol; ++i) 
+			for (size_t i = 0; i < numCol; ++i) 
 			{
 				StringVector::iterator beg = mBuffer.begin() + colSize * i;
 				StringVector::iterator end = i == numCol - 1 ?
 					mBuffer.end() : mBuffer.begin() + colSize * (i + 1);
 				
-				int w = getColumnWidth(beg, end);
+				size_t w = getColumnWidth(beg, end);
 				_colWidthes.push_back(w);
 				_totalColWidth += w;
 			}

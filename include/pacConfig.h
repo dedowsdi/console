@@ -4,7 +4,7 @@
 namespace pac
 {
 
-static const char delim = "/";
+static const std::string delim = "/";
 
 
 }

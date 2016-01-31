@@ -12,6 +12,7 @@
 #if PAC_ASSERT_MODE == 1
 #   if PAC_DEBUG_MODE
 #       define PacAssert( a, b ) assert( (a) && (b) )
+#       define PacAssertS( a, b ) assert( (a) && ( (b).c_str() ) )
 #   else
 #       if PAC_COMP != PAC_COMPILER_BORL
 #           define PacAssert( a, b ) if( !(a) ) PAC_EXCEPT( Ogre::Exception::ERR_RT_ASSERTION_FAILED, (b), "no function info")
@@ -31,6 +32,7 @@
 // STANDARD mode
 #else
 #   define PacAssert( a, b ) assert( (a) && (b) )
+#   define PacAssertS( a, b ) assert( (a) && ( (b).c_str() ) )
 #endif
 
 namespace pac {
@@ -58,11 +60,11 @@ namespace pac {
     protected:
         long line;
         int number;
-		String typeName;
-        String description;
-        String source;
-        String file;
-		mutable String fullDesc;
+		std::string typeName;
+        std::string description;
+        std::string source;
+        std::string file;
+		mutable std::string fullDesc;
     public:
         /** Static definitions of error codes.
             @todo
@@ -83,11 +85,11 @@ namespace pac {
 
         /** Default constructor.
         */
-        Exception( int number, const String& description, const String& source );
+        Exception( int number, const std::string& description, const std::string& source );
 
         /** Advanced constructor.
         */
-        Exception( int number, const String& description, const String& source, const char* type, const char* file, long line );
+        Exception( int number, const std::string& description, const std::string& source, const char* type, const char* file, long line );
 
         /** Copy constructor.
         */
@@ -110,7 +112,7 @@ namespace pac {
                 the place in which OGRE found the problem, and a text
                 description from the 3D rendering library, if available.
         */
-        virtual const String& getFullDescription(void) const;
+        virtual const std::string& getFullDescription(void) const;
 
         /** Gets the error code.
         */
@@ -118,11 +120,11 @@ namespace pac {
 
         /** Gets the source function.
         */
-        virtual const String &getSource() const { return source; }
+        virtual const std::string &getSource() const { return source; }
 
         /** Gets source file name.
         */
-        virtual const String &getFile() const { return file; }
+        virtual const std::string &getFile() const { return file; }
 
         /** Gets line number.
         */
@@ -132,7 +134,7 @@ namespace pac {
 			getFullDescriptionto get a full description of the error including line number,
 			error number and what function threw the exception.
         */
-		virtual const String &getDescription(void) const { return description; }
+		virtual const std::string &getDescription(void) const { return description; }
 
 		/// Override std::exception::what
 		const char* what() const throw() { return getFullDescription().c_str(); }
@@ -146,49 +148,49 @@ namespace pac {
 	class _PacExport UnimplementedException : public Exception 
 	{
 	public:
-		UnimplementedException(int inNumber, const String& inDescription, const String& inSource, const char* inFile, long inLine)
+		UnimplementedException(int inNumber, const std::string& inDescription, const std::string& inSource, const char* inFile, long inLine)
 			: Exception(inNumber, inDescription, inSource, "UnimplementedException", inFile, inLine) {}
 	};
 	class _PacExport FileNotFoundException : public Exception
 	{
 	public:
-		FileNotFoundException(int inNumber, const String& inDescription, const String& inSource, const char* inFile, long inLine)
+		FileNotFoundException(int inNumber, const std::string& inDescription, const std::string& inSource, const char* inFile, long inLine)
 			: Exception(inNumber, inDescription, inSource, "FileNotFoundException", inFile, inLine) {}
 	};
 	class _PacExport IOException : public Exception
 	{
 	public:
-		IOException(int inNumber, const String& inDescription, const String& inSource, const char* inFile, long inLine)
+		IOException(int inNumber, const std::string& inDescription, const std::string& inSource, const char* inFile, long inLine)
 			: Exception(inNumber, inDescription, inSource, "IOException", inFile, inLine) {}
 	};
 	class _PacExport InvalidStateException : public Exception
 	{
 	public:
-		InvalidStateException(int inNumber, const String& inDescription, const String& inSource, const char* inFile, long inLine)
+		InvalidStateException(int inNumber, const std::string& inDescription, const std::string& inSource, const char* inFile, long inLine)
 			: Exception(inNumber, inDescription, inSource, "InvalidStateException", inFile, inLine) {}
 	};
 	class _PacExport InvalidParametersException : public Exception
 	{
 	public:
-		InvalidParametersException(int inNumber, const String& inDescription, const String& inSource, const char* inFile, long inLine)
+		InvalidParametersException(int inNumber, const std::string& inDescription, const std::string& inSource, const char* inFile, long inLine)
 			: Exception(inNumber, inDescription, inSource, "InvalidParametersException", inFile, inLine) {}
 	};
 	class _PacExport ItemIdentityException : public Exception
 	{
 	public:
-		ItemIdentityException(int inNumber, const String& inDescription, const String& inSource, const char* inFile, long inLine)
+		ItemIdentityException(int inNumber, const std::string& inDescription, const std::string& inSource, const char* inFile, long inLine)
 			: Exception(inNumber, inDescription, inSource, "ItemIdentityException", inFile, inLine) {}
 	};
 	class _PacExport InternalErrorException : public Exception
 	{
 	public:
-		InternalErrorException(int inNumber, const String& inDescription, const String& inSource, const char* inFile, long inLine)
+		InternalErrorException(int inNumber, const std::string& inDescription, const std::string& inSource, const char* inFile, long inLine)
 			: Exception(inNumber, inDescription, inSource, "InternalErrorException", inFile, inLine) {}
 	};
 	class _PacExport RuntimeAssertionException : public Exception
 	{
 	public:
-		RuntimeAssertionException(int inNumber, const String& inDescription, const String& inSource, const char* inFile, long inLine)
+		RuntimeAssertionException(int inNumber, const std::string& inDescription, const std::string& inSource, const char* inFile, long inLine)
 			: Exception(inNumber, inDescription, inSource, "RuntimeAssertionException", inFile, inLine) {}
 	};
 
@@ -204,8 +206,8 @@ namespace pac {
 	public:
 		static PAC_NORETURN void throwException(
 			Exception::ExceptionCodes code, int number,
-			const String& desc,
-			const String& src, const char* file, long line)
+			const std::string& desc,
+			const std::string& src, const char* file, long line)
 		{
 			switch (code)
 			{
@@ -233,9 +235,7 @@ namespace pac {
 #else
 #define PAC_EXCEPT_EX(code, num, desc) PAC_EXCEPT(code, desc)
 #endif
-	/** @} */
-	/** @} */
 
-} // Namespace Ogre
+} // Namespace Ogrec
 
 #endif

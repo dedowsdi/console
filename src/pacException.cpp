@@ -4,7 +4,7 @@
 
 namespace pac {
 
-    Exception::Exception(int num, const String& desc, const String& src) :
+    Exception::Exception(int num, const std::string& desc, const std::string& src) :
         line( 0 ),
         number( num ),
         description( desc ),
@@ -14,7 +14,7 @@ namespace pac {
         //LogManager::getSingleton().logMessage(this->getFullDescription());
     }
 
-    Exception::Exception(int num, const String& desc, const String& src, 
+    Exception::Exception(int num, const std::string& desc, const std::string& src, 
 		const char* typ, const char* fil, long lin) :
         line( lin ),
         number( num ),
@@ -24,12 +24,12 @@ namespace pac {
         file( fil )
     {
         // Log this error, mask it from debug though since it may be caught and ignored
-        if(LogManager::getSingletonPtr())
-		{
-            LogManager::getSingleton().logMessage(
-				this->getFullDescription(), 
-                LML_CRITICAL, true);
-		}
+        //if(LogManager::getSingletonPtr())
+		//{
+            //LogManager::getSingleton().logMessage(
+				//this->getFullDescription(), 
+                //LML_CRITICAL, true);
+		//}
 
     }
 
@@ -54,7 +54,7 @@ namespace pac {
         return *this;
     }
 
-    const String& Exception::getFullDescription(void) const
+    const std::string& Exception::getFullDescription(void) const
     {
 		if (fullDesc.empty())
 		{

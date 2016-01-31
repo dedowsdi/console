@@ -55,12 +55,12 @@ public:
 
 private:
 
-	typename std::vector<T> mStack;
+	bool mRollOver; //if set to true, when touch bottom, return first, vice versa
+	bool mIsRolling;
 	size_t mSearchIndex; //current  search index
 	size_t mTopIndex;  //current top index
 	size_t mSize;
-	bool mRollOver; //if set to true, when touch bottom, return first, vice versa
-	bool mIsRolling;
+	typename std::vector<T> mStack;
 };
 
 template <class T>
@@ -79,18 +79,18 @@ template <class T>
 const T& RollStack<T>::top()
 {
 	if(mTopIndex >= mStack.size())
-		PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, "mTopIndex overflow", __FUNCTION__);
+		PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, "mTopIndex overflow");
 
 	return mStack[mTopIndex];
 }
 
 template <class T>
 RollStack<T>::RollStack( size_t size, bool rollOver):
-	mSize(size)
+	mRollOver(rollOver)
+	,mIsRolling(false)
 	,mSearchIndex(0)
 	,mTopIndex(0)
-	,mRollOver(rollOver)
-	,mIsRolling(false)
+	,mSize(size)
 {
 
 }
@@ -103,7 +103,7 @@ const T& RollStack<T>::next()
 	
 	//-1 as mStack.size() -1, mStack.size() as 0
 	if(mRollOver)
-		mSearchIndex = ++mSearchIndex % mStack.size(); 
+		mSearchIndex = (mSearchIndex + 1) % mStack.size(); 
 	else
 		mSearchIndex = mSearchIndex == mStack.size() - 1 ? mSearchIndex : mSearchIndex + 1; 
 
@@ -121,7 +121,7 @@ const T& RollStack<T>::previous()
 	else
 	{
 		if(mRollOver)
-			mSearchIndex = (--mSearchIndex + mStack.size() ) % mStack.size(); 
+			mSearchIndex = (mSearchIndex - 1 + mStack.size() ) % mStack.size(); 
 		else
 			mSearchIndex = mSearchIndex == 0 ? mSearchIndex : mSearchIndex - 1;
 	}
@@ -138,7 +138,7 @@ void RollStack<T>::push( const T& t )
 	}
 	else
 	{
-		mTopIndex = ++mTopIndex % mSize;
+		mTopIndex = (mTopIndex + 1) % mSize;
 		mStack[mTopIndex] = t;
 	}
 }
