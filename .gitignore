@@ -2,6 +2,10 @@
 *.py
 *.pyc
 *.log
+*.a
+*.so
+bin/*
+test/bin/*
 pj.sh
 mygui
 ubmygui

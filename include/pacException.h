@@ -15,18 +15,18 @@
 #       define PacAssertS( a, b ) assert( (a) && ( (b).c_str() ) )
 #   else
 #       if PAC_COMP != PAC_COMPILER_BORL
-#           define PacAssert( a, b ) if( !(a) ) PAC_EXCEPT( Ogre::Exception::ERR_RT_ASSERTION_FAILED, (b), "no function info")
+#           define PacAssert( a, b ) if( !(a) ) PAC_EXCEPT( Pac::Exception::ERR_RT_ASSERTION_FAILED, (b), "no function info")
 #       else
-#           define PacAssert( a, b ) if( !(a) ) PAC_EXCEPT( Ogre::Exception::ERR_RT_ASSERTION_FAILED, (b), __FUNC__ )
+#           define PacAssert( a, b ) if( !(a) ) PAC_EXCEPT( Pac::Exception::ERR_RT_ASSERTION_FAILED, (b), __FUNC__ )
 #       endif
 #   endif
 
 // EXCEPTIONS mode
 #elif PAC_ASSERT_MODE == 2
 #   if PAC_COMP != PAC_COMPILER_BORL
-#       define PacAssert( a, b ) if( !(a) ) PAC_EXCEPT( Ogre::Exception::ERR_RT_ASSERTION_FAILED, (b), "no function info")
+#       define PacAssert( a, b ) if( !(a) ) PAC_EXCEPT( Pac::Exception::ERR_RT_ASSERTION_FAILED, (b), "no function info")
 #   else
-#       define PacAssert( a, b ) if( !(a) ) PAC_EXCEPT( Ogre::Exception::ERR_RT_ASSERTION_FAILED, (b), __FUNC__ )
+#       define PacAssert( a, b ) if( !(a) ) PAC_EXCEPT( Pac::Exception::ERR_RT_ASSERTION_FAILED, (b), __FUNC__ )
 #   endif
 
 // STANDARD mode
@@ -49,7 +49,7 @@ namespace pac {
             encapsulates the detail of the problem. The application using
             OGRE should always ensure that the exceptions are caught, so all
             OGRE engine functions should occur within a
-            try{} catch(Ogre::Exception& e) {} block.
+            try{} catch(Pac::Exception& e) {} block.
         @par
             The user application should never create any instances of this
             object unless it wishes to unify its error handling using the

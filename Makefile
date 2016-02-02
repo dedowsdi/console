@@ -8,7 +8,7 @@ INCLUDES = \
 
 
 SRCDIR = src/
-SRCS = src/*.cpp
+BIN = bin/
 
 OBJDIR = obj/
 OBJS =\
@@ -16,6 +16,7 @@ ${OBJDIR}pacAbsDir.o\
 ${OBJDIR}pacArgHandler.o\
 ${OBJDIR}pacCommand.o\
 ${OBJDIR}pacConsole.o\
+${OBJDIR}pacConsolePattern.o\
 ${OBJDIR}pacException.o\
 ${OBJDIR}pacIntrinsicArgHandler.o\
 ${OBJDIR}pacIntrinsicCmd.o\
@@ -24,25 +25,66 @@ ${OBJDIR}pacStringInterface.o\
 ${OBJDIR}pacStringUtil.o\
 ${OBJDIR}pacUiConsole.o
 
+TESTSRCDIR = test/
+TESTSRCS = \
+${TESTSRCDIR}testAbsDir.hpp\
+${TESTSRCDIR}testArgHandler.hpp\
+${TESTSRCDIR}testCommand.hpp\
+${TESTSRCDIR}testConsole.hpp\
+${TESTSRCDIR}testConsolePattern.hpp\
+${TESTSRCDIR}testConsolePreRequisite.hpp\
+${TESTSRCDIR}test.cpp\
+${TESTSRCDIR}testIntrinsicArgHandler.hpp\
+${TESTSRCDIR}testIntrinsicCmd.hpp\
+${TESTSRCDIR}testRollStack.hpp\
+${TESTSRCDIR}testSingleton.hpp\
+${TESTSRCDIR}testStdUtil.hpp\
+${TESTSRCDIR}testStringInterface.hpp\
+${TESTSRCDIR}testStringUtil.hpp\
+${TESTSRCDIR}testUiConsole.hpp
+
+TESTBIN = test/bin/
+
+
 UBS = ub/*.cpp
-CFLAGS = -Wall -g -std=c++11 -fPIC
+CFLAGS = -Wall -g -std=c++11 
+
+#--------------------------------------------------------------------
+#all
+.PHONY : console
+console: shared static test
 
 #--------------------------------------------------------------------
 #build shared lib
-.PHONY : console
-console : obj
-	gcc -shared -fPIC -o bin/${@}.so ${OBJS} 
+.PHONY : shared
+shared : obj
+	gcc -shared -fPIC -o bin/libconsole.so ${OBJS} 
+
+#--------------------------------------------------------------------
+#build static lib
+.PHONY : static
+static : obj
+	ar rcs bin/libconsole.a ${OBJS}
 
 #--------------------------------------------------------------------
 #implicit obj
 ${OBJDIR}%.o : ${SRCDIR}%.cpp
-	g++  ${CFLAGS} -o $@ -c $< ${INCLUDES} ${LIBS} 
+	g++ ${CFLAGS} -fPIC -o $@ -c $< ${INCLUDES} ${LIBS} 
 #--------------------------------------------------------------------
 #build all obj
 .PHONY : obj
 obj : ${OBJS}
 #--------------------------------------------------------------------
+#build all test obj
+.PHONY : testobj
+testobj : ${TESTOBJS}
+#--------------------------------------------------------------------
+#build test 
+.PHONY : test 
+test : ${TESTSRCS}
+	g++ ${CFLAGS} -pthread -o ${TESTBIN}/$@ test/test.cpp /usr/local/lib/libgtest.a\
+		bin/libconsole.a ${INCLUDES} ${LIBS}
 #--------------------------------------------------------------------
 .PHONY : clean
 clean: 
-	rm -f console ${OBJS}
+	rm -f ${BIN}/* ${TESTBIN}/* ${OBJS} 

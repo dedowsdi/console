@@ -24,22 +24,15 @@ public:
 	virtual void init();
 
 	/**
-	 * set up console pattern
-	 */
-	virtual void initConoslePattern();
-
-	/**
 	 * Execute cmdLine. Add cmdLine to command history. 
 	 * @param cmdLine : cmd line to be executed
 	 */
 	bool execute(const std::string& cmdLine);
-
 	/**
 	 * Output prompt for cmdLine 
 	 * @param cmdLine : current typing cmd line.
 	 */
 	void prompt(const std::string& cmdLine);
-
 	/**
 	 * Output to ui console or buffer. Call startBuffer before this if you want
 	 * to out put to buffer, call endBuffer after you finished output. Context
@@ -127,6 +120,24 @@ private:
 
 	void appendBuffer( const std::string& v);
 
+	/**
+	 * Get max lenth of string item 
+	 * @param beg : begin iterator
+	 * @param end : end iterator 
+	 * @return : length of longest string  
+	 */
+	int getColumnWidth(StringVector::iterator beg, StringVector::iterator end);
+
+	/**
+	 * Determine column number and width of each column in buffer. Just a place
+	 * to shrink endBuffer().  
+	 * @param numCol : column number
+	 * @param totalColWidth : total column width without spacing
+	 * @param colWidthes : vectoer of column width 
+	 * @return : 
+	 */
+	void getColumnNumber(size_t &numCol, size_t &totalColWidth, IntVector& colWidthes);
+
 
 private:
 
@@ -134,8 +145,6 @@ private:
 
 	AbsDir* mDir;
 	UiConsole* mUi;
-	ConsolePattern* mPattern;
-
 	CmdMap mCmdMap;
 	StringVector mBuffer;
 

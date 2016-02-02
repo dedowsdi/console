@@ -43,9 +43,7 @@
 
 typedef std::map<std::string, std::string> StrStrMap;
 typedef std::vector<std::string> StringVector;
-typedef StringVector::iterator SVIter;
 typedef std::vector<int> IntVector;
-typedef std::vector<size_t> SizetVector;
 typedef std::vector<float> FloatVector;
 typedef std::set<std::string> StringSet;
 typedef std::stringstream StringStream;
@@ -64,8 +62,6 @@ namespace pac
 	class NodeArgHandler;
 	class TreeArgHandler;
 	class StringInterface;
-	class ConsolePattern;
-	class DefaultPattern;
 	//easy singleton
 }
 

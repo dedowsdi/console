@@ -5,6 +5,7 @@
 #include "pacIntrinsicCmd.h"
 #include "pacUiConsole.h"
 #include "pacAbsDir.h"
+#include "pacConsolePattern.h"
 #include <boost/regex.hpp>
 
 namespace pac
@@ -16,6 +17,7 @@ template<>Console* Singleton<Console>::msSingleton = 0;
 Console::Console(UiConsole* ui) :
 	mDir(0)
 	,mUi(ui)
+	,mPattern(0)
 {
 }
 
@@ -38,6 +40,8 @@ void Console::init()
 {
 	//register intrinsic arg handler
 	new ArgHandlerLib();
+
+
 	sgArgLib.init();
 
 	//register intrinsic commands
@@ -46,6 +50,14 @@ void Console::init()
 	this->registerCommand((new CdCmd())->init());
 	this->registerCommand((new SetCmd())->init());
 	this->registerCommand((new LpCmd())->init());
+
+	initConoslePattern();
+}
+
+//------------------------------------------------------------------
+void Console::initConoslePattern()
+{
+	this->mPattern = new DefaultPattern(mUi->getTextWidth());
 }
 
 //------------------------------------------------------------------
@@ -178,29 +190,8 @@ void Console::endBuffer()
 	PacAssert(mIsBuffering, "It'w wrong to end buffer without start it");
 	mIsBuffering = false;
 
-	Real textwidth = static_cast<Real>(mUi->getTextWidth());
-	//sort buffer
-	std::sort(mBuffer.begin(), mBuffer.end());
-	size_t numCol, totalColWidth;
-	IntVector colWidthes;
-	getColumnNumber(numCol, totalColWidth, colWidthes);
+	mUi->outputNoAutoWrap(mPattern->applyPattern(mBuffer.begin(), mBuffer.end()));
 
-	//determine spacing
-	size_t spacing = (textwidth  - totalColWidth) / (numCol - 1);
-	size_t colSize = static_cast<int>(mBuffer.size() / numCol);
-
-	//output horizental. Becareful, item seq in mBuffers is vertical.
-	for (size_t i = 0; i < mBuffer.size(); ++i) 
-	{
-		size_t col = i % numCol;	
-		size_t row = i / numCol;
-		size_t colWidth = colWidthes[col] + spacing;
-		size_t itemIndex = col * colSize  + row; 
-		mUi->outputNoAutoWrap(StringUtil::toFixedLength(mBuffer[itemIndex], colWidth));
-		//line break at last column
-		if(col == numCol - 1)	
-			mUi->endl();
-	}
 
 	mBuffer.clear();
 }
@@ -275,70 +266,7 @@ void Console::appendBuffer( const std::string& v)
 	mBuffer.push_back(v);
 }
 
-//------------------------------------------------------------------
-int Console::getColumnWidth(StringVector::iterator beg, StringVector::iterator end)
-{
-	size_t l = 0;
-	std::for_each(beg, end, [&](const std::string& v)->void
-	{
-		if(v.length() > l)	
-			l = v.length();
-	});
-
-	return l;
-}
-
-//------------------------------------------------------------------
-void Console::getColumnNumber(size_t &numCol, size_t &totalColWidth, IntVector& colWidthes)
-{
-	//find max length item, use it to determine least column number
-	int maxItemWidth = getColumnWidth(mBuffer.begin(), mBuffer.end());
-
-	Real textwidth = static_cast<Real>(mUi->getTextWidth());
-	numCol = ceil(textwidth / (maxItemWidth + 1));	//maxItemWidth + 1 spacing
-
-	if(numCol >= mBuffer.size()) //one line is enough 
-	{
-		numCol = mBuffer.size();
-		std::for_each(mBuffer.begin(), mBuffer.end(), [&](const std::string& v)->void
-		{
-			totalColWidth += v.size();	
-			colWidthes.push_back(v.size());
-		});
-	}
-	else
-	{
-		//loop to find max numCol 
-		while(true)
-		{
-			++numCol;
-			size_t colSize = static_cast<int>(mBuffer.size() / numCol);
-			size_t _totalColWidth = 0;
-			IntVector _colWidthes;
-			//loop column, accumulate length of each column 
-			for (size_t i = 0; i < numCol; ++i) 
-			{
-				StringVector::iterator beg = mBuffer.begin() + colSize * i;
-				StringVector::iterator end = i == numCol - 1 ?
-					mBuffer.end() : mBuffer.begin() + colSize * (i + 1);
-				
-				size_t w = getColumnWidth(beg, end);
-				_colWidthes.push_back(w);
-				_totalColWidth += w;
-			}
-
-			if(_totalColWidth + numCol > textwidth)	//overflow check
-			{
-				--numCol;
-				colWidthes.assign(_colWidthes.begin(), _colWidthes.end());
-				totalColWidth = _totalColWidth;
-				break;
-			}
-		}
-	}
-}
-
-//------------------------------------------------------------------
+//------------------------------------------ be------------------------
 RaiiConsoleBuffer::RaiiConsoleBuffer()
 {
 	sgConsole.startBuffer();
