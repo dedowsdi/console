@@ -61,7 +61,7 @@ namespace pac {
 
 			StringUtil::StrStreamType desc;
 
-			desc <<  "OGRE EXCEPTION(" << number << ":" << typeName << "): "
+			desc <<  "PAC EXCEPTION(" << number << ":" << typeName << "): "
 				<< description 
 				<< " in " << source;
 

@@ -289,11 +289,13 @@ namespace pac {
 			StringStream str(val);
 			if (msUseLocale)
 				str.imbue(msLocale);
+
 			T t;
 			str >> t;
-			if(!str.fail() && str.eof())
-				PAC_EXCEPT(Exception::ERR_INVALIDPARAMS,
-						val +  " is not paseable");
+
+			if(str.fail() || !str.eof())
+				PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, val +  " is not paseable");
+
 			return t;
 		}
 

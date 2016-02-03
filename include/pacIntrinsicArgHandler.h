@@ -65,9 +65,9 @@ public:
 		{
 			T t = StringUtil::parsePrimitiveDecimal<T>(s);
 			if(mEqual)
-				return t <= mMax && t >= mMax;
+				return t <= mMax && t >= mMin;
 			else
-				return t < mMax && t > mMax;
+				return t < mMax && t > mMin;
 		}
 
 		return false;

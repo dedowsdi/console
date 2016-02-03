@@ -9,7 +9,7 @@ class UiConsole
 {
 public:
 	UiConsole();
-	~UiConsole();
+	~UiConsole(){};
 
 	void init();
 
@@ -19,7 +19,7 @@ public:
 	 * @remark : 
 	 * @return : 
 	 */
-	virtual void setupTextMetric();
+	virtual void setUpTextMetric();
 
 	/**
 	 * Fake stdout and stderr. Wrap line automatically. 
@@ -30,13 +30,6 @@ public:
 	virtual UiConsole& output(const std::string& output, int type =1);
 
 	/**
-	 * End current line 
-	 * @param type : 
-	 * @return : *this
-	 */
-	virtual UiConsole& endl(int type = 1) = 0;
-
-	/**
 	 * Fake stdout and stderr. Wrap line automatically. 
 	 * @param output : outout content
 	 * @param type : 1 stdout, 2 stderr 
@@ -45,13 +38,17 @@ public:
 	virtual UiConsole& outputLine(const std::string& output, int type =1);
 
 	/**
+	 * end current line
+	 * @return : *this
+	 */
+	virtual UiConsole& endl() = 0;
+	/**
 	 * Fake stdout and stderr. No Wrap line.
 	 * @param output : outout content
 	 * @param type : 1 stdout, 2 stderr 
 	 * @return : *this
 	 */
 	virtual UiConsole& outputNoAutoWrap(const std::string& output, int type = 1) = 0;
-
 
 	/**
 	 * Complete current typing. 
@@ -82,7 +79,6 @@ protected:
 	void setTextWidth( int v){mTextWidth = v;}
 
 private:
-
 	int mTextWidth;
 };
 

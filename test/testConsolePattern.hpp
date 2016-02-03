@@ -10,9 +10,8 @@ using namespace pac;
 
 /**
  * test each item in the the same col has the same length, test if total length
- * overflow * @remark : 
- * @param s : 
- * @return : 
+ * overflow  
+ * @param s : output string from applyPattern
  */
 void testOutputString(const std::string& s, size_t textWidth)
 {

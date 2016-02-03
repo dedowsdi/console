@@ -26,7 +26,7 @@ bool LsCmd::doExecute()
 				[&](const std::string& path)->void
 				{
 				AbsDir* dir = AbsDirUtil::findPath(path, curDir);
-				sgConsole.output(dir->getName() + ":").endl();
+				sgConsole.outputLine(dir->getName() + ":");
 				outputChildren(dir);
 				});
 	}
@@ -145,7 +145,7 @@ bool LpCmd::doExecute()
 				[&](const std::string& path)->void
 				{
 				AbsDir* dir = AbsDirUtil::findPath(path, curDir);
-				sgConsole.output(dir->getName() + ":").endl();
+				sgConsole.outputLine(dir->getName() + ":");
 				outputProperties(dir);
 				});
 	}
@@ -170,7 +170,12 @@ void LpCmd::buildArgHandler()
 //------------------------------------------------------------------
 void LpCmd::outputProperties(AbsDir* dir)
 {
-	PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED, "not implemented");
+	RaiiConsoleBuffer();
+	StringVector&& params = dir->getParameters();
+	std::for_each(params.begin(), params.end(), [&](const std::string&  v)->void
+	{
+		sgConsole.output(v + " : " + dir->getParameter(v));
+	});
 }
 
 }

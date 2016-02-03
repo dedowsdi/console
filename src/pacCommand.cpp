@@ -1,5 +1,6 @@
 #include "pacCommand.h"
 #include "pacArgHandler.h"
+#include "pacException.h"
 #include <boost/regex.hpp>
 
 namespace pac
@@ -26,13 +27,17 @@ Command::Command(const Command&rhs)
 //------------------------------------------------------------------
 Command::~Command()
 {
+	PacAssert(mArgHandler != 0, "0 arg handler");
+	delete mArgHandler;
+	mArgHandler = 0;
 }
 
 //------------------------------------------------------------------
 Command* Command::init()
 {
 	buildArgHandler();
-	sgArgLib.registerArgHandler(mArgHandler);
+	if (mArgHandler->getName() == getDefAhName()) 
+		sgArgLib.registerArgHandler(mArgHandler);
 
 	return this;
 }
@@ -48,7 +53,8 @@ bool Command::execute()
 {
 	if (getArgHandler()->validate(mArgs)) 
 	{
-		return this->doExecute();
+		bool res = this->doExecute();
+		return res;
 	}
 	else
 	{

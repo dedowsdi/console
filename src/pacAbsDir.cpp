@@ -5,6 +5,7 @@
 
 namespace pac
 {
+template<> RootDir* Singleton<RootDir>::msSingleton = 0;
 
 //------------------------------------------------------------------
 AbsDir::AbsDir(const std::string& name, StringInterface* si)

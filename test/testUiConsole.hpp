@@ -1,93 +1,41 @@
-#ifndef PACUICONSOLE_H
-#define PACUICONSOLE_H 
-#include "pacConsolePreRequisite.h"
+#ifndef TESTPACUICONSOLE_H
+#define TESTPACUICONSOLE_H 
+#include "pacUiConsole.h"
 
-namespace pac
-{
+using namespace pac;
 
-class UiConsole 
+class ImplUiConsole : public UiConsole
 {
 public:
-	UiConsole();
-	~UiConsole();
 
-	void init();
+	virtual UiConsole& endl()
+	{
+		std::cout << std::endl;
+		return *this;
+	}
 
-	/**
-	 * By default every line ows 80 characters + 1 \n . Override if you want to
-	 * change it.
-	 * @remark : 
-	 * @return : 
-	 */
-	virtual void setupTextMetric();
+	virtual UiConsole& outputNoAutoWrap(const std::string& output, int type = 1)
+	{
+		std::cout << output; 
+		return * this;
+	}
 
-	/**
-	 * Fake stdout and stderr. Wrap line automatically. 
-	 * @param output : outout content
-	 * @param type : 1 stdout, 2 stderr 
-	 * @return : *this
-	 */
-	virtual UiConsole& output(const std::string& output, int type =1);
+	virtual UiConsole& complete(const std::string& s)
+	{
+		std::cout << "complete" << s;
+		return *this;
+	}
 
-	/**
-	 * End current line 
-	 * @param type : 
-	 * @return : *this
-	 */
-	virtual UiConsole& endl(int type = 1) = 0;
+	virtual void updateCommandLine(const std::string& cmdLine = "")
+	{
+		std::cout << "updateCmdLine:" << cmdLine << std::endl;
+	}
 
-	/**
-	 * Fake stdout and stderr. Wrap line automatically. 
-	 * @param output : outout content
-	 * @param type : 1 stdout, 2 stderr 
-	 * @return : *this
-	 */
-	virtual UiConsole& outputLine(const std::string& output, int type =1);
+	virtual void updateCwd(const std::string& cwd)
+	{
+		std::cout << "updateCwd:" << cwd << std::endl;
+	}
 
-	/**
-	 * Fake stdout and stderr. No Wrap line.
-	 * @param output : outout content
-	 * @param type : 1 stdout, 2 stderr 
-	 * @return : *this
-	 */
-	virtual UiConsole& outputNoAutoWrap(const std::string& output, int type = 1) = 0;
-
-
-	/**
-	 * Complete current typing. 
-	 * @param s : content
-	 */
-	virtual UiConsole& complete(const std::string& s) = 0;
-
-	/**
-	 * Set cwd 
-	 * @param cwd : current working directory
-	 */
-	virtual void updateCwd(const std::string& cwd) = 0;	
-
-	/**
-	 * Set command line
-	 * @param cmdLine : command line string
-	 */
-	virtual void updateCommandLine(const std::string& cmdLine = "") = 0;
-
-	/**
-	 * line text width, default to 80. You can change it by overloading
-	 * setupTextMetric()
-	 * @return : line text width 
-	 */
-	int getTextWidth() const { return mTextWidth; }
-
-protected:
-	void setTextWidth( int v){mTextWidth = v;}
-
-private:
-
-	int mTextWidth;
 };
 
-
-}
-
-
-#endif /* PACUICONSOLE_H */
+#endif //TESTPACUICONSOLE_H

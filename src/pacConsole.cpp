@@ -41,7 +41,6 @@ void Console::init()
 	//register intrinsic arg handler
 	new ArgHandlerLib();
 
-
 	sgArgLib.init();
 
 	//register intrinsic commands
@@ -131,16 +130,12 @@ Console& Console::output(const std::string& s, int type /*= 1*/)
 //------------------------------------------------------------------
 Console& Console::outputLine(const std::string& s, int type /*= 1*/)
 {
+	if(mIsBuffering)
+		PAC_EXCEPT(Exception::ERR_INVALID_STATE, "Can not output line while buffering.");
 	mUi->outputLine(s, type);
 	return *this;
 }
 
-//------------------------------------------------------------------
-Console& Console::endl(int type)
-{
-	mUi->endl(type);
-	return *this;
-}
 
 //------------------------------------------------------------------
 Console& Console::complete(const std::string& s)
@@ -158,6 +153,8 @@ void Console::changeDirectory(AbsDir* dir)
 //------------------------------------------------------------------
 void Console::registerCommand(Command* cmdProto)
 {
+	PacAssert(!cmdProto->getName().empty(), "empty cmd name");
+	std::cout << "register command " + cmdProto->getName() << std::endl;
 	//check if it's already registerd	
 	CmdMap::iterator iter = std::find_if( mCmdMap.begin(), mCmdMap.end(),
 			[&](CmdMap::value_type& v)->bool
@@ -165,7 +162,7 @@ void Console::registerCommand(Command* cmdProto)
 			return v.first == cmdProto->getName();
 			});
 
-	if (iter != mCmdMap.end()) 
+	if (iter == mCmdMap.end()) 
 	{
 		mCmdMap[cmdProto->getName()]	= cmdProto;
 	}

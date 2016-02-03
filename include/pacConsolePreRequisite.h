@@ -1,6 +1,7 @@
 #ifndef PACCONSOLEPREREQUISITE_H
 #define PACCONSOLEPREREQUISITE_H 
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <map>

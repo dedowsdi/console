@@ -115,7 +115,7 @@ public:
 	NodeArgHandler* addChildNode(NodeArgHandler* child);
 
 	NodeArgHandler* addChildNode(const std::string& name, const std::string& ahName, 
-			NodeType = NT_NORMAL);
+			NodeType nt = NT_NORMAL);
 
 	/**
 	 * Create child node, add it to children. 
@@ -289,7 +289,6 @@ private:
  *
  * blank
  * bool
- * real
  * short
  * ushort
  * int
@@ -306,9 +305,16 @@ private:
  * real3
  * real4
  * real5
+ * nreal2
+ * nreal3
+ * nreal4
+ * nreal5
  * matrix2
  * matrix3
  * matrix4
+ * nmatrix2
+ * nmatrix3
+ * nmatrix4
  * path
  * cmd
  * parameter

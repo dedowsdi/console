@@ -36,7 +36,8 @@ protected:
 
 /**
  * Default pattern. This pattern will sort input buffers, place buffer column by
- * column. last column might not full filled. Just like gnome. 
+ * column, as much columns as possible, every column except last one must be
+ * full filled. Just line gnome. 
  */
 class _PacExport DefaultPattern : public ConsolePattern
 {

@@ -51,10 +51,6 @@ public:
 	Console& output(const std::string& s, int type = 1);
 
 	Console& outputLine(const std::string& s, int type = 1);
-	/**
-	 * End current line
-	 */
-	Console& endl(int type = 1);
 
 	/**
 	 * Complete current typing. 

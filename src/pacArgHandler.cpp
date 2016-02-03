@@ -86,6 +86,14 @@ NodeArgHandler* NodeArgHandler::addChildNode(NodeArgHandler* child)
 }
 
 //------------------------------------------------------------------
+NodeArgHandler* NodeArgHandler::addChildNode(const std::string& name, const std::string& ahName, 
+		NodeType nt /*= NT_NORMAL*/)
+{
+	NodeArgHandler* node = new NodeArgHandler(name, ahName, nt);
+	return this->addChildNode(node);
+}
+
+//------------------------------------------------------------------
 NodeArgHandler* NodeArgHandler::getChildNode(const std::string& name, bool recursive /*= 1*/)
 {
 	for (NodeVector::iterator iter = mChildren.begin(); iter != mChildren.end(); ++iter) 
@@ -333,7 +341,7 @@ bool TreeArgHandler::doValidate(const std::string& s)
 	//make sure only 1 matched branch exists
 	if(matchedNodes.size() > 1) 
 	{
-		sgConsole.output("found multiple valid branches:").endl();
+		sgConsole.outputLine("found multiple valid branches:");
 		std::for_each(matchedNodes.begin(), matchedNodes.end(), [&](NodeArgHandler* v)->void
 		{
 			sgConsole.outputLine(v->getArgPath());
@@ -342,7 +350,7 @@ bool TreeArgHandler::doValidate(const std::string& s)
 	}
 	else if(matchedNodes.size() == 0)
 	{
-		sgConsole.outputLine("illegal args or options");
+		//sgConsole.outputLine("illegal args or options");
 		return false;
 	}
 	else
@@ -427,6 +435,8 @@ ArgHandlerLib::~ArgHandlerLib()
 //------------------------------------------------------------------
 void ArgHandlerLib::registerArgHandler(ArgHandler* handler)
 {
+	PacAssert(!handler->getName().empty(), "empty handler name");
+	std::cout << "register handler " + handler->getName() << std::endl;
 	//check if it's already registerd	
 	ArgHandlerMap::iterator iter = std::find_if( mArgHandlerMap.begin(), mArgHandlerMap.end(),
 			[&](ArgHandlerMap::value_type& v)->bool
@@ -434,7 +444,7 @@ void ArgHandlerLib::registerArgHandler(ArgHandler* handler)
 			return v.first == handler->getName();
 			});
 
-	if (iter != mArgHandlerMap.end()) 
+	if (iter == mArgHandlerMap.end()) 
 	{
 		mArgHandlerMap[handler->getName()] = handler;
 	}
@@ -468,9 +478,16 @@ void ArgHandlerLib::init()
 	this->registerArgHandler(sgArgLib.createMonoTree("real3","real", 3));
 	this->registerArgHandler(sgArgLib.createMonoTree("real4","real", 4));
 	this->registerArgHandler(sgArgLib.createMonoTree("real5","real", 5));
+	this->registerArgHandler(sgArgLib.createMonoTree("nreal2","nreal", 2));
+	this->registerArgHandler(sgArgLib.createMonoTree("nreal3","nreal", 3));
+	this->registerArgHandler(sgArgLib.createMonoTree("nreal4","nreal", 4));
+	this->registerArgHandler(sgArgLib.createMonoTree("nreal5","nreal", 5));
 	this->registerArgHandler(sgArgLib.createMonoTree("matrix2","real", 4));
 	this->registerArgHandler(sgArgLib.createMonoTree("matrix3","real", 9));
 	this->registerArgHandler(sgArgLib.createMonoTree("matrix4","real", 16));
+	this->registerArgHandler(sgArgLib.createMonoTree("nmatrix2","nreal", 4));
+	this->registerArgHandler(sgArgLib.createMonoTree("nmatrix3","nreal", 9));
+	this->registerArgHandler(sgArgLib.createMonoTree("nmatrix4","nreal", 16));
 
 	//special handlers
 	this->registerArgHandler(new PathArgHandler());
