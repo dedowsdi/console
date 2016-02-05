@@ -8,20 +8,10 @@ namespace pac
 
 //------------------------------------------------------------------
 BoolArgHandler::BoolArgHandler():
-	ArgHandler("bool")
+	StringArgHandler("bool")
 {
-}
-
-//------------------------------------------------------------------
-void BoolArgHandler::doPrompt(const std::string& s)
-{
-	sgConsole.output("@@bool@@");
-}
-
-//------------------------------------------------------------------
-bool BoolArgHandler::doValidate(const std::string& s)
-{
-	return s == "true" || s == "false";
+	mStrings.insert("true");
+	mStrings.insert("false");
 }
 
 //------------------------------------------------------------------
@@ -52,14 +42,15 @@ void StringArgHandler::remove(const std::string& s)
 }
 
 //------------------------------------------------------------------
-void StringArgHandler::doPrompt(const std::string& s)
+void StringArgHandler::populatePromptBuffer(const std::string& s)
 {
 	RaiiConsoleBuffer();
+	StringVector sv;
 	std::for_each(mStrings.begin(), mStrings.end(), [&](const std::string& v)->void
 	{
 		if(StringUtil::startsWith(s, v))
 		{
-			sgConsole.output(v);
+			appendCompleteBuffer(s);
 		}
 	});	
 }
@@ -84,9 +75,9 @@ BlankArgHandler::BlankArgHandler()
 }
 
 //------------------------------------------------------------------
-void BlankArgHandler::doPrompt(const std::string& s)
+void BlankArgHandler::populatePromptBuffer(const std::string& s)
 {
-	sgConsole.outputLine("@@blank@@");
+	appendNoteBuffer("blank");
 }
 
 //------------------------------------------------------------------
@@ -111,7 +102,7 @@ PathArgHandler::PathArgHandler(const PathArgHandler& rhs):
 }
 
 //------------------------------------------------------------------
-void PathArgHandler::doPrompt(const std::string& s)
+void PathArgHandler::populatePromptBuffer(const std::string& s)
 {
 	RaiiConsoleBuffer();
 
@@ -124,7 +115,7 @@ void PathArgHandler::doPrompt(const std::string& s)
 	{
 		if (StringUtil::startsWith(v->getName(), tail)) 
 		{
-			sgConsole.output(v->getName());
+			appendCompleteBuffer(v->getName());
 		}	
 	});
 }
@@ -178,12 +169,12 @@ ValueArgHandler::ValueArgHandler(const ValueArgHandler& rhs):
 	,mDir(0)
 {
 	setDir(sgConsole.getDirectory()); 
-	NodeArgHandler* valueNode = this->getNode();	
+	Node* valueNode = this->getNode();	
 	if(!valueNode)
 		PAC_EXCEPT(Exception::ERR_INVALID_STATE, 
 				"Do you forget to hook node with arg handler?");
 	
-	NodeArgHandler* paramNode = valueNode->getAncestorNode("parameter");
+	Node* paramNode = valueNode->getAncestorNode("parameter");
 	if(!paramNode)
 		PAC_EXCEPT(Exception::ERR_INVALID_STATE, 
 				"can no find paramNode");
@@ -195,7 +186,7 @@ ValueArgHandler::ValueArgHandler(const ValueArgHandler& rhs):
 }
 
 //------------------------------------------------------------------
-void ValueArgHandler::doPrompt(const std::string& s)
+void ValueArgHandler::populatePromptBuffer(const std::string& s)
 {
 	PacAssert(mHandler, "0 handler in value handler");
 	return mHandler->prompt(s);

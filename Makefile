@@ -20,6 +20,7 @@ ${OBJDIR}pacConsolePattern.o\
 ${OBJDIR}pacException.o\
 ${OBJDIR}pacIntrinsicArgHandler.o\
 ${OBJDIR}pacIntrinsicCmd.o\
+${OBJDIR}pacCmdHistory.o\
 ${OBJDIR}pacStdUtil.o\
 ${OBJDIR}pacStringInterface.o\
 ${OBJDIR}pacStringUtil.o\
@@ -32,11 +33,9 @@ ${TESTSRCDIR}testArgHandler.hpp\
 ${TESTSRCDIR}testCommand.hpp\
 ${TESTSRCDIR}testConsole.hpp\
 ${TESTSRCDIR}testConsolePattern.hpp\
-${TESTSRCDIR}testConsolePreRequisite.hpp\
 ${TESTSRCDIR}test.cpp\
-${TESTSRCDIR}testIntrinsicArgHandler.hpp\
 ${TESTSRCDIR}testIntrinsicCmd.hpp\
-${TESTSRCDIR}testRollStack.hpp\
+${TESTSRCDIR}testCmdHistory.hpp\
 ${TESTSRCDIR}testSingleton.hpp\
 ${TESTSRCDIR}testStdUtil.hpp\
 ${TESTSRCDIR}testStringInterface.hpp\

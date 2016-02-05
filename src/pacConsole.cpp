@@ -6,6 +6,7 @@
 #include "pacUiConsole.h"
 #include "pacAbsDir.h"
 #include "pacConsolePattern.h"
+#include "pacCmdHistory.h"
 #include <boost/regex.hpp>
 
 namespace pac
@@ -18,6 +19,7 @@ Console::Console(UiConsole* ui) :
 	mDir(0)
 	,mUi(ui)
 	,mPattern(0)
+	,mCmdHistory(0)
 {
 }
 
@@ -30,6 +32,9 @@ Console::~Console()
 		delete v.second;	
 	});
 	mCmdMap.clear();
+
+	delete mCmdHistory;
+	mCmdHistory = 0;
 
 	//clean arg lib
 	delete &sgArgLib;
@@ -57,6 +62,12 @@ void Console::init()
 void Console::initConoslePattern()
 {
 	this->mPattern = new DefaultPattern(mUi->getTextWidth());
+}
+
+//------------------------------------------------------------------
+void Console::initCmdPattern()
+{
+	mCmdHistory = new CmdHistory();
 }
 
 //------------------------------------------------------------------
@@ -186,9 +197,8 @@ void Console::endBuffer()
 {
 	PacAssert(mIsBuffering, "It'w wrong to end buffer without start it");
 	mIsBuffering = false;
-
-	mUi->outputNoAutoWrap(mPattern->applyPattern(mBuffer.begin(), mBuffer.end()));
-
+	if(!mBuffer.empty())
+		mUi->outputNoAutoWrap(mPattern->applyPattern(mBuffer.begin(), mBuffer.end()));
 
 	mBuffer.clear();
 }
@@ -196,18 +206,10 @@ void Console::endBuffer()
 //------------------------------------------------------------------
 void Console::rollCommand(bool backWard /*= true*/)
 {
-	if(mCmdHistory.size() == 0)
-		return;
-
 	if(backWard)
-	{
-		mUi->updateCommandLine(mCmdHistory.previous());
-	}
+		mUi->updateCommandLine(mCmdHistory->previous());
 	else
-	{
-		if(mCmdHistory.isRolling())
-		mUi->updateCommandLine(mCmdHistory.next());
-	}
+		mUi->updateCommandLine(mCmdHistory->next());
 }
 
 //------------------------------------------------------------------
@@ -254,7 +256,7 @@ void Console::fakeOutputDirAndCmd(const std::string& cmdLine)
 //------------------------------------------------------------------
 void Console::addCmdLineToHistory(const std::string& cmdLine)
 {
-	mCmdHistory.push(cmdLine);
+	mCmdHistory->push(cmdLine);
 }
 
 //------------------------------------------------------------------

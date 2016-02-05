@@ -21,7 +21,7 @@ bool LsCmd::doExecute()
 
 	if (handler->getMatchedBranch() == 1) 
 	{
-		NodeArgHandler* pathNode = handler->getMatchedNode("path");
+		Node* pathNode = handler->getMatchedNode("path");
 		std::for_each(pathNode->beginValueIter(), pathNode->endValueIter(), 
 				[&](const std::string& path)->void
 				{
@@ -41,9 +41,9 @@ bool LsCmd::doExecute()
 void LsCmd::buildArgHandler()
 {
 	TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
-	NodeArgHandler* root = handler->getRoot();
+	Node* root = handler->getRoot();
 	root->endBranch(0);
-	root->addChildNode("path", "path", NodeArgHandler::NT_LOOP)->endBranch(1);
+	root->addChildNode("path", "path", Node::NT_LOOP)->endBranch(1);
 	this->mArgHandler = handler;
 }
 
@@ -108,11 +108,11 @@ SetCmd::SetCmd():
 bool SetCmd::doExecute()
 {
 	TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
-	const std::string& property = handler->getNodeValue("property");
-	NodeArgHandler* valueHandler = handler->getMatchedNode("value");
+	const std::string& property = handler->getNodeValue("parameter");
+	Node* valueNode = handler->getMatchedNode("value");
 	AbsDir* curDir = sgConsole.getDirectory();
 
-	curDir->setParameter(property, valueHandler);
+	curDir->setParameter(property, valueNode->getArgHandler());
 	return true;
 }
 
@@ -121,8 +121,8 @@ void SetCmd::buildArgHandler()
 {
 	TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
 	this->mArgHandler = handler;
-	NodeArgHandler* root = handler->getRoot();
-	NodeArgHandler* node = root->addChildNode("property", "property");
+	Node* root = handler->getRoot();
+	Node* node = root->addChildNode("parameter", "parameter");
 	node->addChildNode("value", "value")->endBranch();
 }
 
@@ -140,7 +140,7 @@ bool LpCmd::doExecute()
 
 	if (handler->getMatchedBranch() == 1) 
 	{
-		NodeArgHandler* pathNode = handler->getMatchedNode("path");
+		Node* pathNode = handler->getMatchedNode("path");
 		std::for_each(pathNode->beginValueIter(), pathNode->endValueIter(), 
 				[&](const std::string& path)->void
 				{
@@ -162,9 +162,9 @@ void LpCmd::buildArgHandler()
 {
 	TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
 	this->mArgHandler = handler;
-	NodeArgHandler* root = handler->getRoot();
+	Node* root = handler->getRoot();
 	root->endBranch(0);
-	root->addChildNode("path", "path", NodeArgHandler::NT_LOOP)->endBranch(1);
+	root->addChildNode("path", "path", Node::NT_LOOP)->endBranch(1);
 }
 
 //------------------------------------------------------------------

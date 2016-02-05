@@ -42,7 +42,11 @@
 //#pragma message(VAR_NAME_VALUE(PAC_PLATFORM))
 //#pragma message(VAR_NAME_VALUE(PAC_COMPILER))
 
+typedef float Real;
 typedef std::map<std::string, std::string> StrStrMap;
+typedef std::map<int, std::string> IntStrMap;
+typedef std::map<int, int> IntIntMap;
+typedef std::map<Real, std::string> RealStrMap;
 typedef std::vector<std::string> StringVector;
 typedef StringVector::iterator SVIter;
 typedef std::vector<int> IntVector;
@@ -54,19 +58,17 @@ typedef std::map<std::string, std::string> NameValuePairList;
 
 namespace pac
 {
-
-	typedef float Real;
-
 	class Console;
 	class Command;
 	class AbsDir;
 	class UiConsole;
 	class ArgHandler;
-	class NodeArgHandler;
+	class Node;
 	class TreeArgHandler;
 	class StringInterface;
 	class ConsolePattern;
 	class DefaultPattern;
+	class CmdHistory;
 	//easy singleton
 }
 

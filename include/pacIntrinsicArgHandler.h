@@ -21,9 +21,9 @@ public:
 	PriDeciArgHandler(const std::string& name):
 		ArgHandler(name){}
 	
-	virtual void doPrompt(const std::string& s)
+	virtual void populatePromptBuffer(const std::string& s)
 	{
-		sgConsole.outputLine("@@" + getName() + "@@");
+		appendNoteBuffer(getName());
 	}
 	virtual bool doValidate(const std::string& s)
 	{
@@ -54,10 +54,10 @@ public:
 		,mMax(max)
 		,mEqual(equal){}
 
-	virtual void doPrompt(const std::string& s)
+	virtual void populatePromptBuffer(const std::string& s)
 	{
-		sgConsole.outputLine("@@" + getName() + " between " 
-				+ StringUtil::toString(mMin) + "and " + StringUtil::toString(mMax) + "@@");
+		appendNoteBuffer(getName() + " between " 
+				+ StringUtil::toString(mMin) + "and " + StringUtil::toString(mMax));
 	}
 	virtual bool doValidate(const std::string& s)
 	{
@@ -76,19 +76,6 @@ public:
 private:
 	T mMin, mMax;
 	bool mEqual;
-};
-
-/**
- * bool type argument handler. Registerd with bool
- */
-class _PacExport BoolArgHandler :public ArgHandler
-{
-public:
-	defArgCom(BoolArgHandler)
-	BoolArgHandler();
-
-	virtual void doPrompt(const std::string& s);
-	virtual bool doValidate(const std::string& s);
 };
 
 /**
@@ -116,7 +103,7 @@ public:
 	size_t size(){return mStrings.size();}
 	void remove(const std::string& s);
 
-	virtual void doPrompt(const std::string& s);
+	virtual void populatePromptBuffer(const std::string& s);
 	virtual bool doValidate(const std::string& s);
 
 private:
@@ -125,6 +112,16 @@ private:
 
 protected:
 	StringSet mStrings;
+};
+
+/**
+ * bool type argument handler. Registerd with bool
+ */
+class _PacExport BoolArgHandler :public StringArgHandler 
+{
+public:
+	defArgCom(BoolArgHandler)
+	BoolArgHandler();
 };
 
 
@@ -137,7 +134,7 @@ public:
 	defArgCom(BlankArgHandler)
 	BlankArgHandler();
 
-	virtual void doPrompt(const std::string& s);
+	virtual void populatePromptBuffer(const std::string& s);
 	virtual bool doValidate(const std::string& s);
 };
 
@@ -151,7 +148,7 @@ public:
 	PathArgHandler();
 	PathArgHandler(const PathArgHandler& rhs);
 
-	virtual void doPrompt(const std::string& s);
+	virtual void populatePromptBuffer(const std::string& s);
 	virtual bool doValidate(const std::string& s);
 
 	AbsDir* getDir() const { return mDir; }
@@ -204,7 +201,7 @@ public:
 	ArgHandler* getHandler() const { return mHandler; }
 	void setHandler( ArgHandler* v){mHandler = v;}
 
-	virtual void doPrompt(const std::string& s);
+	virtual void populatePromptBuffer(const std::string& s);
 	virtual bool doValidate(const std::string& s);
 
 private:

@@ -317,7 +317,9 @@ namespace pac {
 		 * Remove last path component. If path ends with pac::delim, only the
 		 * delim will be removed. If path has no pac::delim, . will be be
 		 * returned. if path equals to pac::delim, pac::delim will be returned.
+		 * If path is empty return empty.
 		 * @param path : path
+		 * @return : path without last component
 		 */
 		static std::string getHead(const std::string& path);
 
@@ -325,6 +327,7 @@ namespace pac {
 		 * Get last part of path component, If path ends with pac::delim, you
 		 * get blank. If path has no pac:delim you get original path
 		 * @param path : 
+		 * @return : tail component
 		 */
 		static std::string getTail(const std::string& path);
 

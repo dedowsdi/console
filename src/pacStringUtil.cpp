@@ -375,13 +375,17 @@ namespace pac {
 	//------------------------------------------------------------------
 	std::string StringUtil::join(const StringVector& sv, const std::string& sep /*= " "*/)
 	{
-		std::string s;
-		std::for_each(sv.begin(), sv.end(), [&](const std::string& v)->void
+		if(sv.empty())
+			return "";
+
+		StringStream ss;
+		ss << sv[0];
+		std::for_each(sv.begin() + 1, sv.end(), [&](const std::string& v)->void
 		{
-			s += s.empty() ? v : sep + v;
+			ss << sep << v ;
 		});
 
-		return s; 
+		return ss.str();
 	}
 
 	//------------------------------------------------------------------
@@ -506,23 +510,27 @@ namespace pac {
 	//------------------------------------------------------------------
 	std::string StringUtil::getHead(const std::string& path)
 	{
+		if(path.empty())
+			return path;
+
 		if(path == pac::delim)
 			return pac::delim;
 
 		int pos = path.find_last_of(pac::delim);
 		if(pos == -1)
-		{
 			return ".";
-		}
+		else if (pos == 0)
+			return pac::delim;
 		else
-		{
 			return path.substr(0, pos);
-		}
 	}
 
 	//------------------------------------------------------------------
 	std::string StringUtil::getTail(const std::string& path)
 	{
+		if(path.empty())
+			return "";
+
 		int pos = path.find_last_of(pac::delim);
 
 		if(pos == -1)

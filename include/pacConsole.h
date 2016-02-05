@@ -2,7 +2,6 @@
 #define PACCONSOLE_H 
 
 #include "pacSingleton.h"
-#include "pacRollStack.h"
 
 namespace pac
 {
@@ -27,6 +26,11 @@ public:
 	 * set up console pattern
 	 */
 	virtual void initConoslePattern();
+
+	/**
+	 * setup cmd history
+	 */
+	virtual void initCmdPattern();
 
 	/**
 	 * Execute cmdLine. Add cmdLine to command history. 
@@ -131,11 +135,11 @@ private:
 	AbsDir* mDir;
 	UiConsole* mUi;
 	ConsolePattern* mPattern;
+	CmdHistory* mCmdHistory;
 
 	CmdMap mCmdMap;
 	StringVector mBuffer;
 
-	RollStack<std::string> mCmdHistory;
 
 };
 

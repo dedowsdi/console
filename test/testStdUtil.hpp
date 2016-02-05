@@ -1,37 +1,38 @@
-#ifndef PACSTDUTIL_H
-#define PACSTDUTIL_H 
+#ifndef TESTPACSTDUTIL_H
+#define TESTPACSTDUTIL_H 
 
-#include "pacConsolePreRequisite.h"
-namespace pac
+#include "pacStdUtil.h"
+#include <gtest/gtest.h>
+
+using namespace pac;
+
+
+TEST(StdUtili_keys, 100timesIntInt)
 {
-
-class StdUtil
-{
-private:
-	StdUtil(){}
-public:
-
-	/**
-	 * Get kyes of a map
-	 * @param t : map 
-	 * @return : vector of map keys 
-	 */
-	template<class T>
-	static std::vector<typename T::key_type> keys(const T& t)
+	srand(time(NULL));
+	size_t numTests = 100;
+	while(numTests--)
 	{
-		std::vector<typename T::key_type> v;
-		std::for_each(t.begin(), t.end(), [&](typename T::value_type val)->void
+		size_t numItems = rand() % 50 + 1;
+		std::map<int,int> m;
+		std::set<int> keys;
+
+		for (size_t i = 0; i < numItems; ++i) 
 		{
-			v.push_back(val.first);
+			keys.insert(rand());
+		}
+
+		std::for_each(keys.begin(), keys.end(), [&](int v)->void
+		{
+			m[v] = rand();
 		});
 
-		return v;
+		std::vector<int> kv = StdUtil::keys(m);
+		std::for_each(kv.begin(), kv.end(), [&](int v)->void
+		{
+			ASSERT_TRUE(StdUtil::exist(keys, v));
+		});
 	}
-
-};
-
-
 }
 
-
-#endif /* PACSTDUTIL_H */
+#endif /* TESTPACSTDUTIL_H */

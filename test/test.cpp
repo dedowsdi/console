@@ -6,14 +6,11 @@
 //#include "testCommand.hpp"
 //#include "testConsole.hpp"
 #include "testConsolePattern.hpp"
-//#include "testConsolePreRequisite.hpp"
-//#include "testIntrinsicArgHandler.hpp"
 //#include "testIntrinsicCmd.hpp"
-//#include "testRollStack.hpp"
-//#include "testSingleton.hpp"
-//#include "testStdUtil.hpp"
+#include "testCmdHistory.hpp"
+#include "testStdUtil.hpp"
 //#include "testStringInterface.hpp"
-//#include "testStringUtil.hpp"
+#include "testStringUtil.hpp"
 #include "testUiConsole.hpp"
 
 
