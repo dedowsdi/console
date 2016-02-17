@@ -3,6 +3,7 @@
 
 #include "pacStringUtil.h"
 #include "pacException.h"
+#include "pacLogger.h"
 
 
 #endif /* PACSTABLE_H */

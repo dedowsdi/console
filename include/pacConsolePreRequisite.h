@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <tuple>
 #include <sstream>
 #include <algorithm>
 #include <assert.h>
@@ -49,6 +50,7 @@ typedef std::map<int, int> IntIntMap;
 typedef std::map<Real, std::string> RealStrMap;
 typedef std::vector<std::string> StringVector;
 typedef StringVector::iterator SVIter;
+typedef StringVector::const_iterator SVCIter;
 typedef std::vector<int> IntVector;
 typedef std::vector<size_t> SizetVector;
 typedef std::vector<float> FloatVector;
@@ -58,22 +60,26 @@ typedef std::map<std::string, std::string> NameValuePairList;
 
 namespace pac
 {
-	class Console;
-	class Command;
 	class AbsDir;
-	class UiConsole;
 	class ArgHandler;
-	class Node;
-	class TreeArgHandler;
-	class StringInterface;
+	class CmdHistory;
+	class Command;
+	class Console;
 	class ConsolePattern;
 	class DefaultPattern;
-	class CmdHistory;
+	class Logger;
+	class Node;
+	class StringInterface;
+	class TreeArgHandler;
+	class UiConsole;
+	struct Branch;
 	//easy singleton
 }
 
 #define sgConsole pac::Console::getSingleton()
 #define sgArgLib pac::ArgHandlerLib::getSingleton()
 #define sgDirRoot pac::RootDir::getSingleton()
+#define sgLogger pac::Logger::getSingleton()
+#define sgRootDir pac::RootDir::getSingleton()
 
 #endif /* PACCONSOLEPREREQUISITE_H */

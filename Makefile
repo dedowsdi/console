@@ -1,5 +1,9 @@
 LIBS = \
 -lboost_regex\
+-lboost_log\
+-lboost_log_setup\
+-lboost_system\
+-lboost_thread
 
 INCLUDES = \
 -Iinclude\
@@ -24,7 +28,8 @@ ${OBJDIR}pacCmdHistory.o\
 ${OBJDIR}pacStdUtil.o\
 ${OBJDIR}pacStringInterface.o\
 ${OBJDIR}pacStringUtil.o\
-${OBJDIR}pacUiConsole.o
+${OBJDIR}pacUiConsole.o\
+${OBJDIR}pacLogger.o
 
 TESTSRCDIR = test/
 TESTSRCS = \
@@ -46,7 +51,8 @@ TESTBIN = test/bin/
 
 
 UBS = ub/*.cpp
-CFLAGS = -Wall -g -std=c++11 
+MACRO = -DBOOST_LOG_DYN_LINK 
+CFLAGS = -Wall -g -std=c++11 ${MACRO}
 
 #--------------------------------------------------------------------
 #all

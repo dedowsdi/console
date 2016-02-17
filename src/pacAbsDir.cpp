@@ -40,6 +40,10 @@ const std::string& AbsDir::getValueArgHandler(const std::string& name)
 //------------------------------------------------------------------
 StringVector AbsDir::getParameters() const
 {
+	static StringVector sv;
+	if(!mStringInterface)
+		return sv;
+
 	return mStringInterface->getParameters();
 }
 

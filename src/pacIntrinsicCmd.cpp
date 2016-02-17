@@ -88,7 +88,7 @@ bool CdCmd::doExecute()
 {
 	AbsDir* curDir = sgConsole.getDirectory();
 	AbsDir* targetDir = AbsDirUtil::findPath(mArgHandler->getValue(), curDir);
-	sgConsole.changeDirectory(targetDir);
+	sgConsole.changeCurrentDirectory(targetDir);
 	return true;
 }
 
