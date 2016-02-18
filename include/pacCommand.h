@@ -14,7 +14,6 @@ class Command
 public:
 
 	friend class Console;
-
 	/**
 	 * ctor. 
 	 * @param name : ctor
@@ -64,6 +63,11 @@ public:
 
 	const std::string& getAhName() const { return mAhName; }
 	void setAhName( const std::string& v){mAhName = v;}
+
+  const std::string& getOptions() const { return mOptions; }
+  void setOptions( const std::string& v){mOptions = v;}
+  const std::string& getArgs() const { return mArgs; }
+  void setArgs( const std::string& v){mArgs = v;}
 
 private:
 	/**

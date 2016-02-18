@@ -99,40 +99,43 @@ protected:
     Node* root;
     mp2IntBool = new TreeArgHandler("IntBool");
     root = mp2IntBool->getRoot();
-    root->addChildNode("intNode", "int")->endBranch(0);
-    root->addChildNode("boolNode", "bool")->endBranch(1);
+    root->addChildNode("intNode", "int")->endBranch("0");
+    root->addChildNode("boolNode", "bool")->endBranch("1");
     mp2IntInt2 = new TreeArgHandler("IntInt2");
     root = mp2IntInt2->getRoot();
-    root->addChildNode("intNode", "int")->endBranch(0);
-    root->addChildNode("int2Node", "int2")->endBranch(1);
+    root->addChildNode("intNode", "int")->endBranch("0");
+    root->addChildNode("int2Node", "int2")->endBranch("1");
     mp3BoolReal3Matrix2 = new TreeArgHandler("BoolReal3Matrix2");
     root = mp3BoolReal3Matrix2->getRoot();
-    root->addChildNode("boolNode", "bool")->endBranch(0);
-    root->addChildNode("real3Node", "real3")->endBranch(1);
-    root->addChildNode("matrix2Node", "matrix2")->endBranch(2);
+    root->addChildNode("boolNode", "bool")->endBranch("0");
+    root->addChildNode("real3Node", "real3")->endBranch("1");
+    root->addChildNode("matrix2Node", "matrix2")->endBranch("2");
     mp3Int3Nreal3Matrix3 = new TreeArgHandler("Int3Nreal3Matrix3");
     root = mp3Int3Nreal3Matrix3->getRoot();
-    root->addChildNode("int3Node", "int3")->endBranch(0);
-    root->addChildNode("nreal3Node", "nreal3")->endBranch(1);
-    root->addChildNode("matrix3Node", "matrix3")->endBranch(2);
+    root->addChildNode("int3Node", "int3")->endBranch("0");
+    root->addChildNode("nreal3Node", "nreal3")->endBranch("1");
+    root->addChildNode("matrix3Node", "matrix3")->endBranch("2");
     mp4BoolInt2Nreal3Matrix4 = new TreeArgHandler("BoolInt2Nreal3Matrix4");
     root = mp4BoolInt2Nreal3Matrix4->getRoot();
-    root->addChildNode("boolNode", "bool")->endBranch(0);
-    root->addChildNode("int2Node", "int2")->endBranch(1);
-    root->addChildNode("nreal3Node", "nreal3")->endBranch(2);
-    root->addChildNode("matrix4Node", "matrix4")->endBranch(3);
+    root->addChildNode("boolNode", "bool")->endBranch("0");
+    root->addChildNode("int2Node", "int2")->endBranch("1");
+    root->addChildNode("nreal3Node", "nreal3")->endBranch("2");
+    root->addChildNode("matrix4Node", "matrix4")->endBranch("3");
     ms3BoolBoolBool = new TreeArgHandler("BoolBoolBool");
     root = ms3BoolBoolBool->getRoot();
     root->addChildNode("boolNode0", "bool")
         ->addChildNode("boolNode1", "bool")
         ->addChildNode("boolNode2", "bool")
-        ->endBranch(0);
+        ->endBranch("0");
     ms2Real3Real3Real3 = new TreeArgHandler("Real3Real3Real3");
     root = ms2Real3Real3Real3->getRoot();
     root->addChildNode("real3Node0", "real3")
         ->addChildNode("real3Node1", "real3")
         ->addChildNode("real3Node2", "real3")
-        ->endBranch(0);
+        ->endBranch("0");
+    ml1real3 = new TreeArgHandler("LoopReal3");
+    root = ml1real3->getRoot();
+    root->addChildNode("real3LoopNode", "real3", Node::NT_LOOP)->endBranch("0");
   }
 
   virtual void TearDown() {
@@ -143,6 +146,7 @@ protected:
     delete mp4BoolInt2Nreal3Matrix4;
     delete ms3BoolBoolBool;
     delete ms2Real3Real3Real3;
+    delete ml1real3;
   }
 
   /**
@@ -422,7 +426,7 @@ protected:
 
   StrStrMap mMap;
 
-  // p as parallel, s as sequence
+  // p as parallel, s as sequence, l as loop
   TreeArgHandler* mp2IntBool;
   TreeArgHandler* mp2IntInt2;
   TreeArgHandler* mp3BoolReal3Matrix2;
@@ -430,6 +434,7 @@ protected:
   TreeArgHandler* mp4BoolInt2Nreal3Matrix4;
   TreeArgHandler* ms3BoolBoolBool;
   TreeArgHandler* ms2Real3Real3Real3;
+  TreeArgHandler* ml1real3;
 };
 
 TEST_F(TestArgHandler, bool) {
@@ -785,11 +790,21 @@ TEST_F(TestArgHandler, SequenceReal3Real3Real3) {
   test(ms2Real3Real3Real3, sv.begin(), sv.end(), 1);
 }
 
+TEST_F(TestArgHandler, LoopReal3) {
+  StringVector sv;
+  sv.push_back("int3");
+  sv.push_back("real3");
+  sv.push_back("nreal3");
+  sv.push_back("matrix3");
+  sv.push_back("nmatrix3");
+  test(ml1real3, sv.begin(), sv.end(), 1);
+}
+
 TEST(TestLoop, loopInt) {
   TreeArgHandler handler("loopInt");
   handler.getRoot()
       ->addChildNode("intNode", "int", Node::NT_LOOP)
-      ->endBranch(0);
+      ->endBranch("0");
 
   for (int i = 0; i < 100; ++i) {
     size_t n = rand() % 20 + 1;
@@ -804,7 +819,7 @@ TEST(TestLoop, loopBool) {
   TreeArgHandler handler("loopBool");
   handler.getRoot()
       ->addChildNode("boolNode", "bool", Node::NT_LOOP)
-      ->endBranch(0);
+      ->endBranch("0");
 
   for (int i = 0; i < 100; ++i) {
     size_t n = rand() % 20 + 1;

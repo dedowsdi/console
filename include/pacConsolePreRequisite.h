@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <tuple>
+#include <stack>
 #include <sstream>
 #include <algorithm>
 #include <assert.h>

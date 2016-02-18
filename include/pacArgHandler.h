@@ -7,18 +7,20 @@ namespace pac {
 
 /**
  * In order to support tree type argument handler, it's necessary to recorded
- * every candidate branch and node values in these branches. Tip node with tree
- * handler will get it's value after you call restoreNodeValues. All string
- * value is referenced by a StringVector::const_iterator.
+ * every candidate branch and node values in these branches.  All string value
+ * is referenced by a StringVector::const_iterator.
  */
 
-  typedef std::tuple<Node*, SVCIter, SVCIter> NodeValue;
-  typedef std::vector<NodeValue> NodeValues;
-  typedef std::vector<Branch> BranchVec;
-  typedef std::pair<TreeArgHandler*, Node*> TreeLeafPair;
-  typedef std::vector<TreeLeafPair> TreeLeafPairs;
-  typedef std::vector<ArgHandler*> ArgHandlerVec;
-  typedef std::vector<Node*> NodeVector;
+typedef std::pair<SVCIter, SVCIter> SVCIterPair;
+typedef std::pair<Node*, std::vector<SVCIterPair>> NodeValue;
+typedef std::vector<NodeValue> NodeValues;
+typedef std::vector<Branch> BranchVec;
+typedef std::pair<TreeArgHandler*, Node*> TreeLeafPair;
+typedef std::pair<TreeArgHandler*, SVCIter> TreeStartPair;
+typedef std::stack<TreeStartPair> TreeStartPairs;
+typedef std::vector<TreeLeafPair> TreeLeafPairs;
+typedef std::vector<ArgHandler*> ArgHandlerVec;
+typedef std::vector<Node*> NodeVector;
 
 struct Branch {
   // node value record,  <Node, value start iterator, value end iterator>
@@ -29,8 +31,7 @@ struct Branch {
    * @param l : end iter of args
    * @param c : current testing arg iter
    */
-  Branch(SVCIter f, SVCIter l, SVCIter c)
-      : first(f), last(l), current(c){}
+  Branch(SVCIter f, SVCIter l, SVCIter c) : first(f), last(l), current(c) {}
 
   /**
    * Record node value
@@ -44,16 +45,33 @@ struct Branch {
   /**
    * Reccord tree and it's matched leaf .
    * @param tree : tree handler
-   * @param leaf : leaf node 
+   * @param leaf : leaf node
    */
   void recordTreeLeafPair(TreeArgHandler* tree, Node* leaf);
 
   /**
+   * push new tree into stack, record it's starting arg point
+   * @param tree : main or sub tree
+   */
+  void pushTree(TreeArgHandler* tree);
+
+  /**
+   * top tree in stack
+   * @return : top tree in stack
+   */
+  TreeStartPair& topTree();
+
+  /**
+   * Meet leaf node, end tree handler. Record tree value , pop tree.
+   * @param leaf : leaf node
+   */
+  void popTree(Node* leaf);
+
+  /**
    * Copy node values from nodeValues to nodes and their underlying arghandler.
-   * Node or it's arghandler will set it's value to the last test string during
-   * filtering branches. This operation will set their value to this
-   * branch(final branch). This will also set values and matched branch for tree
-   * type arghandler.
+   * Handler will set their value to the tested string or strings(tree type) in
+   * this branch. Loop node or node with loop type ancestor will also get it's
+   * full values in this branch.
    */
   void restoreBranch();
 
@@ -66,6 +84,7 @@ struct Branch {
   SVCIter first, last, current;  // first last current string reference
   NodeValues nodeValues;
   TreeLeafPairs treeLeafPairs;
+  TreeStartPairs treeStartPairs;
 };
 
 // argument handler common
@@ -118,15 +137,7 @@ public:
    * invalid. Increment the testing string iterator if it's valid.
    * @param branches : candidate branches
    */
-  virtual void validateArg(BranchVec& branches);
-
-  /**
-   * See Branch::restoreValue
-   * @param first : value start iterator
-   * @param last : value end itarator
-   * @return :
-   */
-  virtual void restoreValue(SVCIter first, SVCIter last);
+  virtual void validateBranch(BranchVec& branches);
 
   /**
    * Populate prompt buffer, to be used later in applyPromptBuffer.
@@ -141,8 +152,8 @@ public:
    * format.
    * @param autoComplete : auto complete current typing
    */
-  virtual void applyPromptBuffer(const std::string& s,
-                                 bool autoComplete = true);
+  virtual void applyPromptBuffer(
+      const std::string& s, bool autoComplete = true);
 
   /**
    * output error message to console
@@ -152,7 +163,7 @@ public:
 
   /**
    * Some handler need context node to decide it's behavier. This function
-   * should  be called at validate, validateArg, prompt.
+   * should  be called at validate, validateBranch, prompt.
    */
   virtual void runtimeInit(){};
 
@@ -187,7 +198,10 @@ protected:
   /**
    * check if s is valid. Derived primitive handler class must override this
    */
-  virtual bool doValidate(const std::string& s){(void)s; return false;}
+  virtual bool doValidate(const std::string& s) {
+    (void)s;
+    return false;
+  }
   /**
    * Append prompt buffer.
    * @param buf : buf
@@ -219,7 +233,8 @@ public:
   enum NodeType {
     NT_ROOT,
     NT_NORMAL,  // appear only once
-    NT_LOOP,    // appear multiple times, you can only loop promitive type handler.
+    NT_LOOP,    // appear multiple times, you can only loop promitive type
+                // handler.
     NT_LEAF
   };
 
@@ -230,7 +245,7 @@ public:
    * @param NodeType : node type
    */
   Node(const std::string& name, const std::string& ahName,
-       NodeType nt = NT_NORMAL);
+      NodeType nt = NT_NORMAL);
   ~Node();
 
   /**
@@ -258,7 +273,7 @@ public:
    * @return : added child node
    */
   Node* addChildNode(const std::string& name, const std::string& ahName,
-                     NodeType nt = NT_NORMAL);
+      NodeType nt = NT_NORMAL);
 
   /**
    * Get child node by name.
@@ -278,7 +293,7 @@ public:
   /**
    * Add leaf node, end current branch.
    */
-  Node* endBranch(int branch = 0);
+  Node* endBranch(const std::string& branchName);
 
   Node* getParent() { return mParent; }
   void setParent(Node* v) { mParent = v; }
@@ -292,7 +307,7 @@ public:
    * Use underlying arghandler to validate arg.
    * @param branches : candidate branches
    */
-  void validateArg(BranchVec& branches);
+  void validateBranch(BranchVec& branches);
 
   /**
    * see Branch::restoreValue
@@ -315,10 +330,17 @@ public:
   ArgHandler* getArgHandler() const;
 
   /**
-   * Get direct leaf child. 
+   * Get direct leaf child.
    * @return : direct leaf child or 0
    */
   Node* getLeafChild() const;
+
+  /**
+   * get 1st loop type node (including self). This operation will be done
+   * accross trees. It will search until meet 1st loop node or main tree.
+   * @return : pointer of 1st loop type ancestor or 0
+   */
+  Node* getLoopNode();
 
   NodeType getNodeType() const { return mNodeType; }
   void setNodeType(NodeType v) { mNodeType = v; }
@@ -330,9 +352,9 @@ public:
   void setAhName(const std::string& v) { mAhName = v; }
 
   TreeArgHandler* getTree() const { return mTree; }
-  void setTree(TreeArgHandler* tree, bool recursive = true); 
+  void setTree(TreeArgHandler* tree, bool recursive = true);
 
-  int getBranch();
+  const std::string& getBranch();
   void setBranch(int v);
 
   NodeVector::const_iterator beginChildIter() const;
@@ -353,10 +375,10 @@ private:
 
 private:
   NodeType mNodeType;       // node type
-  int mBranch;              // only for leaf node
   Node* mParent;            // parent node
   ArgHandler* mArgHandler;  // underlying arghandler
   TreeArgHandler* mTree;    // tree pointer
+  std::string mBranch;      // only for leaf node
   std::string mName;        // node name in current tree
   std::string mAhName;      // argument handler name
   StringVector mValues;     // for loop node only
@@ -382,13 +404,11 @@ public:
 
   virtual bool validate(const std::string& s);
 
-  virtual void validateArg(BranchVec& branches);
+  virtual void validateBranch(BranchVec& branches);
 
   virtual void outputErrMessage(const std::string& s);
 
   virtual void getPromptArgHandlers(ArgHandlerVec& ahv);
-
-  virtual void restoreValue(SVCIter first, SVCIter last);
 
   Node* getRoot() { return mRoot; }
   const Node* getRoot() const { return mRoot; }
@@ -416,7 +436,7 @@ public:
   /**
    * Get id of matched branch.
    */
-  int getMatchedBranch();
+  const std::string& getMatchedBranch();
 
   Node* getMatchedLeaf() const { return mMatchedLeaf; }
   void setMatchedLeaf(Node* v) { mMatchedLeaf = v; }
@@ -429,12 +449,10 @@ public:
   Node* getMatchedNode(const std::string& name);
 
 private:
-
   /**
    * make sure every branch ends with a leaf
    */
   void checkWholeness();
-
 
 private:
   Node* mRoot;
@@ -510,8 +528,8 @@ public:
    * @param num : number of items
    * @return : newly created tree argument handler
    */
-  TreeArgHandler* createMonoTree(const std::string& name,
-                                 const std::string& ahName, int num);
+  TreeArgHandler* createMonoTree(
+      const std::string& name, const std::string& ahName, int num);
 
 private:
   ArgHandlerMap mArgHandlerMap;

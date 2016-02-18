@@ -19,7 +19,7 @@ bool LsCmd::doExecute()
 	TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
 	AbsDir* curDir = sgConsole.getDirectory();
 
-	if (handler->getMatchedBranch() == 1) 
+	if (handler->getMatchedBranch() == "1") 
 	{
 		Node* pathNode = handler->getMatchedNode("path");
 		std::for_each(pathNode->beginValueIter(), pathNode->endValueIter(), 
@@ -42,8 +42,8 @@ void LsCmd::buildArgHandler()
 {
 	TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
 	Node* root = handler->getRoot();
-	root->endBranch(0);
-	root->addChildNode("path", "path", Node::NT_LOOP)->endBranch(1);
+	root->endBranch("0");
+	root->addChildNode("path", "path", Node::NT_LOOP)->endBranch("1");
 	this->mArgHandler = handler;
 }
 
@@ -123,7 +123,7 @@ void SetCmd::buildArgHandler()
 	this->mArgHandler = handler;
 	Node* root = handler->getRoot();
 	Node* node = root->addChildNode("parameter", "parameter");
-	node->addChildNode("value", "value")->endBranch();
+	node->addChildNode("value", "value")->endBranch("0");
 }
 
 //------------------------------------------------------------------
@@ -138,7 +138,7 @@ bool LpCmd::doExecute()
 	TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
 	AbsDir* curDir = sgConsole.getDirectory();
 
-	if (handler->getMatchedBranch() == 1) 
+	if (handler->getMatchedBranch() == "1") 
 	{
 		Node* pathNode = handler->getMatchedNode("path");
 		std::for_each(pathNode->beginValueIter(), pathNode->endValueIter(), 
@@ -163,8 +163,8 @@ void LpCmd::buildArgHandler()
 	TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
 	this->mArgHandler = handler;
 	Node* root = handler->getRoot();
-	root->endBranch(0);
-	root->addChildNode("path", "path", Node::NT_LOOP)->endBranch(1);
+	root->endBranch("0");
+	root->addChildNode("path", "path", Node::NT_LOOP)->endBranch("1");
 }
 
 //------------------------------------------------------------------
