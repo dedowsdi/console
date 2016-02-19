@@ -7,13 +7,13 @@
 namespace pac
 {
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 LsCmd::LsCmd()
 	:Command("ls")
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool LsCmd::doExecute()
 {
 	TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
@@ -22,7 +22,7 @@ bool LsCmd::doExecute()
 	if (handler->getMatchedBranch() == "1") 
 	{
 		Node* pathNode = handler->getMatchedNode("path");
-		std::for_each(pathNode->beginValueIter(), pathNode->endValueIter(), 
+		std::for_each(pathNode->beginLoopValueIter(), pathNode->endLoopValueIter(), 
 				[&](const std::string& path)->void
 				{
 				AbsDir* dir = AbsDirUtil::findPath(path, curDir);
@@ -37,7 +37,7 @@ bool LsCmd::doExecute()
 	return true;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void LsCmd::buildArgHandler()
 {
 	TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
@@ -47,7 +47,7 @@ void LsCmd::buildArgHandler()
 	this->mArgHandler = handler;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void LsCmd::outputChildren(AbsDir* dir)
 {
 	RaiiConsoleBuffer();
@@ -57,13 +57,13 @@ void LsCmd::outputChildren(AbsDir* dir)
 	});
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 PwdCmd::PwdCmd():
 	Command("pwd")
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool PwdCmd::doExecute()
 {
 	AbsDir* curDir = sgConsole.getDirectory();
@@ -71,19 +71,19 @@ bool PwdCmd::doExecute()
 	return true;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void PwdCmd::buildArgHandler()
 {
 	this->mArgHandler = sgArgLib.createArgHandler("blank");
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 CdCmd::CdCmd():
 	Command("cd")
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool CdCmd::doExecute()
 {
 	AbsDir* curDir = sgConsole.getDirectory();
@@ -92,19 +92,19 @@ bool CdCmd::doExecute()
 	return true;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void CdCmd::buildArgHandler()
 {
 	this->mArgHandler = sgArgLib.createArgHandler("path");
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 SetCmd::SetCmd():
 	Command("set")
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool SetCmd::doExecute()
 {
 	TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
@@ -116,7 +116,7 @@ bool SetCmd::doExecute()
 	return true;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void SetCmd::buildArgHandler()
 {
 	TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
@@ -126,13 +126,13 @@ void SetCmd::buildArgHandler()
 	node->addChildNode("value", "value")->endBranch("0");
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 LpCmd::LpCmd():
 	Command("lp")
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool LpCmd::doExecute()
 {
 	TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
@@ -141,7 +141,7 @@ bool LpCmd::doExecute()
 	if (handler->getMatchedBranch() == "1") 
 	{
 		Node* pathNode = handler->getMatchedNode("path");
-		std::for_each(pathNode->beginValueIter(), pathNode->endValueIter(), 
+		std::for_each(pathNode->beginLoopValueIter(), pathNode->endLoopValueIter(), 
 				[&](const std::string& path)->void
 				{
 				AbsDir* dir = AbsDirUtil::findPath(path, curDir);
@@ -157,7 +157,7 @@ bool LpCmd::doExecute()
 	return true;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void LpCmd::buildArgHandler()
 {
 	TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
@@ -167,7 +167,7 @@ void LpCmd::buildArgHandler()
 	root->addChildNode("path", "path", Node::NT_LOOP)->endBranch("1");
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void LpCmd::outputProperties(AbsDir* dir)
 {
 	RaiiConsoleBuffer();

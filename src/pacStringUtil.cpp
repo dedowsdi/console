@@ -2,13 +2,13 @@
 
 namespace pac {
 
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 const std::string StringUtil::BLANK;
 std::string StringUtil::msDefaultStringLocale = "C";
 std::locale StringUtil::msLocale = std::locale(msDefaultStringLocale.c_str());
 bool StringUtil::msUseLocale = false;
 
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void StringUtil::trim(std::string& str, bool left, bool right) {
   /*
   size_t lspaces, rspaces, len = length(), i;
@@ -38,7 +38,7 @@ void StringUtil::trim(std::string& str, bool left, bool right) {
   if (left) str.erase(0, str.find_first_not_of(delims));   // trim left
 }
 
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 StringVector StringUtil::split(const std::string& str,
     const std::string& delims, unsigned int maxSplits, bool preserveDelims) {
   StringVector ret;
@@ -88,7 +88,7 @@ StringVector StringUtil::split(const std::string& str,
 
   return ret;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 StringVector StringUtil::tokenise(const std::string& str,
     const std::string& singleDelims, const std::string& doubleDelims,
     unsigned int maxSplits) {
@@ -146,16 +146,16 @@ StringVector StringUtil::tokenise(const std::string& str,
 
   return ret;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void StringUtil::toLowerCase(std::string& str) {
   std::transform(str.begin(), str.end(), str.begin(), tolower);
 }
 
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void StringUtil::toUpperCase(std::string& str) {
   std::transform(str.begin(), str.end(), str.begin(), toupper);
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool StringUtil::startsWith(
     const std::string& str, const std::string& pattern, bool lowerCase) {
   size_t thisLen = str.length();
@@ -172,7 +172,7 @@ bool StringUtil::startsWith(
 
   return (startOfThis == pattern);
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool StringUtil::endsWith(
     const std::string& str, const std::string& pattern, bool lowerCase) {
   size_t thisLen = str.length();
@@ -189,7 +189,7 @@ bool StringUtil::endsWith(
 
   return (endOfThis == pattern);
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::standardisePath(const std::string& init) {
   std::string path = init;
 
@@ -198,7 +198,7 @@ std::string StringUtil::standardisePath(const std::string& init) {
 
   return path;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::normalizeFilePath(
     const std::string& init, bool makeLowerCase) {
   const char* bufferSrc = init.c_str();
@@ -275,7 +275,7 @@ std::string StringUtil::normalizeFilePath(
 
   return normalized;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void StringUtil::splitFilename(const std::string& qualifiedName,
     std::string& outBasename, std::string& outPath) {
   std::string path = qualifiedName;
@@ -293,13 +293,13 @@ void StringUtil::splitFilename(const std::string& qualifiedName,
   }
 }
 
-//------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 std::string StringUtil::join(
     const StringVector& sv, const std::string& sep /*= " "*/) {
   return join(sv.begin(), sv.end(), sep);
 }
 
-//------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 std::string StringUtil::join(
     SVCIter first, SVCIter last, const std::string& sep /*= " "*/) {
   if (first == last) return "";
@@ -312,7 +312,7 @@ std::string StringUtil::join(
   return ss.str();
 }
 
-//------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 std::string StringUtil::toFixedLength(
     const std::string& s, size_t length, char c /*= ' '*/) {
   // do nothing if it's long enough
@@ -322,7 +322,7 @@ std::string StringUtil::toFixedLength(
 
   return s + s1;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void StringUtil::splitBaseFilename(const std::string& fullName,
     std::string& outBasename, std::string& outExtention) {
   size_t i = fullName.find_last_of(".");
@@ -341,7 +341,7 @@ void StringUtil::splitFullFilename(const std::string& qualifiedName,
   splitFilename(qualifiedName, fullName, outPath);
   splitBaseFilename(fullName, outBasename, outExtention);
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool StringUtil::match(
     const std::string& str, const std::string& pattern, bool caseSensitive) {
   std::string tmpStr = str;
@@ -390,7 +390,7 @@ bool StringUtil::match(
     return false;
   }
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 const std::string StringUtil::replaceAll(const std::string& source,
     const std::string& replaceWhat, const std::string& replaceWithWhat) {
   std::string result = source;
@@ -404,7 +404,7 @@ const std::string StringUtil::replaceAll(const std::string& source,
   return result;
 }
 
-//------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 std::string StringUtil::getHead(const std::string& path) {
   if (path.empty()) return path;
 
@@ -419,7 +419,7 @@ std::string StringUtil::getHead(const std::string& path) {
     return path.substr(0, pos);
 }
 
-//------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
 std::string StringUtil::getTail(const std::string& path) {
   if (path.empty()) return "";
 
@@ -432,7 +432,7 @@ std::string StringUtil::getTail(const std::string& path) {
   }
 }
 
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::toString(Real val, unsigned short precision,
     unsigned short width, char fill, std::ios::fmtflags flags) {
   StringStream stream;
@@ -446,7 +446,7 @@ std::string StringUtil::toString(Real val, unsigned short precision,
   return stream.str();
 }
 #if PAC_DOUBLE_PRECISION == 1
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::toString(float val, unsigned short precision,
     unsigned short width, char fill, std::ios::fmtflags flags) {
   StringStream stream;
@@ -459,7 +459,7 @@ std::string StringUtil::toString(float val, unsigned short precision,
   return stream.str();
 }
 #else
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::toString(double val, unsigned short precision,
     unsigned short width, char fill, std::ios::fmtflags flags) {
   StringStream stream;
@@ -472,7 +472,7 @@ std::string StringUtil::toString(double val, unsigned short precision,
   return stream.str();
 }
 #endif
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::toString(
     int val, unsigned short width, char fill, std::ios::fmtflags flags) {
   StringStream stream;
@@ -483,7 +483,7 @@ std::string StringUtil::toString(
   stream << val;
   return stream.str();
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 #if PAC_PLATFORM != PAC_PLATFORM_NACL &&      \
     (PAC_ARCH_TYPE == PAC_ARCHITECTURE_64 ||  \
         PAC_PLATFORM == PAC_PLATFORM_APPLE || \
@@ -498,7 +498,7 @@ std::string StringUtil::toString(unsigned int val, unsigned short width,
   stream << val;
   return stream.str();
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::toString(
     size_t val, unsigned short width, char fill, std::ios::fmtflags flags) {
   StringStream stream;
@@ -510,7 +510,7 @@ std::string StringUtil::toString(
   return stream.str();
 }
 #if PAC_COMPILER == PAC_COMPILER_MSVC
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::toString(unsigned long val, unsigned short width,
     char fill, std::ios::fmtflags flags) {
   StringStream stream;
@@ -523,7 +523,7 @@ std::string StringUtil::toString(unsigned long val, unsigned short width,
 }
 
 #endif
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 #else
 std::string StringUtil::toString(
     size_t val, unsigned short width, char fill, std::ios::fmtflags flags) {
@@ -535,7 +535,7 @@ std::string StringUtil::toString(
   stream << val;
   return stream.str();
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::toString(unsigned long val, unsigned short width,
     char fill, std::ios::fmtflags flags) {
   StringStream stream;
@@ -546,7 +546,7 @@ std::string StringUtil::toString(unsigned long val, unsigned short width,
   stream << val;
   return stream.str();
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 #endif
 std::string StringUtil::toString(
     long val, unsigned short width, char fill, std::ios::fmtflags flags) {
@@ -558,7 +558,7 @@ std::string StringUtil::toString(
   stream << val;
   return stream.str();
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::toString(bool val, bool yesNo) {
   if (val) {
     if (yesNo) {
@@ -572,7 +572,7 @@ std::string StringUtil::toString(bool val, bool yesNo) {
     return "false";
   }
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StringUtil::toString(const StringVector& val) {
   StringStream stream;
   if (msUseLocale) stream.imbue(msLocale);
@@ -586,7 +586,7 @@ std::string StringUtil::toString(const StringVector& val) {
   }
   return stream.str();
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Real StringUtil::parseReal(const std::string& val, Real defaultValue) {
   // Use iStringStream for direct correspondence with toString
   StringStream str(val);
@@ -596,7 +596,7 @@ Real StringUtil::parseReal(const std::string& val, Real defaultValue) {
 
   return ret;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 int StringUtil::parseInt(const std::string& val, int defaultValue) {
   // Use iStringStream for direct correspondence with toString
   StringStream str(val);
@@ -606,7 +606,7 @@ int StringUtil::parseInt(const std::string& val, int defaultValue) {
 
   return ret;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 unsigned int StringUtil::parseUnsignedInt(
     const std::string& val, unsigned int defaultValue) {
   // Use iStringStream for direct correspondence with toString
@@ -617,7 +617,7 @@ unsigned int StringUtil::parseUnsignedInt(
 
   return ret;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 long StringUtil::parseLong(const std::string& val, long defaultValue) {
   // Use iStringStream for direct correspondence with toString
   StringStream str(val);
@@ -627,7 +627,7 @@ long StringUtil::parseLong(const std::string& val, long defaultValue) {
 
   return ret;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 unsigned long StringUtil::parseUnsignedLong(
     const std::string& val, unsigned long defaultValue) {
   // Use iStringStream for direct correspondence with toString
@@ -638,7 +638,7 @@ unsigned long StringUtil::parseUnsignedLong(
 
   return ret;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 size_t StringUtil::parseSizeT(const std::string& val, size_t defaultValue) {
   // Use iStringStream for direct correspondence with toString
   StringStream str(val);
@@ -648,7 +648,7 @@ size_t StringUtil::parseSizeT(const std::string& val, size_t defaultValue) {
 
   return ret;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool StringUtil::parseBool(const std::string& val, bool defaultValue) {
   if ((StringUtil::startsWith(val, "true") ||
           StringUtil::startsWith(val, "yes") ||
@@ -661,11 +661,11 @@ bool StringUtil::parseBool(const std::string& val, bool defaultValue) {
   else
     return defaultValue;
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 StringVector StringUtil::parseStringVector(const std::string& val) {
   return StringUtil::split(val);
 }
-//-----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool StringUtil::isNumber(const std::string& val) {
   StringStream str(val);
   if (msUseLocale) str.imbue(msLocale);
@@ -674,7 +674,7 @@ bool StringUtil::isNumber(const std::string& val) {
   return !str.fail() && str.eof();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool StringUtil::isAbsolutePath(const std::string& path) {
   return !path.empty() && StringUtil::startsWith(path, pac::delim);
 }

@@ -5,13 +5,13 @@
 
 namespace pac {
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 BoolArgHandler::BoolArgHandler() : StringArgHandler("bool") {
   mStrings.insert("true");
   mStrings.insert("false");
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 StringArgHandler::StringArgHandler(
     const std::string& name, const std::string& text)
     : ArgHandler(name) {
@@ -19,20 +19,20 @@ StringArgHandler::StringArgHandler(
   setPromptType(PT_PROMPTANDCOMPLETE);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 StringArgHandler::StringArgHandler(const std::string& name)
     : ArgHandler(name) {}
 
-//------------------------------------------------------------------
-StringArgHandler& StringArgHandler::insert(const std::string& s) {
-  mStrings.insert(s);
-  return *this;
+//------------------------------------------------------------------------------
+    StringArgHandler* StringArgHandler::insert(const std::string& s) {
+      mStrings.insert(s);
+  return this;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void StringArgHandler::remove(const std::string& s) { mStrings.erase(s); }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void StringArgHandler::populatePromptBuffer(const std::string& s) {
   RaiiConsoleBuffer();
   StringVector sv;
@@ -44,37 +44,37 @@ void StringArgHandler::populatePromptBuffer(const std::string& s) {
       });
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool StringArgHandler::doValidate(const std::string& s) { return exist(s); }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool StringArgHandler::exist(const std::string& value) {
   return mStrings.find(value) != mStrings.end();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 BlankArgHandler::BlankArgHandler() : ArgHandler("blank") {}
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void BlankArgHandler::populatePromptBuffer(const std::string& s) {
   appendPromptBuffer("blank");
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool BlankArgHandler::doValidate(const std::string& s) { return s.empty(); }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 PathArgHandler::PathArgHandler() : ArgHandler("path"), mDir(0) {
   setPromptType(PT_PROMPTANDCOMPLETE);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 PathArgHandler::PathArgHandler(const PathArgHandler& rhs)
     : ArgHandler(rhs.getName()) {
   setDir(sgConsole.getDirectory());
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void PathArgHandler::populatePromptBuffer(const std::string& s) {
   RaiiConsoleBuffer();
 
@@ -91,25 +91,25 @@ void PathArgHandler::populatePromptBuffer(const std::string& s) {
       });
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool PathArgHandler::doValidate(const std::string& s) {
   return AbsDirUtil::findPath(s, mDir) != 0;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 CmdArgHandler::CmdArgHandler() : StringArgHandler("cmd") {
   std::for_each(sgConsole.beginCmdMapIterator(), sgConsole.endCmdMapIterator(),
       [&](const Console::CmdMap::value_type& v)
           -> void { mStrings.insert(v.first); });
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 ParameterArgHandler::ParameterArgHandler()
     : StringArgHandler("parameter"), mDir(0) {
   setPromptType(PT_PROMPTANDCOMPLETE);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 ParameterArgHandler::ParameterArgHandler(const ParameterArgHandler& rhs)
     : StringArgHandler(rhs.getName()) {
   setDir(sgConsole.getDirectory());
@@ -117,17 +117,17 @@ ParameterArgHandler::ParameterArgHandler(const ParameterArgHandler& rhs)
   this->insert(sv.begin(), sv.end());
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 ValueArgHandler::ValueArgHandler() : ArgHandler("value"), mHandler(0), mDir(0) {
   setPromptType(PT_PROMPTANDCOMPLETE);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 ValueArgHandler::ValueArgHandler(const ValueArgHandler& rhs)
     : ArgHandler(rhs.getName()), mHandler(0), mDir(0) {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void ValueArgHandler::runtimeInit()
 {
   setDir(sgConsole.getDirectory());
@@ -146,13 +146,13 @@ void ValueArgHandler::runtimeInit()
   setHandler(sgArgLib.createArgHandler(ahName));
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void ValueArgHandler::populatePromptBuffer(const std::string& s) {
   PacAssert(mHandler, "0 handler in value handler");
   return mHandler->prompt(s);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool ValueArgHandler::doValidate(const std::string& s) {
   PacAssert(mHandler, "0 handler in value handler");
   return mHandler->validate(s);

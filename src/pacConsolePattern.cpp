@@ -5,20 +5,20 @@
 namespace pac
 {
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 ConsolePattern::ConsolePattern(size_t textWidth):
 	mTextWidth(textWidth)
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 DefaultPattern::DefaultPattern(size_t textWidth, size_t spacing):
 	ConsolePattern(textWidth)
 	,mSpacing(spacing)
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string DefaultPattern::applyPattern(SVIter beg, SVIter end) 
 {
 	std::sort(beg, end);
@@ -77,7 +77,7 @@ std::string DefaultPattern::applyPattern(SVIter beg, SVIter end)
 }
 
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void DefaultPattern::getMinMaxItemLen(SVIter beg, SVIter end, 
 		size_t& minItemLen, size_t& maxItemLen)
 {
@@ -93,7 +93,7 @@ void DefaultPattern::getMinMaxItemLen(SVIter beg, SVIter end,
 	});
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 SizetVector DefaultPattern::getCandidateNumColumns(size_t numItem, 
 		size_t minItemLen, size_t maxItemLen) 
 {
@@ -140,7 +140,7 @@ SizetVector DefaultPattern::getCandidateNumColumns(size_t numItem,
 	return res;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool DefaultPattern::valid(SVIter beg, SVIter end, size_t numCol, SizetVector& colWidthes)
 {
 	size_t numItem = end - beg;

@@ -4,7 +4,7 @@
 namespace pac
 {
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string StdUtil::getIdenticalString(StringVector::iterator beg,
 		StringVector::iterator end)
 {

@@ -2,6 +2,7 @@
 #define TESTPACARGHANDLER_H
 
 #include "pacArgHandler.h"
+#include "pacIntrinsicArgHandler.h"
 #include "pacStringUtil.h"
 #include <limits>
 #include <gtest/gtest.h>
@@ -136,6 +137,11 @@ protected:
     ml1real3 = new TreeArgHandler("LoopReal3");
     root = ml1real3->getRoot();
     root->addChildNode("real3LoopNode", "real3", Node::NT_LOOP)->endBranch("0");
+    ml2real3bool = new TreeArgHandler("LoopReal3Bool");
+    root = ml2real3bool->getRoot();
+    root->addChildNode("real3LoopNode", "real3", Node::NT_LOOP)
+        ->addChildNode("boolLoopNode", "bool", Node::NT_LOOP)
+        ->endBranch("0");
   }
 
   virtual void TearDown() {
@@ -147,6 +153,7 @@ protected:
     delete ms3BoolBoolBool;
     delete ms2Real3Real3Real3;
     delete ml1real3;
+    delete ml2real3bool;
   }
 
   /**
@@ -435,6 +442,7 @@ protected:
   TreeArgHandler* ms3BoolBoolBool;
   TreeArgHandler* ms2Real3Real3Real3;
   TreeArgHandler* ml1real3;
+  TreeArgHandler* ml2real3bool;
 };
 
 TEST_F(TestArgHandler, bool) {
@@ -798,6 +806,33 @@ TEST_F(TestArgHandler, LoopReal3) {
   sv.push_back("matrix3");
   sv.push_back("nmatrix3");
   test(ml1real3, sv.begin(), sv.end(), 1);
+  if (ml1real3->validate(mReal3))
+    ASSERT_EQ(ml1real3->getNodeValue("real3LoopNode"), mReal3);
+  if (ml1real3->validate(mMatrix3)) {
+    Node* node = ml1real3->getNode("real3LoopNode");
+    const std::string&& s =
+        StringUtil::join(node->beginLoopValueIter(), node->endLoopValueIter());
+    ASSERT_EQ(s, mMatrix3);
+  }
+}
+
+TEST_F(TestArgHandler, LoopReal3Bool) {
+  // StringVector sv;
+  // test(ml2real3bool, sv.begin(), sv.end(), 1);
+  ASSERT_TRUE(ml2real3bool->validate(mReal3 + " " + mBoolTrue));
+  ASSERT_EQ(ml2real3bool->getNodeValue("real3LoopNode"), mReal3);
+  ASSERT_EQ(ml2real3bool->getNodeValue("boolLoopNode"), mBoolTrue);
+
+  ASSERT_TRUE(
+      ml2real3bool->validate(mMatrix3 + " " + mBoolFalse + " " + mBoolFalse));
+  Node* node = ml2real3bool->getNode("real3LoopNode");
+  const std::string&& s =
+      StringUtil::join(node->beginLoopValueIter(), node->endLoopValueIter());
+  EXPECT_EQ(mMatrix3, s);
+  node = ml2real3bool->getNode("boolLoopNode");
+  const std::string&& s1 =
+      StringUtil::join(node->beginLoopValueIter(), node->endLoopValueIter());
+  EXPECT_EQ(s1, mBoolFalse + " " + mBoolFalse);
 }
 
 TEST(TestLoop, loopInt) {
@@ -827,6 +862,244 @@ TEST(TestLoop, loopBool) {
     while (n-- > 0) ss << (rand() % 2 == 0 ? "true" : "false") << " ";
     ASSERT_TRUE(handler.validate(ss.str()));
   }
+}
+
+class TestLivingThing : public ::testing::Test {
+protected:
+  virtual void SetUp() {
+    mBirds.push_back("bird0");
+    mBirds.push_back("bird1");
+    mBirds.push_back("bird2");
+    mFishes.push_back("fish0");
+    mFishes.push_back("fish1");
+    mFishes.push_back("fish2");
+    mDogs.push_back("dog0");
+    mDogs.push_back("dog1");
+    mDogs.push_back("dog2");
+    mCats.push_back("cat0");
+    mCats.push_back("cat1");
+    mCats.push_back("cat2");
+    mVegetations.push_back("vegetation0");
+    mVegetations.push_back("vegetation1");
+    mVegetations.push_back("vegetation2");
+
+    mMap["bird"] = &mBirds;
+    mMap["fish"] = &mFishes;
+    mMap["dog"] = &mDogs;
+    mMap["cat"] = &mCats;
+    mMap["vegetation"] = &mVegetations;
+
+    Node* root;
+    StringArgHandler* handler;
+    TreeArgHandler* tree;
+    if (!sgArgLib.exists("bird")) {
+      handler = new StringArgHandler("bird");
+      handler->insert(mBirds.begin(), mBirds.end());
+      sgArgLib.registerArgHandler(handler);
+    }
+    if (!sgArgLib.exists("fish")) {
+      handler = new StringArgHandler("fish");
+      handler->insert(mFishes.begin(), mFishes.end());
+      sgArgLib.registerArgHandler(handler);
+    }
+    if (!sgArgLib.exists("dog")) {
+      handler = new StringArgHandler("dog");
+      handler->insert(mDogs.begin(), mDogs.end());
+      sgArgLib.registerArgHandler(handler);
+    }
+    if (!sgArgLib.exists("cat")) {
+      handler = new StringArgHandler("cat");
+      handler->insert(mCats.begin(), mCats.end());
+      sgArgLib.registerArgHandler(handler);
+    }
+    if (!sgArgLib.exists("vegetation")) {
+      handler = new StringArgHandler("vegetation");
+      handler->insert(mVegetations.begin(), mVegetations.end());
+      sgArgLib.registerArgHandler(handler);
+    }
+    if (!sgArgLib.exists("mammal")) {
+      tree = new TreeArgHandler("mammal");
+      root = tree->getRoot();
+      root->addChildNode("dogNode", "dog")->endBranch("dogBranch");
+      root->addChildNode("catNode", "cat")->endBranch("catBranch");
+      sgArgLib.registerArgHandler(tree);
+    }
+    if (!sgArgLib.exists("animal")) {
+      tree = new TreeArgHandler("animal");
+      root = tree->getRoot();
+      root->addChildNode("mammalNode", "mammal")->endBranch("mammalBranch");
+      root->addChildNode("birdNode", "bird")->endBranch("birdBranch");
+      root->addChildNode("fishNode", "fish")->endBranch("fishBranch");
+      sgArgLib.registerArgHandler(tree);
+    }
+    if (!sgArgLib.exists("livingThing")) {
+      tree = new TreeArgHandler("livingThing");
+      root = tree->getRoot();
+      root->addChildNode("animalNode", "animal")->endBranch("animalBranch");
+      root->addChildNode("vegetationNode", "vegetation")
+          ->endBranch("vegetationBranch");
+      sgArgLib.registerArgHandler(tree);
+    }
+  }
+  virtual void TearDown() {}
+  template <typename _InputIterator>
+  bool ifUseTrue(const std::string& itemName, _InputIterator beg,
+      _InputIterator end, bool maskPass) {
+    _InputIterator iter = std::find(beg, end, itemName);
+    return (maskPass && iter != end) || (!maskPass && iter == end);
+  }
+
+  template <typename _InputIterator>
+  void test(const std::string& ahName, _InputIterator beg, _InputIterator end,
+      bool maskPass = true) {
+    ArgHandler* handler = sgArgLib.createArgHandler(ahName);
+    test(handler, beg, end, maskPass);
+    delete handler;
+  }
+
+  /**
+   * Only item between beg and end should pass or fail
+   * @param beg : begin item
+   * @param end : end item
+   * @param maskPass : mask pass or fail.
+   */
+  template <typename _InputIterator>
+  void test(ArgHandler* handler, _InputIterator beg, _InputIterator end,
+      bool maskPass = true) {
+    // it's expanded on purpose, it's clear to find out which item is
+    // wrong this way.
+    std::string itemName;
+
+    itemName = "bird";
+    std::for_each(mMap[itemName]->begin(), mMap[itemName]->end(),
+        [&](const std::string& v) -> void {
+          if (ifUseTrue(itemName, beg, end, maskPass))
+            EXPECT_TRUE(handler->validate(v));
+          else
+            EXPECT_FALSE(handler->validate(v));
+        });
+
+    itemName = "fish";
+    std::for_each(mMap[itemName]->begin(), mMap[itemName]->end(),
+        [&](const std::string& v) -> void {
+          if (ifUseTrue(itemName, beg, end, maskPass))
+            EXPECT_TRUE(handler->validate(v));
+          else
+            EXPECT_FALSE(handler->validate(v));
+        });
+
+    itemName = "dog";
+    std::for_each(mMap[itemName]->begin(), mMap[itemName]->end(),
+        [&](const std::string& v) -> void {
+          if (ifUseTrue(itemName, beg, end, maskPass))
+            EXPECT_TRUE(handler->validate(v));
+          else
+            EXPECT_FALSE(handler->validate(v));
+        });
+
+    itemName = "cat";
+    std::for_each(mMap[itemName]->begin(), mMap[itemName]->end(),
+        [&](const std::string& v) -> void {
+          if (ifUseTrue(itemName, beg, end, maskPass))
+            EXPECT_TRUE(handler->validate(v));
+          else
+            EXPECT_FALSE(handler->validate(v));
+        });
+
+    itemName = "vegetation";
+    std::for_each(mMap[itemName]->begin(), mMap[itemName]->end(),
+        [&](const std::string& v) -> void {
+          if (ifUseTrue(itemName, beg, end, maskPass))
+            EXPECT_TRUE(handler->validate(v));
+          else
+            EXPECT_FALSE(handler->validate(v));
+        });
+  }
+
+  std::string mBird0, mBird1, mBird2;
+  std::string mFish0, mFish1, mFish2;
+  std::string mDog0, mDog1, mDog2;
+  std::string mCat0, mCat1, mCat2;
+  std::string mVegetation0, mVegetation1, mVegetation2;
+
+  StringVector mBirds, mFishes, mDogs, mCats, mVegetations;
+
+  // StringArgHandler* mBird;
+  // StringArgHandler* mFish;
+  // StringArgHandler* mDog;
+  // StringArgHandler* mCat;
+  // StringArgHandler* mVegetation;
+  // TreeArgHandler* mMammal;
+  // TreeArgHandler* mAnimal;
+  // TreeArgHandler* mLivingThing;
+
+  std::map<std::string, StringVector*> mMap;
+};
+
+TEST_F(TestLivingThing, bird) {
+  StringVector sv;
+  sv.push_back("bird");
+  test("bird", sv.begin(), sv.end(), 1);
+}
+TEST_F(TestLivingThing, fish) {
+  StringVector sv;
+  sv.push_back("fish");
+  test("fish", sv.begin(), sv.end(), 1);
+}
+TEST_F(TestLivingThing, dog) {
+  StringVector sv;
+  sv.push_back("dog");
+  test("dog", sv.begin(), sv.end(), 1);
+}
+TEST_F(TestLivingThing, cat) {
+  StringVector sv;
+  sv.push_back("cat");
+  test("cat", sv.begin(), sv.end(), 1);
+}
+TEST_F(TestLivingThing, vegetation) {
+  StringVector sv;
+  sv.push_back("vegetation");
+  test("vegetation", sv.begin(), sv.end(), 1);
+}
+TEST_F(TestLivingThing, mammal) {
+  StringVector sv;
+  sv.push_back("dog");
+  sv.push_back("cat");
+  test("mammal", sv.begin(), sv.end(), 1);
+}
+TEST_F(TestLivingThing, animal) {
+  StringVector sv;
+  sv.push_back("bird");
+  sv.push_back("fish");
+  sv.push_back("dog");
+  sv.push_back("cat");
+  test("animal", sv.begin(), sv.end(), 1);
+}
+TEST_F(TestLivingThing, livingThing) {
+  StringVector sv;
+  sv.push_back("bird");
+  sv.push_back("fish");
+  sv.push_back("dog");
+  sv.push_back("cat");
+  sv.push_back("vegetation");
+  test("livingThing", sv.begin(), sv.end(), 1);
+
+  TreeArgHandler* handler =
+      static_cast<TreeArgHandler*>(sgArgLib.createArgHandler("livingThing"));
+
+  ASSERT_TRUE(handler->validate("cat0"));
+  ASSERT_STREQ("animalBranch",handler->getMatchedBranch().c_str());
+  Node* animalNode = handler->getMatchedNode("animalNode");
+  ASSERT_STREQ("cat0", animalNode->getValue().c_str());
+  TreeArgHandler* animalHandler =
+      static_cast<TreeArgHandler*>(animalNode->getArgHandler());
+  ASSERT_STREQ("mammalBranch",animalHandler->getMatchedBranch().c_str());
+  TreeArgHandler* mammalHandler = animalHandler->getSubTree("mammalNode");
+  ASSERT_STREQ("catBranch", mammalHandler->getMatchedBranch().c_str());
+  ASSERT_STREQ("cat0", mammalHandler->getValue().c_str());
+  Node* catNode = mammalHandler->getMatchedNode("catNode");
+  ASSERT_STREQ("cat0", catNode->getValue().c_str());
+
 }
 
 #endif /* TESTPACARGHANDLER_H */

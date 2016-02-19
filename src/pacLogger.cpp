@@ -35,7 +35,7 @@ logging::formatting_ostream& operator<<(logging::formatting_ostream& strm,
 template <>
 Logger* Singleton<Logger>::msSingleton = 0;
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Logger::Logger(const std::string& logFileName /*= "console.log"*/) {
   auto sink = logging::add_file_log(keywords::file_name = logFileName,
       // [H:M:S]<TYPE> msg
@@ -49,23 +49,23 @@ Logger::Logger(const std::string& logFileName /*= "console.log"*/) {
   setSeverityLevel(SL_TRIVIAL);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Logger::~Logger() {
   // logging::core::get()->flush();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Logger::logMessage(
     const std::string& msg, SeverityLevel lvl /*= SL_NORMAL*/) {
   static src::severity_logger<SeverityLevel> lg;
   BOOST_LOG_SEV(lg, lvl) << msg;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Logger::setSeverityLevel(SeverityLevel lvl) {
   logging::core::get()->set_filter(severity >= lvl);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Logger::flush() { logging::core::get()->flush(); }
 }

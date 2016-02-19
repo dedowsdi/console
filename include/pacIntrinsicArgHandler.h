@@ -82,7 +82,13 @@ public:
    */
   StringArgHandler(const std::string& name, const std::string& text);
 
-  StringArgHandler& insert(const std::string& s);
+  /**
+   * insert new element
+   * @param s : new element
+   * @return : this 
+   */
+  StringArgHandler* insert(const std::string& s);
+
   template <class _InputIterator>
   void insert(_InputIterator first, _InputIterator last) {
     mStrings.insert(first, last);

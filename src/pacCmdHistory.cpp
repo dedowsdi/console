@@ -6,7 +6,7 @@ namespace pac
 {
 std::string  CmdHistory::msBlank;
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 CmdHistory::CmdHistory(size_t size /*= 100*/, bool rollOver /*= false*/):
 	mRollOver(rollOver)
 	,mSearchIndex(-1)
@@ -15,7 +15,7 @@ CmdHistory::CmdHistory(size_t size /*= 100*/, bool rollOver /*= false*/):
 	mStack.resize(size);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void CmdHistory::push(const std::string& cmdLine)
 {
 	std::string l(cmdLine);
@@ -30,7 +30,7 @@ void CmdHistory::push(const std::string& cmdLine)
 	resetRolling();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 const std::string& CmdHistory::previous()
 {
 	if(mSearchIndex == static_cast<size_t>(-1))
@@ -49,7 +49,7 @@ const std::string& CmdHistory::previous()
 	}
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 const std::string& CmdHistory::next()
 {
 	static std::string BLANK;
@@ -64,19 +64,19 @@ const std::string& CmdHistory::next()
 	}
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void CmdHistory::resetRolling()
 {
 	mSearchIndex = -1;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 size_t CmdHistory::getNextRollingIndex(size_t i)
 { 
 	return (i + mStack.size() + 1) % mStack.size(); 
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 size_t CmdHistory::getPrevRollingIndex(size_t i)
 { 
 	return (i + mStack.size() - 1) % mStack.size(); 

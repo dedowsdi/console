@@ -7,14 +7,14 @@ namespace pac
 {
 template<> RootDir* Singleton<RootDir>::msSingleton = 0;
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir::AbsDir(const std::string& name, StringInterface* si)
 	:mName(name)
 	 ,mStringInterface(si)
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir::~AbsDir()
 {
 	std::for_each(mChildren.begin(), mChildren.end(), [&](AbsDir* v)->void
@@ -24,20 +24,20 @@ AbsDir::~AbsDir()
 	mChildren.clear();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string AbsDir::getParameter(const std::string& name)
 {
 	PacAssertS(mStringInterface != 0, "0 string interface at " + getName());
 	return mStringInterface->getParameter(name);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 const std::string& AbsDir::getValueArgHandler(const std::string& name)
 {
 	return mStringInterface->getValueArgHandler(name);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 StringVector AbsDir::getParameters() const
 {
 	static StringVector sv;
@@ -47,21 +47,21 @@ StringVector AbsDir::getParameters() const
 	return mStringInterface->getParameters();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool AbsDir::setParameter(const std::string& name, const std::string& value)
 {
 	PacAssertS(mStringInterface != 0, "0 string interface at " + getName());
 	return mStringInterface->setParameter(name, value);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool AbsDir::setParameter(const std::string& name, ArgHandler* valueHandler)
 {
 	PacAssertS(mStringInterface != 0, "0 string interface at " + getName());
 	return mStringInterface->setParameter(name, valueHandler);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void AbsDir::addChild(AbsDir* dir)
 {
 	//check if exists
@@ -74,13 +74,13 @@ void AbsDir::addChild(AbsDir* dir)
 	dir->setParent(this);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir* AbsDir::enterPath()
 {
 	return this;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 std::string AbsDir::getFullPath()
 {
 	if(this->getName() == pac::delim)	
@@ -89,7 +89,7 @@ std::string AbsDir::getFullPath()
 		return this->getParent()->getFullPath() + pac::delim + this->getName();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir* AbsDir::getChildAt(size_t i)
 {
 	if(i >= mChildren.size())
@@ -98,7 +98,7 @@ AbsDir* AbsDir::getChildAt(size_t i)
 	return mChildren[i];
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir* AbsDir::getChildByName(const std::string& name)
 {
 	AbsDirs::iterator iter = std::find_if(mChildren.begin(), mChildren.end(), 
@@ -110,49 +110,49 @@ AbsDir* AbsDir::getChildByName(const std::string& name)
 	return iter == mChildren.end() ? 0 : *iter;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDirs::iterator AbsDir::beginChildIter()
 {
 	return mChildren.begin();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDirs::iterator AbsDir::endChildIter()
 {
 	return mChildren.end();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 RootDir::RootDir():
 	AbsDir(pac::delim, 0)
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 DotDir::DotDir():
 	AbsDir(".", 0)
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir* DotDir::enterPath()
 {
 	return this->getParent();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 DotDotDir::DotDotDir():
 	AbsDir("..", 0)
 {
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir* DotDotDir::enterPath()
 {
 	return this->getParent()->getParent();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir* AbsDirUtil::findPath(const std::string& path, AbsDir* curDir)
 {
 	if(path.empty())
@@ -164,7 +164,7 @@ AbsDir* AbsDirUtil::findPath(const std::string& path, AbsDir* curDir)
 		return findRelativePath(path, curDir);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir* AbsDirUtil::findAbsolutePath(const std::string& path)
 {
 	if(path == pac::delim)
@@ -173,7 +173,7 @@ AbsDir* AbsDirUtil::findAbsolutePath(const std::string& path)
 		return findRelativePath(path.substr(1), &sgDirRoot);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 AbsDir* AbsDirUtil::findRelativePath(const std::string &path, AbsDir* curDir)
 {
 	StringVector sv = StringUtil::split(path, pac::delim);

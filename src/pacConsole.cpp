@@ -14,11 +14,11 @@ namespace pac {
 template <>
 Console* Singleton<Console>::msSingleton = 0;
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Console::Console(UiConsole* ui)
     : mDir(0), mUi(ui), mPattern(0), mCmdHistory(0) {}
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Console::~Console() {
   // clean command
   std::for_each(mCmdMap.begin(), mCmdMap.end(),
@@ -34,7 +34,7 @@ Console::~Console() {
   delete &sgRootDir;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::init() {
   new Logger();
   initDir();
@@ -56,22 +56,22 @@ void Console::init() {
 
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::initConoslePattern() {
   this->mPattern = new DefaultPattern(mUi->getTextWidth());
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::initCmdPattern() { mCmdHistory = new CmdHistory(); }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::initDir()
 {
 	new RootDir();
 	changeCurrentDirectory(&sgRootDir);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool Console::execute(const std::string& cmdLine) {
   fakeOutputDirAndCmd(cmdLine);
   addCmdLineToHistory(cmdLine);
@@ -91,7 +91,7 @@ bool Console::execute(const std::string& cmdLine) {
   return false;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::prompt(const std::string& cmdLine) {
   fakeOutputDirAndCmd(cmdLine);
 
@@ -117,7 +117,7 @@ void Console::prompt(const std::string& cmdLine) {
   }
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Console& Console::output(const std::string& s, int type /*= 1*/) {
   if (type == 1 && mIsBuffering)
     this->appendBuffer(s);
@@ -127,7 +127,7 @@ Console& Console::output(const std::string& s, int type /*= 1*/) {
   return *this;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Console& Console::outputLine(const std::string& s, int type /*= 1*/) {
   if (mIsBuffering)
     PAC_EXCEPT(
@@ -136,16 +136,16 @@ Console& Console::outputLine(const std::string& s, int type /*= 1*/) {
   return *this;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Console& Console::complete(const std::string& s) {
   mUi->complete(s);
   return *this;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::changeCurrentDirectory(AbsDir* dir) { mDir = dir; }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::registerCommand(Command* cmdProto) {
   PacAssert(!cmdProto->getName().empty(), "empty cmd name");
   sgLogger.logMessage("register command " + cmdProto->getName());
@@ -162,7 +162,7 @@ void Console::registerCommand(Command* cmdProto) {
   }
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::startBuffer() {
   PacAssert(!mIsBuffering, "It'w wrong to start buffer twice");
   PacAssert(
@@ -171,7 +171,7 @@ void Console::startBuffer() {
   mIsBuffering = true;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::endBuffer() {
   PacAssert(mIsBuffering, "It'w wrong to end buffer without start it");
   mIsBuffering = false;
@@ -182,7 +182,7 @@ void Console::endBuffer() {
   mBuffer.clear();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::rollCommand(bool backWard /*= true*/) {
   if (backWard)
     mUi->updateCommandLine(mCmdHistory->previous());
@@ -190,17 +190,17 @@ void Console::rollCommand(bool backWard /*= true*/) {
     mUi->updateCommandLine(mCmdHistory->next());
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Console::CmdMap::const_iterator Console::beginCmdMapIterator() const {
   return mCmdMap.begin();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Console::CmdMap::const_iterator Console::endCmdMapIterator() const {
   return mCmdMap.end();
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 Command* Console::createCommand(const std::string& cmdName) {
   CmdMap::iterator iter = mCmdMap.find(cmdName);
   if (iter != mCmdMap.end()) {
@@ -210,29 +210,29 @@ Command* Console::createCommand(const std::string& cmdName) {
   }
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::promptCommandName(const std::string& cmdName) {
   ArgHandler* handler = sgArgLib.createArgHandler("cmd");
   handler->prompt(cmdName);
   delete handler;
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::fakeOutputDirAndCmd(const std::string& cmdLine) {
   output(mDir->getFullPath() + ":" + cmdLine);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::addCmdLineToHistory(const std::string& cmdLine) {
   mCmdHistory->push(cmdLine);
 }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void Console::appendBuffer(const std::string& v) { mBuffer.push_back(v); }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 RaiiConsoleBuffer::RaiiConsoleBuffer() { sgConsole.startBuffer(); }
 
-//------------------------------------------------------------------
+//------------------------------------------------------------------------------
 RaiiConsoleBuffer::~RaiiConsoleBuffer() { sgConsole.endBuffer(); }
 }

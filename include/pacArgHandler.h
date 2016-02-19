@@ -276,12 +276,13 @@ public:
       NodeType nt = NT_NORMAL);
 
   /**
-   * Get child node by name.
+   * Get child node by name. 
    * @param name : child node name
-   * @param recursive : search child of child until leaf
+   * @param recursive : recursive child of child, set this to false if you just
+   * want to search in direct child.
    * @return : child node with specified name
    */
-  Node* getChildNode(const std::string& name, bool recursive = 1);
+  Node* getChildNode(const std::string& name, bool recursive = true);
 
   /**
    * Get parent node by name. This is always a recursive operation.
@@ -291,7 +292,14 @@ public:
   Node* getAncestorNode(const std::string& name);
 
   /**
+   * Get tree handler attached to this node.
+   * @return : tree handler or 0
+   */
+  TreeArgHandler* getSubTree();
+
+  /**
    * Add leaf node, end current branch.
+   * @param branchName : leaf node name, also used as branch name.
    */
   Node* endBranch(const std::string& branchName);
 
@@ -354,15 +362,13 @@ public:
   TreeArgHandler* getTree() const { return mTree; }
   void setTree(TreeArgHandler* tree, bool recursive = true);
 
-  const std::string& getBranch();
-  void setBranch(int v);
-
   NodeVector::const_iterator beginChildIter() const;
   NodeVector::const_iterator endChildIter() const;
   size_t getNumChildren() const;
 
-  StringVector::const_iterator beginValueIter() const;
-  StringVector::const_iterator endValueIter() const;
+  StringVector::const_iterator beginLoopValueIter() const;
+  StringVector::const_iterator endLoopValueIter() const;
+  void clearLoopValue();
 
   /**
    * Get arg handler of next node and current node if it's loop type.
@@ -378,7 +384,6 @@ private:
   Node* mParent;            // parent node
   ArgHandler* mArgHandler;  // underlying arghandler
   TreeArgHandler* mTree;    // tree pointer
-  std::string mBranch;      // only for leaf node
   std::string mName;        // node name in current tree
   std::string mAhName;      // argument handler name
   StringVector mValues;     // for loop node only
@@ -414,7 +419,7 @@ public:
   const Node* getRoot() const { return mRoot; }
 
   /**
-   * Get descendant node by name. Throw if not found
+   * Get 1st node by name. Throw if not found
    * @param name : child node name
    * @return : Child node pointer
    */
@@ -447,6 +452,13 @@ public:
    * @return : node in matched branch with specified name
    */
   Node* getMatchedNode(const std::string& name);
+
+  /**
+   * Get sub tree under specified node 
+   * @param nodeName : node name, not sub tree name!.
+   * @return : 
+   */
+  TreeArgHandler* getSubTree(const std::string& nodeName);
 
 private:
   /**
@@ -531,9 +543,18 @@ public:
   TreeArgHandler* createMonoTree(
       const std::string& name, const std::string& ahName, int num);
 
+  /**
+   * check if handler exists 
+   * @param name : handler name
+   * @return : true if exists  
+   */
+  bool exists(const std::string& name);
+
 private:
   ArgHandlerMap mArgHandlerMap;
 };
+
 }
+
 
 #endif /* PACARGHANDLER_H */
