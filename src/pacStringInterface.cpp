@@ -1,6 +1,16 @@
 #include "pacStringInterface.h"
+#include "pacArgHandler.h"
 
 namespace pac {
+
+//------------------------------------------------------------------------------
+void ParamCmd::doSet(void* target, const std::string& val) {
+  ArgHandler* handler = sgArgLib.createArgHandler(ahName);
+  if (!handler->validate(val))
+    PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, val + " is not a valid " + ahName);
+  doSet(target, handler);
+  delete handler;
+}
 
 ParamDictionaryMap StringInterface::msDictionary;
 
@@ -31,7 +41,7 @@ const std::string& ParamDictionary::getParamAhName(
   if (iter == mParamMap.end())
     PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, name + " not found ");
 
-  return iter->first;
+  return iter->second.paramCmd->ahName;
 }
 
 //------------------------------------------------------------------------------
@@ -40,9 +50,9 @@ void ParamDictionary::addParameter(const ParamDef& paramDef) {
 }
 
 //------------------------------------------------------------------------------
-void ParamDictionary::addParameter(const std::string& name,
-    const std::string& ahName, ParamCmd* paramCmd, const std::string& desc) {
-  ParamDef paramDef(name, ahName, paramCmd, desc);
+void ParamDictionary::addParameter(
+    const std::string& name, ParamCmd* paramCmd, const std::string& desc) {
+  ParamDef paramDef(name, paramCmd, desc);
   addParameter(paramDef);
 }
 
@@ -52,17 +62,15 @@ StringVector ParamDictionary::getParameters(void) const {
 }
 
 //------------------------------------------------------------------------------
-bool StringInterface::createParamDict(const std::string& className) {
-  ParamDictionaryMap::iterator it = msDictionary.find(className);
+bool StringInterface::createParamDict() {
+  ParamDictionaryMap::iterator it = msDictionary.find(mName);
 
   if (it == msDictionary.end()) {
-    mParamDict = &msDictionary.insert(std::make_pair(className,
-                                          ParamDictionary())).first->second;
-    mParamDictName = className;
+    mParamDict = &msDictionary.insert(std::make_pair(mName, ParamDictionary()))
+                      .first->second;
     return true;
   } else {
     mParamDict = &it->second;
-    mParamDictName = className;
     return false;
   }
 }

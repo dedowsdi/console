@@ -1,11 +1,11 @@
 #ifndef PACUICONSOLE_H
 #define PACUICONSOLE_H 
-#include "pacConsolePreRequisite.h"
+#include "pacStringInterface.h"
 
 namespace pac
 {
 
-class UiConsole 
+class UiConsole :public StringInterface
 {
 public:
 	UiConsole();
@@ -55,18 +55,11 @@ public:
 	 * @param s : content
 	 */
 	virtual UiConsole& complete(const std::string& s) = 0;
-
-	/**
-	 * Set cwd 
-	 * @param cwd : current working directory
-	 */
-	virtual void updateCwd(const std::string& cwd) = 0;	
-
-	/**
-	 * Set command line
-	 * @param cmdLine : command line string
-	 */
-	virtual void updateCommandLine(const std::string& cmdLine = "") = 0;
+	virtual void setCwd(const std::string& cwd) = 0;	
+	virtual void setCmdLine(const std::string& cmdLine = "") = 0;
+  virtual std::string getCmdLine() = 0;
+  virtual Real getAlpha() const = 0;
+  virtual void setAlpha(Real v) const = 0;
 
 	/**
 	 * line text width, default to 80. You can change it by overloading
@@ -74,6 +67,15 @@ public:
 	 * @return : line text width 
 	 */
 	int getTextWidth() const { return mTextWidth; }
+
+  class Alpha : public ParamCmd {
+  public:
+    Alpha() : ParamCmd("npreal") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  static Alpha msAlpha;
 
 protected:
 	void setTextWidth( int v){mTextWidth = v;}

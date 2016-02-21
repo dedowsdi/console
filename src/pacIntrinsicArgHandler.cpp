@@ -1,4 +1,5 @@
 #include "pacStable.h"
+#include "pacCommand.h"
 #include "pacIntrinsicArgHandler.h"
 #include "pacAbsDir.h"
 #include "pacConsole.h"
@@ -98,8 +99,8 @@ bool PathArgHandler::doValidate(const std::string& s) {
 
 //------------------------------------------------------------------------------
 CmdArgHandler::CmdArgHandler() : StringArgHandler("cmd") {
-  std::for_each(sgConsole.beginCmdMapIterator(), sgConsole.endCmdMapIterator(),
-      [&](const Console::CmdMap::value_type& v)
+  std::for_each(sgCmdLib.beginCmdMapIterator(), sgCmdLib.endCmdMapIterator(),
+      [&](const CommandLib::CmdMap::value_type& v)
           -> void { mStrings.insert(v.first); });
 }
 

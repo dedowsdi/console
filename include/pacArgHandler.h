@@ -5,12 +5,6 @@
 
 namespace pac {
 
-/**
- * In order to support tree type argument handler, it's necessary to recorded
- * every candidate branch and node values in these branches.  All string value
- * is referenced by a StringVector::const_iterator.
- */
-
 typedef std::pair<SVCIter, SVCIter> SVCIterPair;
 typedef std::pair<Node*, std::vector<SVCIterPair>> NodeValue;
 typedef std::vector<NodeValue> NodeValues;
@@ -22,9 +16,12 @@ typedef std::vector<TreeLeafPair> TreeLeafPairs;
 typedef std::vector<ArgHandler*> ArgHandlerVec;
 typedef std::vector<Node*> NodeVector;
 
+/**
+ * In order to support tree type handler, it's necessary to recorded every
+ * candidate branch and node values in these branches.  All string value is
+ * referenced by a StringVector::const_iterator.
+ */
 struct Branch {
-  // node value record,  <Node, value start iterator, value end iterator>
-
   /**
    * ctor
    * @param f : beginning iter of args
@@ -134,7 +131,8 @@ public:
 
   /**
    * Test next item in each branches with this handler, remove it if it's
-   * invalid. Increment the testing string iterator if it's valid.
+   * invalid or args already consumed. Increment the testing string iterator if
+   * it's valid.
    * @param branches : candidate branches
    */
   virtual void validateBranch(BranchVec& branches);
@@ -276,7 +274,7 @@ public:
       NodeType nt = NT_NORMAL);
 
   /**
-   * Get child node by name. 
+   * Get child node by name.
    * @param name : child node name
    * @param recursive : recursive child of child, set this to false if you just
    * want to search in direct child.
@@ -312,8 +310,16 @@ public:
   bool isLoop() const { return mNodeType == NT_LOOP; }
 
   /**
-   * Use underlying arghandler to validate arg.
-   * @param branches : candidate branches
+   * Recursively validate branches until leaf of main tree or failed. It don't
+   * matter if args are totally consumed.
+   * leaf:  pop current tree
+   * root:  test each child node, accumulate result branches
+   * normal: test underlying arg handler 1st, if passed, test each child node,
+   *         accumulate result branches.
+   * loop: test underlying arghandler 1st, if passed, test self again and each
+   * child
+   *       node , accumulate result branchesl
+   * @param branches{in out} : candidate branches
    */
   void validateBranch(BranchVec& branches);
 
@@ -454,9 +460,9 @@ public:
   Node* getMatchedNode(const std::string& name);
 
   /**
-   * Get sub tree under specified node 
+   * Get sub tree under specified node
    * @param nodeName : node name, not sub tree name!.
-   * @return : 
+   * @return :
    */
   TreeArgHandler* getSubTree(const std::string& nodeName);
 
@@ -544,17 +550,15 @@ public:
       const std::string& name, const std::string& ahName, int num);
 
   /**
-   * check if handler exists 
+   * check if handler exists
    * @param name : handler name
-   * @return : true if exists  
+   * @return : true if exists
    */
   bool exists(const std::string& name);
 
 private:
   ArgHandlerMap mArgHandlerMap;
 };
-
 }
-
 
 #endif /* PACARGHANDLER_H */

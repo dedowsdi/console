@@ -98,7 +98,8 @@ void Branch::restoreBranch() {
   std::for_each(
       treeLeafPairs.begin(), treeLeafPairs.end(), [&](TreeLeafPair& v) -> void {
         sgLogger.logMessage("set tree:" + v.first->getName() + " matched leaf" +
-                            v.second->getName(), SL_TRIVIAL);
+                                v.second->getName(),
+            SL_TRIVIAL);
         v.first->setMatchedLeaf(v.second);
       });
 }
@@ -708,6 +709,8 @@ void ArgHandlerLib::init() {
   // normalized real
   this->registerArgHandler(
       new PriDeciRangeArgHandler<Real>("nreal", -1.0, 1.0));
+  // normalized positive real
+  this->registerArgHandler(new PriDeciRangeArgHandler<Real>("npreal", 0, 1.0));
   // int 2..int5, real2..real5, matrix2, matrix3, matrix4
   this->registerArgHandler(sgArgLib.createMonoTree("int2", "int", 2));
   this->registerArgHandler(sgArgLib.createMonoTree("int3", "int", 3));

@@ -2,17 +2,16 @@
 #define PACCONSOLE_H
 
 #include "pacSingleton.h"
+#include "pacStringInterface.h"
 
 namespace pac {
 
 /**
  * Must be decoupled from ui and command.
  */
-class Console : public Singleton<Console> {
+class Console : public Singleton<Console>, public StringInterface {
 public:
   friend class RaiiConsoleBuffer;
-
-  typedef std::map<std::string, Command*> CmdMap;
 
   Console(UiConsole* ui);
   virtual ~Console();
@@ -21,15 +20,15 @@ public:
 
   /**
    * Execute cmdLine. Add cmdLine to command history.
-   * @param cmdLine : cmd line to be executed
+   * @param cmdLine : cmd line to be executed.It will get cmd line from ui if
+   * it's empty.
    */
-  bool execute(const std::string& cmdLine);
+  bool execute(const std::string& cmdLine = "");
 
   /**
-   * Output prompt for cmdLine
-   * @param cmdLine : current typing cmd line.
+   * Prompt and complete for current cmd line .
    */
-  void prompt(const std::string& cmdLine);
+  void prompt();
 
   /**
    * Output to ui console or buffer. Call startBuffer before this if you want
@@ -58,13 +57,6 @@ public:
   AbsDir* getDirectory() { return mDir; }
 
   /**
-   * Register new command and it's argument handler.
-   * @remark : don't release prototype by yourself
-   * @param cmdProto : command prototype,
-   */
-  void registerCommand(Command* cmdProto);
-
-  /**
    * Buffer output, to be aligned later. This function will reset buffer. Use
    * RaiiConsoleBuffer to make suer endBuffer get called after this.
    */
@@ -80,8 +72,8 @@ public:
    */
   void rollCommand(bool backWard = true);
 
-  CmdMap::const_iterator beginCmdMapIterator() const;
-  CmdMap::const_iterator endCmdMapIterator() const;
+  UiConsole* getUi() const { return mUi; }
+  void setUi(UiConsole* v) { mUi = v; }
 
 protected:
   // set up console pattern
@@ -92,13 +84,6 @@ protected:
   virtual void initDir();
 
 private:
-  /**
-   * Create command by command name
-   * @param cmdName : command name
-   * @return : newly created command or 0
-   */
-  Command* createCommand(const std::string& cmdName);
-
   /**
    * Prompt for command name .
    * @param cmdLine :
@@ -112,12 +97,6 @@ private:
    */
   void fakeOutputDirAndCmd(const std::string& cmdLine);
 
-  /**
-   * Add cmdLine to history
-   * @param cmdLine : command line
-   */
-  void addCmdLineToHistory(const std::string& cmdLine);
-
   void appendBuffer(const std::string& v);
 
 private:
@@ -127,8 +106,6 @@ private:
   UiConsole* mUi;
   ConsolePattern* mPattern;
   CmdHistory* mCmdHistory;
-
-  CmdMap mCmdMap;
   StringVector mBuffer;
 };
 

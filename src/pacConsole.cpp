@@ -2,11 +2,11 @@
 #include "pacConsole.h"
 #include "pacCommand.h"
 #include "pacArgHandler.h"
-#include "pacIntrinsicCmd.h"
 #include "pacUiConsole.h"
 #include "pacAbsDir.h"
 #include "pacConsolePattern.h"
 #include "pacCmdHistory.h"
+#include "pacAbsDir.h"
 #include <boost/regex.hpp>
 
 namespace pac {
@@ -16,14 +16,15 @@ Console* Singleton<Console>::msSingleton = 0;
 
 //------------------------------------------------------------------------------
 Console::Console(UiConsole* ui)
-    : mDir(0), mUi(ui), mPattern(0), mCmdHistory(0) {}
+    : StringInterface("console"),
+      mDir(0),
+      mUi(ui),
+      mPattern(0),
+      mCmdHistory(0) {}
 
 //------------------------------------------------------------------------------
 Console::~Console() {
-  // clean command
-  std::for_each(mCmdMap.begin(), mCmdMap.end(),
-      [&](CmdMap::value_type& v) -> void { delete v.second; });
-  mCmdMap.clear();
+  delete &sgCmdLib;
 
   delete mCmdHistory;
   mCmdHistory = 0;
@@ -38,22 +39,14 @@ Console::~Console() {
 void Console::init() {
   new Logger();
   initDir();
-  // register intrinsic arg handler
+
+  new CommandLib();
   new ArgHandlerLib();
 
   sgArgLib.init();
-
-  // register intrinsic commands
-  this->registerCommand((new LsCmd())->init());
-  this->registerCommand((new PwdCmd())->init());
-  this->registerCommand((new CdCmd())->init());
-  this->registerCommand((new SetCmd())->init());
-  this->registerCommand((new LpCmd())->init());
+  sgCmdLib.init();
 
   initConoslePattern();
-
-  
-
 }
 
 //------------------------------------------------------------------------------
@@ -65,34 +58,43 @@ void Console::initConoslePattern() {
 void Console::initCmdPattern() { mCmdHistory = new CmdHistory(); }
 
 //------------------------------------------------------------------------------
-void Console::initDir()
-{
-	new RootDir();
-	changeCurrentDirectory(&sgRootDir);
+void Console::initDir() {
+  new RootDir();
+  changeCurrentDirectory(&sgRootDir);
+  AbsDir* uiDir = new AbsDir("uiConsole", mUi);
+  sgRootDir.addChild(uiDir);
 }
 
 //------------------------------------------------------------------------------
-bool Console::execute(const std::string& cmdLine) {
-  fakeOutputDirAndCmd(cmdLine);
-  addCmdLineToHistory(cmdLine);
+bool Console::execute(const std::string& cmdLine /*= ""*/) {
+  std::string line = cmdLine.empty() ? mUi->getCmdLine() : cmdLine;
+  line = StringUtil::trim(line);
+  if (line.empty()) return false;
+
+  fakeOutputDirAndCmd(line);
+  addCmdLineToHistory(line);
 
   // clear cmd line
-  mUi->updateCommandLine();
+  mUi->setCmdLine(line);
 
-  boost::regex reCmd2("^\\s*(\\w+)\\s*(.*)$");
+  boost::regex reCmd2("^\\s*(\\w+)(\\s*.*)$");
   boost::smatch m;
-  if (boost::regex_match(cmdLine, m, reCmd2)) {
-    Command* cmd = this->createCommand(m[1]);
+  if (boost::regex_match(line, m, reCmd2)) {
+    Command* cmd = sgCmdLib.createCommand(m[1]);
     if (cmd) {
       cmd->setArgsAndOptions(m[2]);
       return cmd->execute();
     }
   }
-  return false;
+  return true;
 }
 
 //------------------------------------------------------------------------------
-void Console::prompt(const std::string& cmdLine) {
+void Console::prompt() {
+  std::string&& cmdLine = mUi->getCmdLine();
+  cmdLine = StringUtil::trim(line, true, false);
+  if (cmdLine.empty()) return;
+
   fakeOutputDirAndCmd(cmdLine);
 
   boost::regex reCmd("^\\s*(\\w*)$");
@@ -103,9 +105,9 @@ void Console::prompt(const std::string& cmdLine) {
   } else {
     // prompt argument
     // extract command name, args and options
-    boost::regex reCmd2("^\\s*(\\w+)\\s*(.*)$");
+    boost::regex reCmd2("^\\s*(\\w+)(\\s*.*)$");
     if (boost::regex_match(cmdLine, m, reCmd2)) {
-      Command* cmd = this->createCommand(m[1]);
+      Command* cmd = sgCmdLib.createCommand(m[1]);
       if (cmd) {
         cmd->setArgsAndOptions(m[2]);
         cmd->prompt();
@@ -146,23 +148,6 @@ Console& Console::complete(const std::string& s) {
 void Console::changeCurrentDirectory(AbsDir* dir) { mDir = dir; }
 
 //------------------------------------------------------------------------------
-void Console::registerCommand(Command* cmdProto) {
-  PacAssert(!cmdProto->getName().empty(), "empty cmd name");
-  sgLogger.logMessage("register command " + cmdProto->getName());
-  // check if it's already registerd
-  CmdMap::iterator iter = std::find_if(mCmdMap.begin(), mCmdMap.end(),
-      [&](CmdMap::value_type& v)
-          -> bool { return v.first == cmdProto->getName(); });
-
-  if (iter == mCmdMap.end()) {
-    mCmdMap[cmdProto->getName()] = cmdProto;
-  } else {
-    PAC_EXCEPT(Exception::ERR_DUPLICATE_ITEM,
-        cmdProto->getName() + " already registed!");
-  }
-}
-
-//------------------------------------------------------------------------------
 void Console::startBuffer() {
   PacAssert(!mIsBuffering, "It'w wrong to start buffer twice");
   PacAssert(
@@ -191,26 +176,6 @@ void Console::rollCommand(bool backWard /*= true*/) {
 }
 
 //------------------------------------------------------------------------------
-Console::CmdMap::const_iterator Console::beginCmdMapIterator() const {
-  return mCmdMap.begin();
-}
-
-//------------------------------------------------------------------------------
-Console::CmdMap::const_iterator Console::endCmdMapIterator() const {
-  return mCmdMap.end();
-}
-
-//------------------------------------------------------------------------------
-Command* Console::createCommand(const std::string& cmdName) {
-  CmdMap::iterator iter = mCmdMap.find(cmdName);
-  if (iter != mCmdMap.end()) {
-    return iter->second->clone();
-  } else {
-    PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, cmdName + " not found");
-  }
-}
-
-//------------------------------------------------------------------------------
 void Console::promptCommandName(const std::string& cmdName) {
   ArgHandler* handler = sgArgLib.createArgHandler("cmd");
   handler->prompt(cmdName);
@@ -220,11 +185,6 @@ void Console::promptCommandName(const std::string& cmdName) {
 //------------------------------------------------------------------------------
 void Console::fakeOutputDirAndCmd(const std::string& cmdLine) {
   output(mDir->getFullPath() + ":" + cmdLine);
-}
-
-//------------------------------------------------------------------------------
-void Console::addCmdLineToHistory(const std::string& cmdLine) {
-  mCmdHistory->push(cmdLine);
 }
 
 //------------------------------------------------------------------------------

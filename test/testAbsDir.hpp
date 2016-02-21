@@ -1,174 +1,227 @@
-#ifndef PACABSDIR_H
-#define PACABSDIR_H 
-#include "pacConsolePreRequisite.h"
-#include "pacSingleton.h"
+#ifndef TESTABSDIR_H
+#define TESTABSDIR_H
+#include "pacStringInterface.h"
+#include "pacAbsDir.h"
+#include "pacStringUtil.h"
+#include "pacArgHandler.h"
+#include "pacIntrinsicArgHandler.h"
+#include "pacException.h"
+#include "gtest/gtest.h"
 
-namespace pac
-{
+namespace pac {
 
-
-typedef std::vector<AbsDir*> AbsDirs;
-
-/**
- * Abstract directory. Used to get set parameter of what every you want.
- */
-class AbsDir 
-{
+class TestSI : public StringInterface {
 public:
-	AbsDir(const std::string& name, StringInterface* si);
-	virtual ~AbsDir();
+  TestSI() : StringInterface("test") {
+    if (createParamDict()) {
+      ParamDictionary* dict = getParamDict();
+      dict->addParameter("paramBool", &msParamBool);
+      dict->addParameter("paramInt", &msParamInt);
+      dict->addParameter("paramString", &msParamString);
 
-	/**
-	 * Get parameter value. 
-	 * @param name : parameter name
-	 * @return : parameter value
-	 */
-	std::string getParameter(const std::string& name);
+      StringArgHandler* handler = new StringArgHandler("testString");
+      handler->insert("one");
+      handler->insert("two");
+      handler->insert("three");
+      sgArgLib.registerArgHandler(handler);
+    }
+  }
 
-	/**
-	 * Get parameter value argument handler name
-	 * @param name : parameter name
-	 * @return : param value argument handler name 
-	 */
-	const std::string& getValueArgHandler(const std::string& name);
+  bool getBool() const { return mBool; }
+  void setBool(bool b) { mBool = b; }
+  const std::string& getString() const { return mString; }
+  void setString(const std::string& v) { mString = v; }
+  int getInt() const { return mInt; }
+  void setInt(int v) { mInt = v; }
 
-	/**
-	 * Get vector of parameter names 
-	 * @return : vector of parameter names
-	 */
-	StringVector getParameters() const;
-	/**
-	 * Set parameter value. This is only used for the most simple case.
-	 * @param name : parameter name
-	 * @param value : parameter value
-	 */
-	bool setParameter(const std::string& name, const std::string& value);
+  struct ParamBool : public ParamCmd {
+    ParamBool() : ParamCmd("bool") {}
+    virtual std::string doGet(const void* target) const {
+      const TestSI* si = static_cast<const TestSI*>(target);
+      return StringUtil::toString(si->getBool());
+    }
+    virtual void doSet(void* target, ArgHandler* handler) {
+      TestSI* si = static_cast<TestSI*>(target);
+      si->setBool(StringUtil::parseBool(handler->getValue()));
+    }
+  };
 
-	/**
-	 * Set parameter value. You can get specific value components from
-	 * valueHandler, it's primitive arghandler for simple case, treearghandler
-	 * for intricate case.
-	 * @param name : parameter name
-	 * @param valueHander : parameter value handler
-	 */
-	bool setParameter(const std::string& name, ArgHandler* valueHandler);
+  struct ParamString : public ParamCmd {
+    ParamString() : ParamCmd("testString") {}
+    virtual std::string doGet(const void* target) const {
+      const TestSI* si = static_cast<const TestSI*>(target);
+      return si->getString();
+    }
+    virtual void doSet(void* target, ArgHandler* handler) {
+      TestSI* si = static_cast<TestSI*>(target);
+      si->setString(handler->getValue());
+    }
+  };
 
-	const std::string& getName() const { return mName; }
-	void setName( const std::string& v){mName = v;}
+  struct ParamInt : public ParamCmd {
+    ParamInt() : ParamCmd("int") {}
+    virtual std::string doGet(const void* target) const {
+      const TestSI* si = static_cast<const TestSI*>(target);
+      return StringUtil::toString(si->getInt());
+    }
+    virtual void doSet(void* target, ArgHandler* handler) {
+      TestSI* si = static_cast<TestSI*>(target);
+      si->setInt(StringUtil::parseInt(handler->getValue()));
+    }
+  };
 
-	AbsDir* getParent() const { return mParent; }
-	void setParent( AbsDir* v){mParent = v;}
+  static ParamBool msParamBool;
+  static ParamString msParamString;
+  static ParamInt msParamInt;
+  bool mBool;
+  std::string mString;
+  int mInt;
+};
 
-	StringInterface* getStringInterface() const { return mStringInterface; }
-	void setStringInterface( StringInterface* v){mStringInterface = v;}
+TestSI::ParamBool TestSI::msParamBool;
+TestSI::ParamString TestSI::msParamString;
+TestSI::ParamInt TestSI::msParamInt;
 
-	/**
-	 * Add dir to children.  
-	 * @param dir : child dir
-	 */
-	void addChild(AbsDir* dir);
-
-	/**
-	 * for . and .. 
-	 * @return : target dir 
-	 */
-	virtual AbsDir* enterPath();
-
-	/**
-	 * Get full path until root 
-	 * @return : full path
-	 */
-	std::string getFullPath();
-	
-	/**
-	 * Throw if i overflow. 
-	 * @param i : index
-	 * @return : 
-	 */
-	AbsDir* getChildAt(size_t i);
-
-	/**
-	 * Return 0 if not found.
-	 * @param name : child dir name
-	 * @return : 0 or child dir 
-	 */
-	AbsDir* getChildByName(const std::string& name);
-
-	AbsDirs::iterator beginChildIter();
-	AbsDirs::iterator endChildIter();
-
+class TestAbsDir : public ::testing::Test {
 protected:
+  void SetUp() {
+    d = pac::delim;
+    testSI = new TestSI();
+    dir0 = new AbsDir("dir0", testSI);
+    dir0_0 = new AbsDir("dir0_0", testSI);
+    dir0_1 = new AbsDir("dir0_1", testSI);
+    dir0_0_0 = new AbsDir("dir0_0_0", testSI);
+    dir0_0_1 = new AbsDir("dir0_0_1", testSI);
+    dir0_1_0 = new AbsDir("dir0_1_0", testSI);
+    dir0_1_1 = new AbsDir("dir0_1_1", testSI);
+    sgRootDir.addChild(dir0);
+    dir0->addChild(dir0_0);
+    dir0->addChild(dir0_1);
+    dir0_0->addChild(dir0_0_0);
+    dir0_0->addChild(dir0_0_1);
+    dir0_1->addChild(dir0_1_0);
+    dir0_1->addChild(dir0_1_1);
+  }
+  void TearDown() {
+    delete testSI;
+    delete dir0;
+    // delete dir0_0;
+    // delete dir0_1;
+    // delete dir0_0_0;
+    // delete dir0_0_1;
+    // delete dir0_1_0;
+    // delete dir0_1_1;
+  }
 
-	std::string mName;
-	AbsDir* mParent;
-	StringInterface* mStringInterface;
-	AbsDirs mChildren;
+  AbsDir* dir0, *dir0_0, *dir0_1, *dir0_0_0, *dir0_0_1, *dir0_1_0, *dir0_1_1;
+  TestSI* testSI;
+  std::string d;  // delim
 };
 
-/*
- *root dir, the same as path delimiter, it's singleton.
- */
-class RootDir: public AbsDir, public Singleton<RootDir>
-{
-public:
-	RootDir();
-};
-
-class DotDir: public AbsDir
-{
-public:
-	DotDir();
-
-	/**
-	 * return self 
-	 */
-	virtual AbsDir* enterPath();
-};
-
-class DotDotDir: public AbsDir
-{
-public:
-	DotDotDir();
-
-	/**
-	 * return parent
-	 */
-	virtual AbsDir* enterPath();
-};
-
-
-class AbsDirUtil
-{
-
-private:
-	AbsDirUtil(){}
-
-public:
-
-	/**
-	 * Find dir by path. Path can be relative or absolute. 
-	 * @param path : target path
-	 * @param curDir : current dir
-	 * @return : target dir
-	 */
-	static AbsDir* findPath(const std::string& path, AbsDir* curDir);
-
-	/**
-	 * find dir by absolute path
-	 * @param path : absolute path
-	 * @return : target dir or 0
-	 */
-	static AbsDir* findAbsolutePath(const std::string& path);
-	/**
-	 * find dir by relative path
-	 * @param &path : relative path
-	 * @param curDir : current working dir
-	 * @return : target dir or 0
-	 */
-	static AbsDir* findRelativePath(const std::string &path, AbsDir* curDir);
-
-};
-
+TEST_F(TestAbsDir, addChildWithIlligalName) {
+  AbsDir ldir0("ab c", 0);
+  EXPECT_THROW(sgRootDir.addChild(&ldir0), InvalidParametersException);
+  AbsDir ldir1("abc" + pac::delim, 0);
+  EXPECT_THROW(sgRootDir.addChild(&ldir1), InvalidParametersException);
 }
 
-#endif /* PACABSDIR_H */
+TEST_F(TestAbsDir, addDuplicateChild) {
+  EXPECT_THROW(sgRootDir.addChild(dir0), ItemIdentityException);
+}
+
+TEST_F(TestAbsDir, getParameters) {
+  StringVector&& sv = dir0->getParameters();
+  EXPECT_EQ(3, sv.size());
+  EXPECT_STREQ("paramBool", sv[0].c_str());
+  EXPECT_STREQ("paramInt", sv[1].c_str());
+  EXPECT_STREQ("paramString", sv[2].c_str());
+}
+
+TEST_F(TestAbsDir, getsetParameter) {
+  dir0->setParameter("paramInt", "1");
+  EXPECT_EQ("1", dir0->getParameter("paramInt"));
+  dir0->setParameter("paramBool", "true");
+  EXPECT_EQ("true", dir0->getParameter("paramBool"));
+  dir0->setParameter("paramString", "one");
+  EXPECT_EQ("one", dir0->getParameter("paramString"));
+
+  EXPECT_THROW(
+      dir0->setParameter("paramInt", "1.0"), InvalidParametersException);
+  EXPECT_THROW(
+      dir0->setParameter("paramInt", "true"), InvalidParametersException);
+  EXPECT_THROW(
+      dir0->setParameter("paramInt", "false"), InvalidParametersException);
+  EXPECT_THROW(
+      dir0->setParameter("paramBool", "1"), InvalidParametersException);
+  EXPECT_THROW(
+      dir0->setParameter("paramString", "1"), InvalidParametersException);
+  EXPECT_THROW(
+      dir0->setParameter("paramString", "true"), InvalidParametersException);
+}
+
+TEST_F(TestAbsDir, getFullPath) {
+  EXPECT_EQ(d, sgRootDir.getFullPath());
+  EXPECT_EQ(d + "dir0/", dir0->getFullPath());
+  EXPECT_EQ(d + "dir0" + d + "dir0_0/", dir0_0->getFullPath());
+  EXPECT_EQ(d + "dir0" + d + "dir0_1/", dir0_1->getFullPath());
+  EXPECT_EQ(
+      d + "dir0" + d + "dir0_0" + d + "dir0_0_0/", dir0_0_0->getFullPath());
+  EXPECT_EQ(
+      d + "dir0" + d + "dir0_0" + d + "dir0_0_1/", dir0_0_1->getFullPath());
+  EXPECT_EQ(
+      d + "dir0" + d + "dir0_1" + d + "dir0_1_0/", dir0_1_0->getFullPath());
+  EXPECT_EQ(
+      d + "dir0" + d + "dir0_1" + d + "dir0_1_1/", dir0_1_1->getFullPath());
+}
+
+TEST_F(TestAbsDir, findPathThrow) {
+  EXPECT_THROW(AbsDirUtil::findPath(pac::delim + " ", &sgRootDir),
+      InvalidParametersException);
+  EXPECT_THROW(AbsDirUtil::findPath("abc", 0), InvalidParametersException);
+}
+
+TEST_F(TestAbsDir, findRelativePath) {
+  EXPECT_EQ(dir0, AbsDirUtil::findPath("dir0", &sgRootDir));
+  EXPECT_EQ(dir0_0, AbsDirUtil::findPath("dir0" + d + "dir0_0", &sgRootDir));
+  EXPECT_EQ(dir0_1, AbsDirUtil::findPath("dir0" + d + "dir0_1", &sgRootDir));
+  EXPECT_EQ(dir0_0_0,
+      AbsDirUtil::findPath("dir0" + d + "dir0_0" + d + "dir0_0_0", &sgRootDir));
+  EXPECT_EQ(dir0_0_1,
+      AbsDirUtil::findPath("dir0" + d + "dir0_0" + d + "dir0_0_1", &sgRootDir));
+  EXPECT_EQ(dir0_1_0,
+      AbsDirUtil::findPath("dir0" + d + "dir0_1" + d + "dir0_1_0", &sgRootDir));
+  EXPECT_EQ(dir0_1_1,
+      AbsDirUtil::findPath("dir0" + d + "dir0_1" + d + "dir0_1_1", &sgRootDir));
+  EXPECT_EQ(dir0_0_0, AbsDirUtil::findPath("dir0_0" + d + "dir0_0_0", dir0));
+  EXPECT_EQ(dir0_0_1, AbsDirUtil::findPath("dir0_0" + d + "dir0_0_1", dir0));
+  EXPECT_EQ(dir0_1_0, AbsDirUtil::findPath("dir0_1" + d + "dir0_1_0", dir0));
+  EXPECT_EQ(dir0_1_1, AbsDirUtil::findPath("dir0_1" + d + "dir0_1_1", dir0));
+  EXPECT_EQ(dir0_0_0, AbsDirUtil::findPath("dir0_0_0", dir0_0));
+  EXPECT_EQ(dir0_0_1, AbsDirUtil::findPath("dir0_0_1", dir0_0));
+  EXPECT_EQ(dir0_1_0, AbsDirUtil::findPath("dir0_1_0", dir0_1));
+  EXPECT_EQ(dir0_1_1, AbsDirUtil::findPath("dir0_1_1", dir0_1));
+  EXPECT_EQ(0, AbsDirUtil::findPath("abcd", dir0_1));
+}
+
+TEST_F(TestAbsDir, findAbsolutePath) {
+  EXPECT_EQ(dir0, AbsDirUtil::findPath(d + "dir0", &sgRootDir));
+  EXPECT_EQ(
+      dir0_0, AbsDirUtil::findPath(d + "dir0" + d + "dir0_0", &sgRootDir));
+  EXPECT_EQ(
+      dir0_1, AbsDirUtil::findPath(d + "dir0" + d + "dir0_1", &sgRootDir));
+  EXPECT_EQ(
+      dir0_0_0, AbsDirUtil::findPath(
+                    d + "dir0" + d + "dir0_0" + d + "dir0_0_0", &sgRootDir));
+  EXPECT_EQ(
+      dir0_0_1, AbsDirUtil::findPath(
+                    d + "dir0" + d + "dir0_0" + d + "dir0_0_1", &sgRootDir));
+  EXPECT_EQ(
+      dir0_1_0, AbsDirUtil::findPath(
+                    d + "dir0" + d + "dir0_1" + d + "dir0_1_0", &sgRootDir));
+  EXPECT_EQ(
+      dir0_1_1, AbsDirUtil::findPath(
+                    d + "dir0" + d + "dir0_1" + d + "dir0_1_1", &sgRootDir));
+}
+}
+
+#endif /* TESTABSDIR_H */

@@ -1,15 +1,14 @@
 #include <iostream>
 #include "pacConsole.h"
 
-//#include "testAbsDir.hpp"
+#include "testAbsDir.hpp"
 #include "testArgHandler.hpp"
-//#include "testCommand.hpp"
+#include "testCommand.hpp"
 //#include "testConsole.hpp"
 #include "testConsolePattern.hpp"
 //#include "testIntrinsicCmd.hpp"
 #include "testCmdHistory.hpp"
 #include "testStdUtil.hpp"
-//#include "testStringInterface.hpp"
 #include "testStringUtil.hpp"
 #include "testUiConsole.hpp"
 

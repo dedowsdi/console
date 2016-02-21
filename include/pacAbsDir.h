@@ -1,174 +1,155 @@
 #ifndef PACABSDIR_H
-#define PACABSDIR_H 
+#define PACABSDIR_H
 #include "pacConsolePreRequisite.h"
 #include "pacSingleton.h"
 
-namespace pac
-{
-
+namespace pac {
 
 typedef std::vector<AbsDir*> AbsDirs;
 
 /**
  * Abstract directory. Used to get set parameter of what every you want.
  */
-class AbsDir 
-{
+class AbsDir {
 public:
-	AbsDir(const std::string& name, StringInterface* si);
-	virtual ~AbsDir();
+  AbsDir(const std::string& name, StringInterface* si);
+  virtual ~AbsDir();
 
-	/**
-	 * Get parameter value. 
-	 * @param name : parameter name
-	 * @return : parameter value
-	 */
-	std::string getParameter(const std::string& name);
+  /**
+   * Get parameter value.
+   * @param name : parameter name
+   * @return : parameter value
+   */
+  std::string getParameter(const std::string& name);
 
-	/**
-	 * Get parameter value argument handler name
-	 * @param name : parameter name
-	 * @return : param value argument handler name 
-	 */
-	const std::string& getValueArgHandler(const std::string& name);
+  /**
+   * Get parameter value argument handler name
+   * @param name : parameter name
+   * @return : param value argument handler name
+   */
+  const std::string& getValueArgHandler(const std::string& name);
 
-	/**
-	 * Get vector of parameter names 
-	 * @return : vector of parameter names
-	 */
-	StringVector getParameters() const;
-	/**
-	 * Set parameter value. This is only used for the most simple case.
-	 * @param name : parameter name
-	 * @param value : parameter value
-	 */
-	bool setParameter(const std::string& name, const std::string& value);
+  /**
+   * Get vector of parameter names
+   * @return : vector of parameter names
+   */
+  StringVector getParameters() const;
 
-	/**
-	 * Set parameter value. You can get specific value components from
-	 * valueHandler, it's primitive arghandler for simple case, treearghandler
-	 * for intricate case.
-	 * @param name : parameter name
-	 * @param valueHander : parameter value handler
-	 */
-	bool setParameter(const std::string& name, ArgHandler* valueHandler);
+  /**
+   * Set parameter value. This is only used for the most simple case.
+   * @param name : parameter name
+   * @param value : parameter value
+   */
+  bool setParameter(const std::string& name, const std::string& value);
 
-	const std::string& getName() const { return mName; }
-	void setName( const std::string& v){mName = v;}
+  /**
+   * Set parameter value. You can get specific value components from
+   * valueHandler, it's primitive arghandler for simple case, treearghandler
+   * for intricate case.
+   * @param name : parameter name
+   * @param valueHander : parameter value handler
+   */
+  bool setParameter(const std::string& name, ArgHandler* valueHandler);
 
-	AbsDir* getParent() const { return mParent; }
-	void setParent( AbsDir* v){mParent = v;}
+  /**
+   * Add dir to children.
+   * @param dir : child dir
+   */
+  void addChild(AbsDir* dir);
 
-	StringInterface* getStringInterface() const { return mStringInterface; }
-	void setStringInterface( StringInterface* v){mStringInterface = v;}
+  /**
+   * Get full path until root
+   * @return : full path
+   */
+  std::string getFullPath();
 
-	/**
-	 * Add dir to children.  
-	 * @param dir : child dir
-	 */
-	void addChild(AbsDir* dir);
+  /**
+   * Throw if i overflow.
+   * @param i : index
+   * @return :
+   */
+  AbsDir* getChildAt(size_t i);
 
-	/**
-	 * for . and .. 
-	 * @return : target dir 
-	 */
-	virtual AbsDir* enterPath();
+  /**
+   * Return 0 if not found.
+   * @param name : child dir name
+   * @return : 0 or child dir
+   */
+  AbsDir* getChildByName(const std::string& name);
 
-	/**
-	 * Get full path until root 
-	 * @return : full path
-	 */
-	std::string getFullPath();
-	
-	/**
-	 * Throw if i overflow. 
-	 * @param i : index
-	 * @return : 
-	 */
-	AbsDir* getChildAt(size_t i);
+  /**
+   * remove child by child index
+   * @param i : child index
+   */
+  void removeChildAt(size_t i);
 
-	/**
-	 * Return 0 if not found.
-	 * @param name : child dir name
-	 * @return : 0 or child dir 
-	 */
-	AbsDir* getChildByName(const std::string& name);
+  /**
+   * remove child by child name
+   * @param name : child dir name
+   */
+  void removeChildByName(const std::string& name);
 
-	AbsDirs::iterator beginChildIter();
-	AbsDirs::iterator endChildIter();
+  /**
+   * remove child py pointer
+   * @param dir : child pointer
+   */
+  void removeChild(AbsDir* dir);
+
+  AbsDirs::iterator beginChildIter();
+  AbsDirs::iterator endChildIter();
+
+  const std::string& getName() const { return mName; }
+  void setName(const std::string& v) { mName = v; }
+
+  AbsDir* getParent() const { return mParent; }
+  void setParent(AbsDir* v) { mParent = v; }
+
+  StringInterface* getStringInterface() const { return mStringInterface; }
+  void setStringInterface(StringInterface* v) { mStringInterface = v; }
 
 protected:
-
-	std::string mName;
-	AbsDir* mParent;
-	StringInterface* mStringInterface;
-	AbsDirs mChildren;
+  AbsDir* mParent;
+  StringInterface* mStringInterface;
+  std::string mName;
+  AbsDirs mChildren;
 };
 
 /*
  *root dir, the same as path delimiter, it's singleton.
  */
-class RootDir: public AbsDir, public Singleton<RootDir>
-{
+class RootDir : public AbsDir, public Singleton<RootDir> {
 public:
-	RootDir();
+  RootDir();
 };
 
-class DotDir: public AbsDir
-{
+class AbsDirUtil {
+private:
+  AbsDirUtil() {}
+
 public:
-	DotDir();
-
-	/**
-	 * return self 
-	 */
-	virtual AbsDir* enterPath();
-};
-
-class DotDotDir: public AbsDir
-{
-public:
-	DotDotDir();
-
-	/**
-	 * return parent
-	 */
-	virtual AbsDir* enterPath();
-};
-
-
-class AbsDirUtil
-{
+  /**
+   * Find dir by path. Path can be relative or absolute.
+   * @param path : target path
+   * @param curDir : current dir, you can ignore this if you use absolute path
+   * @return : target dir
+   */
+  static AbsDir* findPath(const std::string& path, AbsDir* curDir = 0);
 
 private:
-	AbsDirUtil(){}
-
-public:
-
-	/**
-	 * Find dir by path. Path can be relative or absolute. 
-	 * @param path : target path
-	 * @param curDir : current dir
-	 * @return : target dir
-	 */
-	static AbsDir* findPath(const std::string& path, AbsDir* curDir);
-
-	/**
-	 * find dir by absolute path
-	 * @param path : absolute path
-	 * @return : target dir or 0
-	 */
-	static AbsDir* findAbsolutePath(const std::string& path);
-	/**
-	 * find dir by relative path
-	 * @param &path : relative path
-	 * @param curDir : current working dir
-	 * @return : target dir or 0
-	 */
-	static AbsDir* findRelativePath(const std::string &path, AbsDir* curDir);
-
+  /**
+   * find dir by absolute path
+   * @param path : absolute path
+   * @return : target dir or 0
+   */
+  static AbsDir* findAbsolutePath(const std::string& path);
+  /**
+   * find dir by relative path
+   * @param &path : relative path
+   * @param curDir : current working dir
+   * @return : target dir or 0
+   */
+  static AbsDir* findRelativePath(const std::string& path, AbsDir* curDir);
 };
-
 }
 
 #endif /* PACABSDIR_H */

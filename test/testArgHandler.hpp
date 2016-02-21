@@ -30,7 +30,8 @@ protected:
     mLongMin = StringUtil::toString(std::numeric_limits<long>::min());
     mUlongMin = StringUtil::toString(std::numeric_limits<unsigned long>::min());
     mReal = StringUtil::toString(3.1415926);
-    mNreal = StringUtil::toString(0.999);
+    mNreal = StringUtil::toString(-0.999);
+    mNpreal = StringUtil::toString(0.999);
     mInt2 = "1 2";
     mInt3 = "1 2 3";
     mInt4 = "1 2 3 4";
@@ -72,6 +73,7 @@ protected:
     mMap["ulongMin"] = mUlongMin;
     mMap["real"] = mReal;
     mMap["nreal"] = mNreal;
+    mMap["npreal"] = mNpreal;
     mMap["int2"] = mInt2;
     mMap["int3"] = mInt3;
     mMap["int4"] = mInt4;
@@ -273,6 +275,11 @@ protected:
       EXPECT_TRUE(handler->validate(mMap[itemName]));
     else
       EXPECT_FALSE(handler->validate(mMap[itemName]));
+    itemName = "npreal";
+    if (ifUseTrue(itemName, beg, end, maskPass))
+      EXPECT_TRUE(handler->validate(mMap[itemName]));
+    else
+      EXPECT_FALSE(handler->validate(mMap[itemName]));
     itemName = "int2";
     if (ifUseTrue(itemName, beg, end, maskPass))
       EXPECT_TRUE(handler->validate(mMap[itemName]));
@@ -406,6 +413,7 @@ protected:
   std::string mUlongMin;
   std::string mReal;  // make it not nreal
   std::string mNreal;
+  std::string mNpreal;
   std::string mInt2;
   std::string mInt3;
   std::string mInt4;
@@ -562,16 +570,27 @@ TEST_F(TestArgHandler, real) {
   sv.push_back("ulongMax");
   sv.push_back("real");
   sv.push_back("nreal");
+  sv.push_back("npreal");
   test("real", sv.begin(), sv.end(), 1);
 }
 
 TEST_F(TestArgHandler, nreal) {
   StringVector sv;
   sv.push_back("nreal");
+  sv.push_back("npreal");
   sv.push_back("ushortMin");
   sv.push_back("uintMin");
   sv.push_back("ulongMin");
   test("nreal", sv.begin(), sv.end(), 1);
+}
+
+TEST_F(TestArgHandler, npreal) {
+  StringVector sv;
+  sv.push_back("npreal");
+  sv.push_back("ushortMin");
+  sv.push_back("uintMin");
+  sv.push_back("ulongMin");
+  test("npreal", sv.begin(), sv.end(), 1);
 }
 
 TEST_F(TestArgHandler, int2) {
@@ -807,12 +826,12 @@ TEST_F(TestArgHandler, LoopReal3) {
   sv.push_back("nmatrix3");
   test(ml1real3, sv.begin(), sv.end(), 1);
   if (ml1real3->validate(mReal3))
-    ASSERT_EQ(ml1real3->getNodeValue("real3LoopNode"), mReal3);
+    ASSERT_EQ(mReal3, ml1real3->getNodeValue("real3LoopNode"));
   if (ml1real3->validate(mMatrix3)) {
     Node* node = ml1real3->getNode("real3LoopNode");
     const std::string&& s =
         StringUtil::join(node->beginLoopValueIter(), node->endLoopValueIter());
-    ASSERT_EQ(s, mMatrix3);
+    ASSERT_EQ(mMatrix3, s);
   }
 }
 
@@ -820,8 +839,8 @@ TEST_F(TestArgHandler, LoopReal3Bool) {
   // StringVector sv;
   // test(ml2real3bool, sv.begin(), sv.end(), 1);
   ASSERT_TRUE(ml2real3bool->validate(mReal3 + " " + mBoolTrue));
-  ASSERT_EQ(ml2real3bool->getNodeValue("real3LoopNode"), mReal3);
-  ASSERT_EQ(ml2real3bool->getNodeValue("boolLoopNode"), mBoolTrue);
+  ASSERT_EQ(mReal3, ml2real3bool->getNodeValue("real3LoopNode"));
+  ASSERT_EQ(mBoolTrue, ml2real3bool->getNodeValue("boolLoopNode"));
 
   ASSERT_TRUE(
       ml2real3bool->validate(mMatrix3 + " " + mBoolFalse + " " + mBoolFalse));
@@ -832,7 +851,7 @@ TEST_F(TestArgHandler, LoopReal3Bool) {
   node = ml2real3bool->getNode("boolLoopNode");
   const std::string&& s1 =
       StringUtil::join(node->beginLoopValueIter(), node->endLoopValueIter());
-  EXPECT_EQ(s1, mBoolFalse + " " + mBoolFalse);
+  EXPECT_EQ(mBoolFalse + " " + mBoolFalse, s1);
 }
 
 TEST(TestLoop, loopInt) {
@@ -1088,18 +1107,17 @@ TEST_F(TestLivingThing, livingThing) {
       static_cast<TreeArgHandler*>(sgArgLib.createArgHandler("livingThing"));
 
   ASSERT_TRUE(handler->validate("cat0"));
-  ASSERT_STREQ("animalBranch",handler->getMatchedBranch().c_str());
+  ASSERT_STREQ("animalBranch", handler->getMatchedBranch().c_str());
   Node* animalNode = handler->getMatchedNode("animalNode");
   ASSERT_STREQ("cat0", animalNode->getValue().c_str());
   TreeArgHandler* animalHandler =
       static_cast<TreeArgHandler*>(animalNode->getArgHandler());
-  ASSERT_STREQ("mammalBranch",animalHandler->getMatchedBranch().c_str());
+  ASSERT_STREQ("mammalBranch", animalHandler->getMatchedBranch().c_str());
   TreeArgHandler* mammalHandler = animalHandler->getSubTree("mammalNode");
   ASSERT_STREQ("catBranch", mammalHandler->getMatchedBranch().c_str());
   ASSERT_STREQ("cat0", mammalHandler->getValue().c_str());
   Node* catNode = mammalHandler->getMatchedNode("catNode");
   ASSERT_STREQ("cat0", catNode->getValue().c_str());
-
 }
 
 #endif /* TESTPACARGHANDLER_H */

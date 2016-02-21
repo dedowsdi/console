@@ -24,7 +24,7 @@ void testOutputString(const std::string& s, size_t textWidth) {
     grid.push_back(StringVector());
     // combine string and space
     for (StringVector::iterator iter = tmp.begin(); iter != tmp.end();
-	 iter += 2) {
+         iter += 2) {
       grid[grid.size() - 1].push_back(*iter + *(iter + 1));
     }
   });
@@ -38,18 +38,18 @@ void testOutputString(const std::string& s, size_t textWidth) {
     totalColWidth += colSize;
 
     for (size_t row = 0; row < numRow; ++row) {
-      EXPECT_GE(grid[row].size(),
-		numCol - 1);  // at lest numCol -1 is full filled
-      if (col == numCol - 1)  // last col might not full filled
-      {
-	if (grid[row].size() == numCol - 1) {
-	  // reach 1 past last item, check the rest rows, they must
-	  // all lack last col
-	  for (size_t i = numRow + 1; i < numRow; ++i) {
-	    EXPECT_EQ(grid[i].size(), numCol - 1);
-	  }
-	  break;
-	}
+      // at lest numCol -1 is full filled
+      EXPECT_GE(grid[row].size(), numCol - 1);
+      if (col == numCol - 1) {
+        // last col might not full filled
+        if (grid[row].size() == numCol - 1) {
+          // reach 1 past last item, check the rest rows, they must
+          // all lack last col
+          for (size_t i = numRow + 1; i < numRow; ++i) {
+            EXPECT_EQ(grid[i].size(), numCol - 1);
+          }
+          break;
+        }
       }
 
       const std::string& val = grid[row][col];
@@ -66,7 +66,7 @@ void testOutputString(const std::string& s, size_t textWidth) {
  * It'd better full test some private function
  */
 class PimplDefaultPattern : public DefaultPattern {
-  public:
+public:
   PimplDefaultPattern(size_t textWidth) : DefaultPattern(textWidth) {}
   using DefaultPattern::getMinMaxItemLen;
   using DefaultPattern::getCandidateNumColumns;
@@ -78,7 +78,7 @@ class PimplDefaultPattern : public DefaultPattern {
  * Fixture of default pattern with textWidth = 80
  */
 class TestConsolePattern80 : public ::testing::Test {
-  protected:
+protected:
   TestConsolePattern80() { mPattern = new PimplDefaultPattern(80); }
   virtual ~TestConsolePattern80() { delete mPattern; }
 
@@ -101,7 +101,7 @@ class TestConsolePattern80 : public ::testing::Test {
     mBuffer.assign(first, last);
   }
 
-  protected:
+protected:
   PimplDefaultPattern* mPattern;
   StringVector mBuffer;
 };
@@ -124,28 +124,28 @@ TEST_F(TestConsolePattern80, getCandidateNumColumns) {
   ASSERT_EQ(1, sv.size());
   ASSERT_EQ(1, sv[0]);
   sv = mPattern->getCandidateNumColumns(80, 2,
-					75);  // min + max  + 2* space > 80
+      75);  // min + max  + 2* space > 80
   ASSERT_EQ(1, sv.size());
   ASSERT_EQ(1, sv[0]);
   sv = mPattern->getCandidateNumColumns(80, 8, 69);  // min + max + 2*space > 80
   ASSERT_EQ(1, sv.size());
   ASSERT_EQ(1, sv[0]);
   sv = mPattern->getCandidateNumColumns(12, 8,
-					20);  // normal case, numItem > maxCol
+      20);  // normal case, numItem > maxCol
   ASSERT_EQ(5, sv.size());
   size_t s[] = {1, 2, 3, 4, 6};
   for (size_t i = 0; i < sv.size(); ++i) {
     ASSERT_EQ(s[i], sv[i]);
   }
   sv = mPattern->getCandidateNumColumns(8, 8,
-					20);  // normal case, numItem = maxCol
+      20);  // normal case, numItem = maxCol
   ASSERT_EQ(5, sv.size());
   size_t s1[] = {1, 2, 3, 4, 8};
   for (size_t i = 0; i < sv.size(); ++i) {
     ASSERT_EQ(s1[i], sv[i]);
   }
   sv = mPattern->getCandidateNumColumns(9, 6,
-					20);  // normal case, numItem < maxCol
+      20);  // normal case, numItem < maxCol
   ASSERT_EQ(5, sv.size());
   size_t s2[] = {1, 2, 3, 5, 9};
   for (size_t i = 0; i < sv.size(); ++i) {
@@ -265,7 +265,7 @@ TEST_F(TestConsolePattern80, 1000timesRandom) {
     }
     resetBuffer(buffer.begin(), buffer.end());
     testOutputString(mPattern->applyPattern(mBuffer.begin(), mBuffer.end()),
-		     mPattern->mTextWidth);
+        mPattern->mTextWidth);
   }
 }
 
