@@ -39,11 +39,9 @@ ${TESTSRCDIR}testCommand.hpp\
 ${TESTSRCDIR}testConsole.hpp\
 ${TESTSRCDIR}testConsolePattern.hpp\
 ${TESTSRCDIR}test.cpp\
-${TESTSRCDIR}testIntrinsicCmd.hpp\
 ${TESTSRCDIR}testCmdHistory.hpp\
 ${TESTSRCDIR}testSingleton.hpp\
 ${TESTSRCDIR}testStdUtil.hpp\
-${TESTSRCDIR}testStringInterface.hpp\
 ${TESTSRCDIR}testStringUtil.hpp\
 ${TESTSRCDIR}testUiConsole.hpp
 

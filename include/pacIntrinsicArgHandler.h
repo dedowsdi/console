@@ -74,7 +74,9 @@ private:
  */
 class _PacExport StringArgHandler : public ArgHandler {
 public:
-  defArgCom(StringArgHandler) StringArgHandler(const std::string& name);
+  defArgCom(StringArgHandler)
+
+      StringArgHandler(const std::string& name);
 
   /**
    * Single string handler
@@ -85,7 +87,7 @@ public:
   /**
    * insert new element
    * @param s : new element
-   * @return : this 
+   * @return : this
    */
   StringArgHandler* insert(const std::string& s);
 
@@ -108,19 +110,13 @@ protected:
 };
 
 /**
- * bool type argument handler. Registerd with bool
- */
-class _PacExport BoolArgHandler : public StringArgHandler {
-public:
-  defArgCom(BoolArgHandler) BoolArgHandler();
-};
-
-/**
  * used at cmd taks no argument
  */
 class _PacExport BlankArgHandler : public ArgHandler {
 public:
-  defArgCom(BlankArgHandler) BlankArgHandler();
+  defArgCom(BlankArgHandler)
+
+      BlankArgHandler();
 
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
@@ -131,7 +127,9 @@ public:
  */
 class _PacExport PathArgHandler : public ArgHandler {
 public:
-  defArgCom(PathArgHandler) PathArgHandler();
+  defArgCom(PathArgHandler)
+
+      PathArgHandler();
   PathArgHandler(const PathArgHandler& rhs);
 
   virtual void populatePromptBuffer(const std::string& s);
@@ -139,9 +137,16 @@ public:
 
   AbsDir* getDir() const { return mDir; }
   void setDir(AbsDir* v) { mDir = v; }
+  AbsDir* getPathDir() const { return mPathDir; }
+  void setPathDir( AbsDir* v){mPathDir = v;}
+
+
+protected:
+  virtual void completeTyping(const std::string& s);
 
 private:
   AbsDir* mDir;  // cwd
+  AbsDir* mPathDir; //dir of path, avoid 2nd time findPath
 };
 
 /**
@@ -149,26 +154,57 @@ private:
  */
 class _PacExport CmdArgHandler : public StringArgHandler {
 public:
-  defArgCom(CmdArgHandler) CmdArgHandler();
+  defArgCom(CmdArgHandler)
+
+      CmdArgHandler();
 };
 
 /**
- * parameter handler. Will be populated with parameters of cwd.
+ * param handler. "path"  can be followed with a "param" handler
  */
-class _PacExport ParameterArgHandler : public StringArgHandler {
+class _PacExport ParamArgHandler : public StringArgHandler {
 public:
-  defArgCom(ParameterArgHandler) ParameterArgHandler();
-  ParameterArgHandler(const ParameterArgHandler& rhs);
+  defArgCom(ParamArgHandler)
+
+      ParamArgHandler();
+  virtual void runtimeInit();
 
   AbsDir* getDir() const { return mDir; }
   void setDir(AbsDir* v) { mDir = v; }
+
+private:
+  /**
+   * Set up working directory. If handler of parent node is "path", set
+   * directory to value of parent node, Otherwise use cwd of console.
+   */
+  void setUpWd();
 
 private:
   AbsDir* mDir;  // cwd
 };
 
 /**
- * parameter value handler. Must follow parameter handler. registered with value
+ * pparam handler. path + param. Takes following format
+ * param( branch "0")
+ * path param (branch "1")
+ */
+class _PacExport PparamArgHandler : public TreeArgHandler {
+public:
+  defArgCom(PparamArgHandler)
+
+      PparamArgHandler();
+  /**
+   * Get param handler in matched branch
+   * @return : param handler in matched branch
+   */
+  ParamArgHandler* getParamHandler();
+
+private:
+  AbsDir* mDir;  // cwd
+};
+
+/**
+ * parameter value handler. Must follow param or pparam
  */
 class _PacExport ValueArgHandler : public ArgHandler {
 public:
@@ -185,6 +221,11 @@ public:
 
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
+
+  /**
+   * Get param handler from previous node. 
+   */
+  ParamArgHandler* getParamHandler();
 
 private:
   ArgHandler* mHandler;

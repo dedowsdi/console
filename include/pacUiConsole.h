@@ -1,72 +1,72 @@
 #ifndef PACUICONSOLE_H
-#define PACUICONSOLE_H 
+#define PACUICONSOLE_H
 #include "pacStringInterface.h"
 
-namespace pac
-{
+namespace pac {
 
-class UiConsole :public StringInterface
-{
+class UiConsole : public StringInterface {
 public:
-	UiConsole();
-	~UiConsole(){};
+  UiConsole();
+  ~UiConsole(){};
 
-	void init();
+  void init();
 
-	/**
-	 * By default every line ows 80 characters + 1 \n . Override if you want to
-	 * change it.
-	 * @remark : 
-	 * @return : 
-	 */
-	virtual void setUpTextMetric();
+  /**
+   * By default every line ows 80 characters + 1 \n . Override if you want to
+   * change it.
+   * @remark :
+   * @return :
+   */
+  virtual void setUpTextMetric();
 
-	/**
-	 * Fake stdout and stderr. Wrap line automatically. 
-	 * @param output : outout content
-	 * @param type : 1 stdout, 2 stderr 
-	 * @return : *this
-	 */
-	virtual UiConsole& output(const std::string& output, int type =1);
+  /**
+   * Fake stdout and stderr. Wrap line automatically.
+   * @param output : outout content
+   * @param type : 1 stdout, 2 stderr
+   * @return : *this
+   */
+  virtual UiConsole& output(const std::string& output, int type = 1);
 
-	/**
-	 * Fake stdout and stderr. Wrap line automatically. 
-	 * @param output : outout content
-	 * @param type : 1 stdout, 2 stderr 
-	 * @return : *this
-	 */
-	virtual UiConsole& outputLine(const std::string& output, int type =1);
+  /**
+   * Fake stdout and stderr. Wrap line automatically.
+   * @param output : outout content
+   * @param type : 1 stdout, 2 stderr
+   * @return : *this
+   */
+  virtual UiConsole& outputLine(const std::string& output, int type = 1);
 
-	/**
-	 * end current line
-	 * @return : *this
-	 */
-	virtual UiConsole& endl() = 0;
-	/**
-	 * Fake stdout and stderr. No Wrap line.
-	 * @param output : outout content
-	 * @param type : 1 stdout, 2 stderr 
-	 * @return : *this
-	 */
-	virtual UiConsole& outputNoAutoWrap(const std::string& output, int type = 1) = 0;
+  /**
+   * end current line
+   * @return : *this
+   */
+  virtual UiConsole& endl() = 0;
+  /**
+   * Fake stdout and stderr. No Wrap line.
+   * @param output : outout content
+   * @param type : 1 stdout, 2 stderr
+   * @return : *this
+   */
+  virtual UiConsole& outputNoAutoWrap(
+      const std::string& output, int type = 1) = 0;
 
-	/**
-	 * Complete current typing. 
-	 * @param s : content
-	 */
-	virtual UiConsole& complete(const std::string& s) = 0;
-	virtual void setCwd(const std::string& cwd) = 0;	
-	virtual void setCmdLine(const std::string& cmdLine = "") = 0;
+  /**
+   * Complete current typing.
+   * @param s : content
+   */
+  void complete(const std::string& s);
+  virtual void setCwd(const std::string& cwd) = 0;
+  virtual std::string getCwd() { return ""; };
+  virtual void setCmdLine(const std::string& cmdLine) = 0;
   virtual std::string getCmdLine() = 0;
   virtual Real getAlpha() const = 0;
-  virtual void setAlpha(Real v) const = 0;
+  virtual void setAlpha(Real v) = 0;
 
-	/**
-	 * line text width, default to 80. You can change it by overloading
-	 * setupTextMetric()
-	 * @return : line text width 
-	 */
-	int getTextWidth() const { return mTextWidth; }
+  /**
+   * line text width, default to 80. You can change it by overloading
+   * setupTextMetric()
+   * @return : line text width
+   */
+  int getTextWidth() const { return mTextWidth; }
 
   class Alpha : public ParamCmd {
   public:
@@ -78,14 +78,11 @@ public:
   static Alpha msAlpha;
 
 protected:
-	void setTextWidth( int v){mTextWidth = v;}
+  void setTextWidth(int v) { mTextWidth = v; }
 
 private:
-	int mTextWidth;
+  int mTextWidth;
 };
-
-
 }
-
 
 #endif /* PACUICONSOLE_H */

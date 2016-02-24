@@ -9,7 +9,8 @@
 
 using namespace pac;
 
-// test primitive type and array type
+//test every arghandler except path, param, pparam, value, they will be tested
+//at testConsole.hpp.
 class TestArgHandler : public ::testing::Test {
 protected:
   virtual void SetUp() {
@@ -192,6 +193,12 @@ protected:
       bool maskPass = true) {
     // it's expanded on purpose, it's clear to find out which item is
     // wrong this way.
+
+    // make no typo
+    std::for_each(beg, end, [&](const std::string& s) -> void {
+      if (mMap.find(s) == mMap.end())
+        PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, s + " not found in data map");
+    });
 
     std::string itemName;
 
@@ -727,11 +734,11 @@ TEST_F(TestArgHandler, blank) {
 
 TEST_F(TestArgHandler, cmd) {
   StringVector sv;
-  sv.push_back("cd");
-  sv.push_back("lp");
-  sv.push_back("pwd");
-  sv.push_back("ls");
-  sv.push_back("set");
+  sv.push_back("cmdCd");
+  sv.push_back("cmdLp");
+  sv.push_back("cmdPwd");
+  sv.push_back("cmdLs");
+  sv.push_back("cmdSet");
   test("cmd", sv.begin(), sv.end(), 1);
 }
 
@@ -826,7 +833,7 @@ TEST_F(TestArgHandler, LoopReal3) {
   sv.push_back("nmatrix3");
   test(ml1real3, sv.begin(), sv.end(), 1);
   if (ml1real3->validate(mReal3))
-    ASSERT_EQ(mReal3, ml1real3->getNodeValue("real3LoopNode"));
+    ASSERT_EQ(mReal3, ml1real3->getMatchedNodeValue("real3LoopNode"));
   if (ml1real3->validate(mMatrix3)) {
     Node* node = ml1real3->getNode("real3LoopNode");
     const std::string&& s =
@@ -839,8 +846,8 @@ TEST_F(TestArgHandler, LoopReal3Bool) {
   // StringVector sv;
   // test(ml2real3bool, sv.begin(), sv.end(), 1);
   ASSERT_TRUE(ml2real3bool->validate(mReal3 + " " + mBoolTrue));
-  ASSERT_EQ(mReal3, ml2real3bool->getNodeValue("real3LoopNode"));
-  ASSERT_EQ(mBoolTrue, ml2real3bool->getNodeValue("boolLoopNode"));
+  ASSERT_EQ(mReal3, ml2real3bool->getMatchedNodeValue("real3LoopNode"));
+  ASSERT_EQ(mBoolTrue, ml2real3bool->getMatchedNodeValue("boolLoopNode"));
 
   ASSERT_TRUE(
       ml2real3bool->validate(mMatrix3 + " " + mBoolFalse + " " + mBoolFalse));

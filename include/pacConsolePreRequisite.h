@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <list>
 #include <tuple>
 #include <stack>
 #include <sstream>

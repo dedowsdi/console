@@ -17,27 +17,31 @@ Console* Singleton<Console>::msSingleton = 0;
 //------------------------------------------------------------------------------
 Console::Console(UiConsole* ui)
     : StringInterface("console"),
+      mIsBuffering(false),
       mDir(0),
       mUi(ui),
       mPattern(0),
-      mCmdHistory(0) {}
+      mCmdHistory(0) {
+  if (!ui) PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, "0 ui");
+}
 
 //------------------------------------------------------------------------------
 Console::~Console() {
   delete &sgCmdLib;
 
-  delete mCmdHistory;
   mCmdHistory = 0;
 
   // clean arg lib
   delete &sgArgLib;
   delete &sgLogger;
   delete &sgRootDir;
+  delete mCmdHistory;
 }
 
 //------------------------------------------------------------------------------
 void Console::init() {
   new Logger();
+  initCmdHistory();
   initDir();
 
   new CommandLib();
@@ -55,12 +59,12 @@ void Console::initConoslePattern() {
 }
 
 //------------------------------------------------------------------------------
-void Console::initCmdPattern() { mCmdHistory = new CmdHistory(); }
+void Console::initCmdHistory() { mCmdHistory = new CmdHistory(); }
 
 //------------------------------------------------------------------------------
 void Console::initDir() {
   new RootDir();
-  changeCurrentDirectory(&sgRootDir);
+  setCwd(&sgRootDir);
   AbsDir* uiDir = new AbsDir("uiConsole", mUi);
   sgRootDir.addChild(uiDir);
 }
@@ -68,14 +72,13 @@ void Console::initDir() {
 //------------------------------------------------------------------------------
 bool Console::execute(const std::string& cmdLine /*= ""*/) {
   std::string line = cmdLine.empty() ? mUi->getCmdLine() : cmdLine;
-  line = StringUtil::trim(line);
+  StringUtil::trim(line);
   if (line.empty()) return false;
 
   fakeOutputDirAndCmd(line);
-  addCmdLineToHistory(line);
+  mCmdHistory->push(line);
 
-  // clear cmd line
-  mUi->setCmdLine(line);
+  mUi->setCmdLine("");
 
   boost::regex reCmd2("^\\s*(\\w+)(\\s*.*)$");
   boost::smatch m;
@@ -92,7 +95,7 @@ bool Console::execute(const std::string& cmdLine /*= ""*/) {
 //------------------------------------------------------------------------------
 void Console::prompt() {
   std::string&& cmdLine = mUi->getCmdLine();
-  cmdLine = StringUtil::trim(line, true, false);
+  StringUtil::trim(cmdLine, true, false);
   if (cmdLine.empty()) return;
 
   fakeOutputDirAndCmd(cmdLine);
@@ -145,14 +148,16 @@ Console& Console::complete(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-void Console::changeCurrentDirectory(AbsDir* dir) { mDir = dir; }
+void Console::setCwd(AbsDir* dir) { mDir = dir; }
 
 //------------------------------------------------------------------------------
 void Console::startBuffer() {
-  PacAssert(!mIsBuffering, "It'w wrong to start buffer twice");
-  PacAssert(
-      !mBuffer.empty(), "It'w wrong to start buffer when buffer is not empty");
-
+  if (mIsBuffering)
+    PAC_EXCEPT(
+        Exception::ERR_INVALID_STATE, "It's wrong to start buffer twice");
+  if (!mBuffer.empty())
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE,
+        "It'w wrong to start buffer when buffer is not empty");
   mIsBuffering = true;
 }
 
@@ -170,9 +175,9 @@ void Console::endBuffer() {
 //------------------------------------------------------------------------------
 void Console::rollCommand(bool backWard /*= true*/) {
   if (backWard)
-    mUi->updateCommandLine(mCmdHistory->previous());
+    mUi->setCmdLine(mCmdHistory->previous());
   else
-    mUi->updateCommandLine(mCmdHistory->next());
+    mUi->setCmdLine(mCmdHistory->next());
 }
 
 //------------------------------------------------------------------------------

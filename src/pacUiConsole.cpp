@@ -26,6 +26,9 @@ UiConsole& UiConsole::outputLine(const std::string& output, int type /*=1*/) {
 }
 
 //------------------------------------------------------------------------------
+void UiConsole::complete(const std::string& s) { setCmdLine(getCmdLine() + s); }
+
+//------------------------------------------------------------------------------
 std::string UiConsole::Alpha::doGet(const void* target) const {
   const UiConsole* ui = static_cast<const UiConsole*>(target);
   return StringUtil::toString(ui->getAlpha());

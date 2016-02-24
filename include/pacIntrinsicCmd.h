@@ -6,7 +6,8 @@
 namespace pac {
 
 /**
- * ls path*
+ * ls ("0") 
+ * ls path+ ("1")
  * list dir under path
  */
 class _PacExport LsCmd : public Command {
@@ -15,7 +16,7 @@ public:
   virtual bool doExecute();
 
 private:
-  virtual void buildArgHandler();
+  virtual bool buildArgHandler();
   /**
    * output child dir under dir
    * @param dir : working directory
@@ -32,8 +33,6 @@ public:
   defCmdCom(PwdCmd) PwdCmd();
   virtual bool doExecute();
 
-private:
-  virtual void buildArgHandler();
 };
 
 /**
@@ -44,15 +43,11 @@ class _PacExport CdCmd : public Command {
 public:
   defCmdCom(CdCmd) CdCmd();
   virtual bool doExecute();
-
-private:
-  virtual void buildArgHandler();
 };
 
 /**
- * set name value
- * set property name of current working directory
- * value can be multiple items separated by space
+ * set param value
+ * set path param value
  */
 class _PacExport SetCmd : public Command {
 public:
@@ -60,15 +55,16 @@ public:
   virtual bool doExecute();
 
 private:
-  virtual void buildArgHandler();
+  virtual bool buildArgHandler();
 };
 
 /**
- * lp path*
- * list properties of specific dirs
- * @param lp :
- * @param lpCd :
- * @return :
+ * lp ("0")
+ * lp param ("1")
+ * lp path ("2")
+ * lp path param ("3")
+ *
+ * list properties 
  */
 class _PacExport LpCmd : public Command {
 public:
@@ -76,7 +72,7 @@ public:
   virtual bool doExecute();
 
 private:
-  virtual void buildArgHandler();
+  virtual bool buildArgHandler();
   void outputProperties(AbsDir* dir);
 };
 };

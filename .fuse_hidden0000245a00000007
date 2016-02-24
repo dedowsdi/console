@@ -1,0 +1,137 @@
+[18:03:35]<NORM> register handler blank
+[18:03:35]<NORM> register handler bool
+[18:03:35]<NORM> register handler short
+[18:03:35]<NORM> register handler ushort
+[18:03:35]<NORM> register handler int
+[18:03:35]<NORM> register handler uint
+[18:03:35]<NORM> register handler long
+[18:03:35]<NORM> register handler ulong
+[18:03:35]<NORM> register handler real
+[18:03:35]<NORM> register handler nreal
+[18:03:35]<NORM> register handler npreal
+[18:03:35]<NORM> register handler int2
+[18:03:35]<NORM> register handler int3
+[18:03:35]<NORM> register handler int4
+[18:03:35]<NORM> register handler int5
+[18:03:35]<NORM> register handler real2
+[18:03:35]<NORM> register handler real3
+[18:03:35]<NORM> register handler real4
+[18:03:35]<NORM> register handler real5
+[18:03:35]<NORM> register handler nreal2
+[18:03:35]<NORM> register handler nreal3
+[18:03:35]<NORM> register handler nreal4
+[18:03:35]<NORM> register handler nreal5
+[18:03:35]<NORM> register handler matrix2
+[18:03:35]<NORM> register handler matrix3
+[18:03:35]<NORM> register handler matrix4
+[18:03:35]<NORM> register handler nmatrix2
+[18:03:35]<NORM> register handler nmatrix3
+[18:03:35]<NORM> register handler nmatrix4
+[18:03:35]<NORM> register handler path
+[18:03:35]<NORM> register handler param
+[18:03:35]<NORM> register handler pparam
+[18:03:35]<NORM> register handler value
+[18:03:35]<NORM> register handler ahcmd_ls
+[18:03:35]<NORM> register command ls
+[18:03:35]<NORM> register command pwd
+[18:03:35]<NORM> register command cd
+[18:03:35]<NORM> register handler ahcmd_set
+[18:03:35]<NORM> register command set
+[18:03:35]<NORM> register handler ahcmd_lp
+[18:03:35]<NORM> register command lp
+[18:03:35]<NORM> register handler cmd
+[18:03:35]<NORM> register handler testString
+[18:03:35]<TRIV> Tree int2 start validate true
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate false
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 32767
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> record node value int2_0 : 32767
+[18:03:35]<TRIV> node int2_1 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 65535
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> record node value int2_0 : 65535
+[18:03:35]<TRIV> node int2_1 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 2147483647
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> record node value int2_0 : 2147483647
+[18:03:35]<TRIV> node int2_1 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 4294967295
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 9223372036854775807
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 18446744073709551615
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate -32768
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> record node value int2_0 : -32768
+[18:03:35]<TRIV> node int2_1 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 0
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> record node value int2_0 : 0
+[18:03:35]<TRIV> node int2_1 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate -2147483648
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> record node value int2_0 : -2147483648
+[18:03:35]<TRIV> node int2_1 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 0
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> record node value int2_0 : 0
+[18:03:35]<TRIV> node int2_1 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate -9223372036854775808
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 0
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> record node value int2_0 : 0
+[18:03:35]<TRIV> node int2_1 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 3.14159
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate -0.999
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:35]<TRIV> Tree int2 start validate 0.999
+[18:03:35]<TRIV> node int2_root validateBranch with 1 branches
+[18:03:35]<TRIV> node int2_0 validateBranch with 1 branches
+[18:03:35]<TRIV> found 0 branches
+[18:03:42]<TRIV> Tree int2 start validate 1 2
+[18:04:02]<TRIV> node int2_root validateBranch with 1 branches
+[18:04:02]<TRIV> node int2_0 validateBranch with 1 branches
+[18:04:02]<TRIV> record node value int2_0 : 1
+[18:04:02]<TRIV> node int2_1 validateBranch with 1 branches
+[18:04:02]<TRIV> record node value int2_1 : 2
+[18:04:02]<TRIV> node branch0 validateBranch with 1 branches
+[18:04:02]<TRIV> meet leaf of int2 with 1 branches
+[18:04:02]<TRIV> Set main branch branch0
+[18:04:22]<TRIV> found 0 branches

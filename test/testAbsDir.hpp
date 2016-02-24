@@ -181,6 +181,10 @@ TEST_F(TestAbsDir, findPathThrow) {
 }
 
 TEST_F(TestAbsDir, findRelativePath) {
+  EXPECT_EQ(&sgRootDir, AbsDirUtil::findPath(".", &sgRootDir));
+  EXPECT_EQ(0, AbsDirUtil::findPath("..", &sgRootDir));
+  EXPECT_EQ(&sgRootDir,
+      AbsDirUtil::findPath("." + d + "dir0" + d + ".." + d, &sgRootDir));
   EXPECT_EQ(dir0, AbsDirUtil::findPath("dir0", &sgRootDir));
   EXPECT_EQ(dir0_0, AbsDirUtil::findPath("dir0" + d + "dir0_0", &sgRootDir));
   EXPECT_EQ(dir0_1, AbsDirUtil::findPath("dir0" + d + "dir0_1", &sgRootDir));

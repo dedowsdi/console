@@ -1,23 +1,28 @@
 #include "pacCommand.h"
 #include "pacIntrinsicCmd.h"
+#include "pacIntrinsicArgHandler.h"
 #include "pacArgHandler.h"
 #include "pacException.h"
 #include "pacLogger.h"
+#include "pacStringUtil.h"
 #include <boost/regex.hpp>
 
 namespace pac {
 
 //------------------------------------------------------------------------------
-Command::Command(const std::string& name) : mName(name), mArgHandler(0) {
-  // change this in subclass ctor if you want to use existing arg handler
-  mAhName = getDefAhName();
+Command::Command(const std::string& name, const std::string& ahName /* = ""*/)
+    : mName(name), mArgHandler(0) {
+  boost::regex re("\\W");
+  if (boost::regex_search(mName, re))
+    PAC_EXCEPT(
+        Exception::ERR_INVALIDPARAMS, "illegal character in\"" + mName + "\" ");
+
+  if (!ahName.empty()) mArgHandler = sgArgLib.createArgHandler(ahName);
 }
 
 //------------------------------------------------------------------------------
 Command::Command(const Command& rhs)
-    : mName(rhs.getName()), mAhName(rhs.getAhName()), mArgHandler(0) {
-  mArgHandler = sgArgLib.createArgHandler(mAhName);
-}
+    : mName(rhs.getName()), mArgHandler(rhs.mArgHandler->clone()) {}
 
 //------------------------------------------------------------------------------
 Command::~Command() {
@@ -28,15 +33,18 @@ Command::~Command() {
 }
 
 //------------------------------------------------------------------------------
-void Command::prompt() { getArgHandler()->prompt(mArgs); }
+void Command::prompt() { mArgHandler->prompt(mArgs); }
 
 //------------------------------------------------------------------------------
 bool Command::execute() {
-  if (getArgHandler()->validate(mArgs)) {
+  // right trim
+  std::string args = mArgs;
+  StringUtil::trim(args, false, true);
+  if (mArgHandler->validate(args)) {
     bool res = this->doExecute();
     return res;
   } else {
-    getArgHandler()->outputErrMessage(mArgs);
+    mArgHandler->outputErrMessage(args);
     return false;
   }
 }
@@ -44,43 +52,40 @@ bool Command::execute() {
 //------------------------------------------------------------------------------
 void Command::setArgsAndOptions(const std::string& v) {
   boost::smatch m;
-  // check if - after \S
+  // check if - after nonspace
   boost::regex reInvalid("\\S-");
-  if (boost::regex_search(v.begin(), v.end(), m, reInvalid))
+  if (boost::regex_search(v, reInvalid))
     PAC_EXCEPT(Exception::ERR_INVALIDPARAMS,
         v + " is illegal, - after nonspace character");
 
   mArgs.clear();
   mOptions.clear();
   // extract options
-  boost::regex reOptions("-(\\w+)");
-  // extract args,[^-]* does'nt work here. It's necessary to use (^[]*|[]+)
-  // style
-  boost::regex reArgs("(?:^[^-\\w]*|[^-\\w]+)\\<\\w+\\>\\s*");
+  boost::regex reOptions("-(\\S*)\\s*");
 
   // get options
   std::string::const_iterator start = v.begin();
-  while (boost::regex_search(start, v.end(), m, reOptions)) {
+  std::string::const_iterator end = v.end();
+  while (boost::regex_search(start, end, m, reOptions)) {
     mOptions += m[1];
     start = m[0].second;
   }
-
-  // get args
-  start = v.begin();
-  while (boost::regex_search(start, v.end(), m, reArgs)) {
-    mArgs += m[0];
-    start = m[0].second;
-  }
+  // remove options to get args
+  mArgs = boost::regex_replace(v, reOptions, "");
+  StringUtil::trim(mArgs, true, false);
 }
 
 //------------------------------------------------------------------------------
-ArgHandler* Command::getArgHandler() { return mArgHandler; }
+ArgHandler* Command::getArgHandler() const { return mArgHandler; }
 
 //------------------------------------------------------------------------------
 Command* Command::init() {
-  buildArgHandler();
-  if (mArgHandler->getName() == getDefAhName())
-    sgArgLib.registerArgHandler(mArgHandler);
+  if (buildArgHandler()) sgArgLib.registerArgHandler(mArgHandler->clone());
+
+  if (!mArgHandler)
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE,
+        "0 handler, you need to pass ahName to Command::Command() or override "
+        "Command::buildArgHandler()");
 
   return this;
 }
@@ -105,7 +110,6 @@ Command* CommandLib::createCommand(const std::string& cmdName) {
 
 //------------------------------------------------------------------------------
 void CommandLib::registerCommand(Command* cmdProto) {
-  PacAssert(!cmdProto->getName().empty(), "empty cmd name");
   sgLogger.logMessage("register command " + cmdProto->getName());
   // check if it's already registerd
   CmdMap::iterator iter = std::find_if(mCmdMap.begin(), mCmdMap.end(),
@@ -128,6 +132,8 @@ void CommandLib::init() {
   this->registerCommand((new CdCmd())->init());
   this->registerCommand((new SetCmd())->init());
   this->registerCommand((new LpCmd())->init());
+
+  sgArgLib.registerArgHandler(new CmdArgHandler());
 }
 //------------------------------------------------------------------------------
 CommandLib::CmdMap::const_iterator CommandLib::beginCmdMapIterator() const {

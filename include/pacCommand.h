@@ -14,8 +14,10 @@ public:
   /**
    * ctor.
    * @param name : ctor
+   * @param ahName : handler name, don't set this if you need to build specific
+   * handler for your command, override buildArgHandler instead.
    */
-  Command(const std::string& name);
+  Command(const std::string& name, const std::string& ahName = "");
 
   /**
    * copy ctor, it doesn't copy mArgHandler.
@@ -46,19 +48,12 @@ public:
   void setName(const std::string& v) { mName = v; }
 
   /**
-   * Parse args and options
+   * Left trim, parse args and options. 
    * @param v : args and options string
    */
   void setArgsAndOptions(const std::string& v);
 
-  /**
-   * Get arg handler from arglib if it's 0.
-   * @return : mArgHandler
-   */
-  ArgHandler* getArgHandler();
-
-  const std::string& getAhName() const { return mAhName; }
-  void setAhName(const std::string& v) { mAhName = v; }
+  ArgHandler* getArgHandler() const;
 
   const std::string& getOptions() const { return mOptions; }
   void setOptions(const std::string& v) { mOptions = v; }
@@ -77,21 +72,21 @@ protected:
    * Get default command argument handler name. It's "cmd_"+getName()
    * @return : default command argument handler name
    */
-  std::string getDefAhName() { return "cmd_" + getName(); }
+  std::string getDefAhName() { return "ahcmd_" + getName(); }
 
 private:
   /**
-   * Init argHandler, register it to arghandlerlib. Don't override this if you
-   * use primitive arg handler.
+   * If your cmd has it's own arghandler, you should override this, it's name
+   * should be getDefAhName(), you can use it later in other place if you want.
+   * Otherwise you should setup mAhName in ctor.
+   * @return : return true if you build cmd specific arg handler. 
    */
-  virtual void buildArgHandler(){};
+  virtual bool buildArgHandler(){ return false; };
 
 protected:
   std::string mName;
   std::string mOptions;
   std::string mArgs;
-  std::string mAhName;  // argument ahandler name, it's cmd_{mName} by default
-
   ArgHandler* mArgHandler;
 };
 

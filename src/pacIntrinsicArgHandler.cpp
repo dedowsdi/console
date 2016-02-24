@@ -7,12 +7,6 @@
 namespace pac {
 
 //------------------------------------------------------------------------------
-BoolArgHandler::BoolArgHandler() : StringArgHandler("bool") {
-  mStrings.insert("true");
-  mStrings.insert("false");
-}
-
-//------------------------------------------------------------------------------
 StringArgHandler::StringArgHandler(
     const std::string& name, const std::string& text)
     : ArgHandler(name) {
@@ -21,12 +15,13 @@ StringArgHandler::StringArgHandler(
 }
 
 //------------------------------------------------------------------------------
-StringArgHandler::StringArgHandler(const std::string& name)
-    : ArgHandler(name) {}
+StringArgHandler::StringArgHandler(const std::string& name) : ArgHandler(name) {
+  setPromptType(PT_PROMPTANDCOMPLETE);
+}
 
 //------------------------------------------------------------------------------
-    StringArgHandler* StringArgHandler::insert(const std::string& s) {
-      mStrings.insert(s);
+StringArgHandler* StringArgHandler::insert(const std::string& s) {
+  mStrings.insert(s);
   return this;
 }
 
@@ -35,12 +30,12 @@ void StringArgHandler::remove(const std::string& s) { mStrings.erase(s); }
 
 //------------------------------------------------------------------------------
 void StringArgHandler::populatePromptBuffer(const std::string& s) {
-  RaiiConsoleBuffer();
+  RaiiConsoleBuffer raii;
   StringVector sv;
   std::for_each(
       mStrings.begin(), mStrings.end(), [&](const std::string& v) -> void {
-        if (StringUtil::startsWith(s, v)) {
-          appendPromptBuffer(s);
+        if (s.empty() || StringUtil::startsWith(v, s)) {
+          appendPromptBuffer(v);
         }
       });
 }
@@ -70,23 +65,20 @@ PathArgHandler::PathArgHandler() : ArgHandler("path"), mDir(0) {
 }
 
 //------------------------------------------------------------------------------
-PathArgHandler::PathArgHandler(const PathArgHandler& rhs)
-    : ArgHandler(rhs.getName()) {
-  setDir(sgConsole.getDirectory());
+PathArgHandler::PathArgHandler(const PathArgHandler& rhs) : ArgHandler(rhs) {
+  setDir(sgConsole.getCwd());
 }
 
 //------------------------------------------------------------------------------
 void PathArgHandler::populatePromptBuffer(const std::string& s) {
-  RaiiConsoleBuffer();
+  RaiiConsoleBuffer raii;
 
   const std::string&& head = StringUtil::getHead(s);
   const std::string&& tail = StringUtil::getTail(s);
-
   AbsDir* headDir = AbsDirUtil::findPath(head, mDir);
-
   std::for_each(headDir->beginChildIter(), headDir->endChildIter(),
       [&](AbsDir* v) -> void {
-        if (StringUtil::startsWith(v->getName(), tail)) {
+        if (tail.empty() || StringUtil::startsWith(v->getName(), tail)) {
           appendPromptBuffer(v->getName());
         }
       });
@@ -94,7 +86,21 @@ void PathArgHandler::populatePromptBuffer(const std::string& s) {
 
 //------------------------------------------------------------------------------
 bool PathArgHandler::doValidate(const std::string& s) {
-  return AbsDirUtil::findPath(s, mDir) != 0;
+  setPathDir(AbsDirUtil::findPath(s, mDir));
+  return mPathDir != 0;
+}
+
+//------------------------------------------------------------------------------
+void PathArgHandler::completeTyping(const std::string& s) {
+  const std::string& tail = StringUtil::getTail(s);
+  const std::string&& iden =
+      StdUtil::getIdenticalString(mPromptBuffer.begin(), mPromptBuffer.end());
+  // just check again
+  if (!tail.empty() && !StringUtil::startsWith(iden, tail))
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE,
+        "complete string don't starts with typing!!!!");
+
+  sgConsole.complete(iden.substr(tail.size()));
 }
 
 //------------------------------------------------------------------------------
@@ -105,17 +111,46 @@ CmdArgHandler::CmdArgHandler() : StringArgHandler("cmd") {
 }
 
 //------------------------------------------------------------------------------
-ParameterArgHandler::ParameterArgHandler()
-    : StringArgHandler("parameter"), mDir(0) {
+ParamArgHandler::ParamArgHandler() : StringArgHandler("param"), mDir(0) {
   setPromptType(PT_PROMPTANDCOMPLETE);
 }
 
 //------------------------------------------------------------------------------
-ParameterArgHandler::ParameterArgHandler(const ParameterArgHandler& rhs)
-    : StringArgHandler(rhs.getName()) {
-  setDir(sgConsole.getDirectory());
+void ParamArgHandler::runtimeInit() {
+  setUpWd();
+  if (!mDir) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 dir");
   StringVector&& sv = mDir->getParameters();
   this->insert(sv.begin(), sv.end());
+}
+
+//------------------------------------------------------------------------------
+void ParamArgHandler::setUpWd() {
+  mDir = sgConsole.getCwd();
+  Node* node = getTreeNode();
+  if (node) {
+    Node* parentNode = node->getParent();
+    if (parentNode && !parentNode->isRoot()) {
+      ArgHandler* handler = parentNode->getArgHandler();
+      if (handler->getName() == "path") {
+        mDir = AbsDirUtil::findPath(handler->getValue(), mDir);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+PparamArgHandler::PparamArgHandler() : TreeArgHandler("pparam") {
+  mRoot->addChildNode("param", "param")->endBranch("0");
+  mRoot->addChildNode("path", "path")
+      ->addChildNode("param", "param")
+      ->endBranch("1");
+}
+
+//------------------------------------------------------------------------------
+ParamArgHandler* PparamArgHandler::getParamHandler() {
+  if (!mMatchedLeaf) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 matched leaf");
+  Node* node = mMatchedLeaf->getAncestorNode("param");
+  return static_cast<ParamArgHandler*>(node->getArgHandler());
 }
 
 //------------------------------------------------------------------------------
@@ -125,37 +160,44 @@ ValueArgHandler::ValueArgHandler() : ArgHandler("value"), mHandler(0), mDir(0) {
 
 //------------------------------------------------------------------------------
 ValueArgHandler::ValueArgHandler(const ValueArgHandler& rhs)
-    : ArgHandler(rhs.getName()), mHandler(0), mDir(0) {
-}
+    : ArgHandler(rhs), mHandler(0), mDir(0) {}
 
 //------------------------------------------------------------------------------
-void ValueArgHandler::runtimeInit()
-{
-  setDir(sgConsole.getDirectory());
-  Node* valueNode = this->getTreeNode();
-  if (!valueNode)
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE,
-        "Do you forget to hook node with arg handler?");
-
-  Node* paramNode = valueNode->getAncestorNode("parameter");
-  if (!paramNode)
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "can no find paramNode");
-
-  const std::string& param = paramNode->getValue();
+void ValueArgHandler::runtimeInit() {
+  // get param name and working dir form param handler
+  ParamArgHandler* paramHandler = getParamHandler();
+  setDir(paramHandler->getDir());
+  const std::string& param = paramHandler->getValue();
   const std::string& ahName = mDir->getValueArgHandler(param);
-
   setHandler(sgArgLib.createArgHandler(ahName));
 }
 
 //------------------------------------------------------------------------------
 void ValueArgHandler::populatePromptBuffer(const std::string& s) {
   PacAssert(mHandler, "0 handler in value handler");
-  return mHandler->prompt(s);
+  mHandler->populatePromptBuffer(s);
+  mPromptBuffer.assign(
+      mHandler->beginPromptBuffer(), mHandler->endPromptBuffer());
 }
 
 //------------------------------------------------------------------------------
 bool ValueArgHandler::doValidate(const std::string& s) {
   PacAssert(mHandler, "0 handler in value handler");
   return mHandler->validate(s);
+}
+
+//------------------------------------------------------------------------------
+ParamArgHandler* ValueArgHandler::getParamHandler() {
+  Node* node = this->getTreeNode();
+  if (!node) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 node");
+  node = node->getParent();
+  if (!node) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 node");
+  if (node->isRoot()) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "root node");
+  ArgHandler* handler = node->getArgHandler();
+  if (handler->getName() == "param")
+    return static_cast<ParamArgHandler*>(handler);
+  if (handler->getName() == "pparam")
+    return static_cast<PparamArgHandler*>(handler)->getParamHandler();
+  PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, "param not found");
 }
 }

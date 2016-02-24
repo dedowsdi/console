@@ -52,9 +52,9 @@ public:
    * Change current working dir
    * @param dir : target dir
    */
-  void changeCurrentDirectory(AbsDir* dir);
+  void setCwd(AbsDir* dir);
 
-  AbsDir* getDirectory() { return mDir; }
+  AbsDir* getCwd() { return mDir; }
 
   /**
    * Buffer output, to be aligned later. This function will reset buffer. Use
@@ -79,7 +79,7 @@ protected:
   // set up console pattern
   virtual void initConoslePattern();
   // set up cmd history
-  virtual void initCmdPattern();
+  virtual void initCmdHistory();
   // set up dir system
   virtual void initDir();
 
