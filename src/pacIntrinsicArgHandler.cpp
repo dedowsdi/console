@@ -34,7 +34,7 @@ void StringArgHandler::populatePromptBuffer(const std::string& s) {
   StringVector sv;
   std::for_each(
       mStrings.begin(), mStrings.end(), [&](const std::string& v) -> void {
-        if (s.empty() || StringUtil::startsWith(v, s)) {
+        if (s.empty() || StringUtil::startsWith(v, s, true)) {
           appendPromptBuffer(v);
         }
       });
@@ -78,7 +78,7 @@ void PathArgHandler::populatePromptBuffer(const std::string& s) {
   AbsDir* headDir = AbsDirUtil::findPath(head, mDir);
   std::for_each(headDir->beginChildIter(), headDir->endChildIter(),
       [&](AbsDir* v) -> void {
-        if (tail.empty() || StringUtil::startsWith(v->getName(), tail)) {
+        if (tail.empty() || StringUtil::startsWith(v->getName(), tail, true)) {
           appendPromptBuffer(v->getName());
         }
       });

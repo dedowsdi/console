@@ -52,7 +52,7 @@ UBS = ub/*.cpp
 MACRO = -DBOOST_LOG_DYN_LINK 
 CFLAGS = -Wall -g -std=c++11 ${MACRO}
 
-#--------------------------------------------------------------------
+#-------------------------------------------------------------------
 #all
 .PHONY : console
 console: shared static test
