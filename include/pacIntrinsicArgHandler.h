@@ -14,10 +14,9 @@ namespace pac {
 template <class T>
 class _PacExport PriDeciArgHandler : public ArgHandler {
 public:
-  defArgCom(PriDeciArgHandler)
+  virtual ArgHandler* clone() { return new PriDeciArgHandler(*this); }
 
-      PriDeciArgHandler(const std::string& name)
-      : ArgHandler(name) {}
+  PriDeciArgHandler(const std::string& name) : ArgHandler(name) {}
 
   virtual void populatePromptBuffer(const std::string& s) {
     (void)s;
@@ -34,17 +33,18 @@ public:
 template <class T>
 class _PacExport PriDeciRangeArgHandler : public ArgHandler {
 public:
-  defArgCom(PriDeciRangeArgHandler)
-      /**
-       * ctor
-       * @param name : arg handler name
-       * @param min : min value
-       * @param max : max value
-       * @param equal : use <= >= or < >
-       * @return :
-       */
-      PriDeciRangeArgHandler(
-          const std::string& name, T min, T max, bool equal = true)
+  virtual ArgHandler* clone() { return new PriDeciRangeArgHandler(*this); }
+
+  /**
+   * ctor
+   * @param name : arg handler name
+   * @param min : min value
+   * @param max : max value
+   * @param equal : use <= >= or < >
+   * @return :
+   */
+  PriDeciRangeArgHandler(
+      const std::string& name, T min, T max, bool equal = true)
       : ArgHandler(name), mMin(min), mMax(max), mEqual(equal) {}
 
   virtual void populatePromptBuffer(const std::string& s) {
@@ -74,15 +74,9 @@ private:
  */
 class _PacExport StringArgHandler : public ArgHandler {
 public:
-  defArgCom(StringArgHandler)
+  virtual ArgHandler* clone() { return new StringArgHandler(*this); }
 
-      StringArgHandler(const std::string& name);
-
-  /**
-   * Single string handler
-   * @param text: item text
-   */
-  StringArgHandler(const std::string& name, const std::string& text);
+  StringArgHandler(const std::string& name, bool regexMatch = false);
 
   /**
    * insert new element
@@ -102,11 +96,20 @@ public:
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
 
-private:
-  bool exist(const std::string& value);
+  bool getRegexMatch() const { return mRegexMatch; }
+  void setRegexMatch(bool v) { mRegexMatch = v; }
 
 protected:
   StringSet mStrings;
+  bool mRegexMatch;
+};
+
+class _PacExport LiteralArgHandler 
+{
+public:
+	LiteralArgHandler(const std::string& text);
+protected:
+  std::string mText;
 };
 
 /**
@@ -114,9 +117,9 @@ protected:
  */
 class _PacExport BlankArgHandler : public ArgHandler {
 public:
-  defArgCom(BlankArgHandler)
+  virtual ArgHandler* clone() { return new BlankArgHandler(*this); }
 
-      BlankArgHandler();
+  BlankArgHandler();
 
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
@@ -127,9 +130,9 @@ public:
  */
 class _PacExport PathArgHandler : public ArgHandler {
 public:
-  defArgCom(PathArgHandler)
+  virtual ArgHandler* clone() { return new PathArgHandler(*this); }
 
-      PathArgHandler();
+  PathArgHandler();
   PathArgHandler(const PathArgHandler& rhs);
 
   virtual void populatePromptBuffer(const std::string& s);
@@ -138,15 +141,14 @@ public:
   AbsDir* getDir() const { return mDir; }
   void setDir(AbsDir* v) { mDir = v; }
   AbsDir* getPathDir() const { return mPathDir; }
-  void setPathDir( AbsDir* v){mPathDir = v;}
-
+  void setPathDir(AbsDir* v) { mPathDir = v; }
 
 protected:
   virtual void completeTyping(const std::string& s);
 
 private:
-  AbsDir* mDir;  // cwd
-  AbsDir* mPathDir; //dir of path, avoid 2nd time findPath
+  AbsDir* mDir;      // cwd
+  AbsDir* mPathDir;  // dir of path, avoid 2nd time findPath
 };
 
 /**
@@ -154,9 +156,9 @@ private:
  */
 class _PacExport CmdArgHandler : public StringArgHandler {
 public:
-  defArgCom(CmdArgHandler)
+  virtual ArgHandler* clone() { return new CmdArgHandler(*this); }
 
-      CmdArgHandler();
+  CmdArgHandler();
 };
 
 /**
@@ -164,9 +166,9 @@ public:
  */
 class _PacExport ParamArgHandler : public StringArgHandler {
 public:
-  defArgCom(ParamArgHandler)
+  virtual ArgHandler* clone() { return new ParamArgHandler(*this); }
 
-      ParamArgHandler();
+  ParamArgHandler();
   virtual void runtimeInit();
 
   AbsDir* getDir() const { return mDir; }
@@ -190,9 +192,9 @@ private:
  */
 class _PacExport PparamArgHandler : public TreeArgHandler {
 public:
-  defArgCom(PparamArgHandler)
+  virtual ArgHandler* clone() { return new PparamArgHandler(*this); }
 
-      PparamArgHandler();
+  PparamArgHandler();
   /**
    * Get param handler in matched branch
    * @return : param handler in matched branch
@@ -208,7 +210,8 @@ private:
  */
 class _PacExport ValueArgHandler : public ArgHandler {
 public:
-  defArgCom(ValueArgHandler) ValueArgHandler();
+  virtual ArgHandler* clone() { return new ValueArgHandler(*this); }
+  ValueArgHandler();
   ValueArgHandler(const ValueArgHandler& rhs);
 
   void runtimeInit();
@@ -223,7 +226,7 @@ public:
   virtual bool doValidate(const std::string& s);
 
   /**
-   * Get param handler from previous node. 
+   * Get param handler from previous node.
    */
   ParamArgHandler* getParamHandler();
 

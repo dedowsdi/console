@@ -79,6 +79,7 @@ public:
 
 protected:
   void setTextWidth(int v) { mTextWidth = v; }
+  void initParams();
 
 private:
   int mTextWidth;

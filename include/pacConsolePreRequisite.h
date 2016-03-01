@@ -75,6 +75,7 @@ namespace pac
 	class TreeArgHandler;
 	class UiConsole;
   class CommandLib;
+  class StringArgHandler;
 	struct Branch;
 	//easy singleton
 }

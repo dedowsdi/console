@@ -18,6 +18,8 @@ AbsDir::~AbsDir() {
   AbsDirs dirs(mChildren);
   std::for_each(dirs.begin(), dirs.end(), [&](AbsDir* v) -> void { delete v; });
   mChildren.clear();
+  if(mStringInterface->getArtifical())
+    delete mStringInterface;
 }
 
 //------------------------------------------------------------------------------

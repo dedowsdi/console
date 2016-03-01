@@ -3,19 +3,14 @@
 #include "pacIntrinsicArgHandler.h"
 #include "pacAbsDir.h"
 #include "pacConsole.h"
+#include <boost/regex.hpp>
 
 namespace pac {
 
 //------------------------------------------------------------------------------
 StringArgHandler::StringArgHandler(
-    const std::string& name, const std::string& text)
-    : ArgHandler(name) {
-  mStrings.insert(text);
-  setPromptType(PT_PROMPTANDCOMPLETE);
-}
-
-//------------------------------------------------------------------------------
-StringArgHandler::StringArgHandler(const std::string& name) : ArgHandler(name) {
+    const std::string& name, bool regexMatch /* = false*/)
+    : ArgHandler(name), mRegexMatch(regexMatch) {
   setPromptType(PT_PROMPTANDCOMPLETE);
 }
 
@@ -24,9 +19,6 @@ StringArgHandler* StringArgHandler::insert(const std::string& s) {
   mStrings.insert(s);
   return this;
 }
-
-//------------------------------------------------------------------------------
-void StringArgHandler::remove(const std::string& s) { mStrings.erase(s); }
 
 //------------------------------------------------------------------------------
 void StringArgHandler::populatePromptBuffer(const std::string& s) {
@@ -41,32 +33,21 @@ void StringArgHandler::populatePromptBuffer(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-bool StringArgHandler::doValidate(const std::string& s) { return exist(s); }
-
-//------------------------------------------------------------------------------
-bool StringArgHandler::exist(const std::string& value) {
-  return mStrings.find(value) != mStrings.end();
+bool StringArgHandler::doValidate(const std::string& s) {
+  if (mRegexMatch) {
+    boost::smatch m;
+    StringSet::iterator iter = std::find_if(mStrings.begin(), mStrings.end(),
+        [&](const std::string& v)
+            -> bool { return boost::regex_match(v, m, boost::regex(s)); });
+    return iter != mStrings.end();
+  } else {
+    return mStrings.find(s) != mStrings.end();
+  }
 }
-
-//------------------------------------------------------------------------------
-BlankArgHandler::BlankArgHandler() : ArgHandler("blank") {}
 
 //------------------------------------------------------------------------------
 void BlankArgHandler::populatePromptBuffer(const std::string& s) {
   appendPromptBuffer("blank");
-}
-
-//------------------------------------------------------------------------------
-bool BlankArgHandler::doValidate(const std::string& s) { return s.empty(); }
-
-//------------------------------------------------------------------------------
-PathArgHandler::PathArgHandler() : ArgHandler("path"), mDir(0) {
-  setPromptType(PT_PROMPTANDCOMPLETE);
-}
-
-//------------------------------------------------------------------------------
-PathArgHandler::PathArgHandler(const PathArgHandler& rhs) : ArgHandler(rhs) {
-  setDir(sgConsole.getCwd());
 }
 
 //------------------------------------------------------------------------------
@@ -104,18 +85,6 @@ void PathArgHandler::completeTyping(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-CmdArgHandler::CmdArgHandler() : StringArgHandler("cmd") {
-  std::for_each(sgCmdLib.beginCmdMapIterator(), sgCmdLib.endCmdMapIterator(),
-      [&](const CommandLib::CmdMap::value_type& v)
-          -> void { mStrings.insert(v.first); });
-}
-
-//------------------------------------------------------------------------------
-ParamArgHandler::ParamArgHandler() : StringArgHandler("param"), mDir(0) {
-  setPromptType(PT_PROMPTANDCOMPLETE);
-}
-
-//------------------------------------------------------------------------------
 void ParamArgHandler::runtimeInit() {
   setUpWd();
   if (!mDir) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 dir");
@@ -139,23 +108,10 @@ void ParamArgHandler::setUpWd() {
 }
 
 //------------------------------------------------------------------------------
-PparamArgHandler::PparamArgHandler() : TreeArgHandler("pparam") {
-  mRoot->addChildNode("param", "param")->endBranch("0");
-  mRoot->addChildNode("path", "path")
-      ->addChildNode("param", "param")
-      ->endBranch("1");
-}
-
-//------------------------------------------------------------------------------
 ParamArgHandler* PparamArgHandler::getParamHandler() {
   if (!mMatchedLeaf) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 matched leaf");
   Node* node = mMatchedLeaf->getAncestorNode("param");
   return static_cast<ParamArgHandler*>(node->getArgHandler());
-}
-
-//------------------------------------------------------------------------------
-ValueArgHandler::ValueArgHandler() : ArgHandler("value"), mHandler(0), mDir(0) {
-  setPromptType(PT_PROMPTANDCOMPLETE);
 }
 
 //------------------------------------------------------------------------------
@@ -199,5 +155,49 @@ ParamArgHandler* ValueArgHandler::getParamHandler() {
   if (handler->getName() == "pparam")
     return static_cast<PparamArgHandler*>(handler)->getParamHandler();
   PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, "param not found");
+}
+
+//------------------------------------------------------------------------------
+void StringArgHandler::remove(const std::string& s) { mStrings.erase(s); }
+
+//------------------------------------------------------------------------------
+BlankArgHandler::BlankArgHandler() : ArgHandler("blank") {}
+
+//------------------------------------------------------------------------------
+bool BlankArgHandler::doValidate(const std::string& s) { return s.empty(); }
+
+//------------------------------------------------------------------------------
+PathArgHandler::PathArgHandler() : ArgHandler("path"), mDir(0) {
+  setPromptType(PT_PROMPTANDCOMPLETE);
+}
+
+//------------------------------------------------------------------------------
+PathArgHandler::PathArgHandler(const PathArgHandler& rhs) : ArgHandler(rhs) {
+  setDir(sgConsole.getCwd());
+}
+
+//------------------------------------------------------------------------------
+CmdArgHandler::CmdArgHandler() : StringArgHandler("cmd") {
+  std::for_each(sgCmdLib.beginCmdMapIterator(), sgCmdLib.endCmdMapIterator(),
+      [&](const CommandLib::CmdMap::value_type& v)
+          -> void { mStrings.insert(v.first); });
+}
+
+//------------------------------------------------------------------------------
+ParamArgHandler::ParamArgHandler() : StringArgHandler("param"), mDir(0) {
+  setPromptType(PT_PROMPTANDCOMPLETE);
+}
+
+//------------------------------------------------------------------------------
+PparamArgHandler::PparamArgHandler() : TreeArgHandler("pparam") {
+  mRoot->addChildNode("param", "param")->endBranch("0");
+  mRoot->addChildNode("path", "path")
+      ->addChildNode("param", "param")
+      ->endBranch("1");
+}
+
+//------------------------------------------------------------------------------
+ValueArgHandler::ValueArgHandler() : ArgHandler("value"), mHandler(0), mDir(0) {
+  setPromptType(PT_PROMPTANDCOMPLETE);
 }
 }

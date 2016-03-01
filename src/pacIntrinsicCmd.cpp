@@ -3,6 +3,7 @@
 #include "pacConsole.h"
 #include "pacAbsDir.h"
 #include "pacArgHandler.h"
+#include "pacStdUtil.h"
 #include "pacIntrinsicArgHandler.h"
 
 namespace pac {
@@ -84,7 +85,7 @@ bool SetCmd::doExecute() {
     PathArgHandler* pathHandler =
         static_cast<PathArgHandler*>(handler->getMatchedNodeHandler("path"));
     dir = pathHandler->getPathDir();
-  }else{
+  } else {
     PAC_EXCEPT(Exception::ERR_INVALID_STATE, "illegal branch");
   }
 
@@ -110,55 +111,64 @@ bool SetCmd::buildArgHandler() {
 }
 
 //------------------------------------------------------------------------------
-LpCmd::LpCmd() : Command("lp") {}
+GetCmd::GetCmd() : Command("get") {}
 
 //------------------------------------------------------------------------------
-bool LpCmd::doExecute() {
+bool GetCmd::doExecute() {
   TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
   AbsDir* curDir = sgConsole.getCwd();
 
   const std::string& branch = handler->getMatchedBranch();
   if (branch == "0") {
     // lp
-    outputProperties(curDir);
+    outputProperties(curDir, curDir->getParameters());
   } else if (branch == "1") {
     // lp param
-    const std::string& param = handler->getMatchedNode("param")->getValue();
-    sgConsole.outputLine(param + " : " + curDir->getParameter(param));
+    const std::string& reParam = handler->getMatchedNode("reParam")->getValue();
+    fo::RegexMatch rm(reParam);
+    StringVector&& params = curDir->getParameters();
+    params.erase(
+        std::remove_if(params.begin(), params.end(), rm), params.end());
+    outputProperties(curDir, params);
+
   } else if (branch == "2") {
     // lp path
     PathArgHandler* pathHandler =
         static_cast<PathArgHandler*>(handler->getMatchedNodeHandler("path"));
-    outputProperties(pathHandler->getPathDir());
+    AbsDir* dir = pathHandler->getPathDir();
+    outputProperties(dir, dir->getParameters());
   } else if (branch == "3") {
     // lp path param
     const std::string& param = handler->getMatchedNode("param")->getValue();
     PathArgHandler* pathHandler =
         static_cast<PathArgHandler*>(handler->getMatchedNodeHandler("path"));
-    sgConsole.outputLine(
-        param + " : " + pathHandler->getPathDir()->getParameter(param));
+    AbsDir* dir = pathHandler->getPathDir();
+    StringVector&& params = dir->getParameters();
+    params.erase(
+        std::remove_if(params.begin(), params.end(), rm), params.end());
+    outputProperties(dir, params);
   }
   return true;
 }
 //------------------------------------------------------------------------------
-bool LpCmd::buildArgHandler() {
+bool GetCmd::buildArgHandler() {
   TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
   Node* root = handler->getRoot();
-  root->endBranch("0");                                  // lp
-  root->addChildNode("param", "param")->endBranch("1");  // lp param
+  root->endBranch("0");                           // lp
+  root->addChildNode("reParam")->endBranch("1");  // lp reParam
   Node* pathNode = root->addChildNode("path", "path");
-  pathNode->endBranch("1");                                  // lp path
-  pathNode->addChildNode("param", "param")->endBranch("2");  // lp path param
+  pathNode->endBranch("1");                         // lp path
+  pathNode->addChildNode("reParam")->endBranch("2");  // lp path reParam
   this->mArgHandler = handler;
   return true;
 }
 
 //------------------------------------------------------------------------------
-void LpCmd::outputProperties(AbsDir* dir) {
+void GetCmd::outputProperties(
+    AbsDir* dir, const SVCIter beg, const SVCIter end) {
   RaiiConsoleBuffer raii;
-  StringVector&& params = dir->getParameters();
-  std::for_each(params.begin(), params.end(),
-      [&](const std::string& v)
-          -> void { sgConsole.output(v + " : " + dir->getParameter(v)); });
+  std::for_each(beg, end, [&](const std::string& v) -> void {
+    sgConsole.output(v + " : " + dir->getParameter(v));
+  });
 }
 }

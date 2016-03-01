@@ -95,6 +95,11 @@ public:
    */
   void removeChild(AbsDir* dir);
 
+  /**
+   * serialize dir content
+   */
+  virtual void serialize(std::ostream& os);
+
   AbsDirs::iterator beginChildIter();
   AbsDirs::iterator endChildIter();
 
@@ -149,6 +154,8 @@ private:
    * @return : target dir or 0
    */
   static AbsDir* findRelativePath(const std::string& path, AbsDir* curDir);
+
+
 };
 }
 

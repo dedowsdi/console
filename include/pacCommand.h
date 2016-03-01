@@ -5,8 +5,6 @@
 
 namespace pac {
 
-#define defCmdCom(type) \
-  virtual Command* clone() { return new type(*this); }
 
 class Command {
 public:
@@ -40,7 +38,6 @@ public:
    */
   virtual bool execute();
 
-  virtual bool doExecute() = 0;
 
   virtual Command* clone() = 0;
 
@@ -74,7 +71,8 @@ protected:
    */
   std::string getDefAhName() { return "ahcmd_" + getName(); }
 
-private:
+  virtual bool doExecute() = 0;
+
   /**
    * If your cmd has it's own arghandler, you should override this, it's name
    * should be getDefAhName(), you can use it later in other place if you want.

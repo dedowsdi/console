@@ -33,17 +33,17 @@ ${OBJDIR}pacLogger.o
 
 TESTSRCDIR = test/
 TESTSRCS = \
-${TESTSRCDIR}testAbsDir.hpp\
-${TESTSRCDIR}testArgHandler.hpp\
-${TESTSRCDIR}testCommand.hpp\
-${TESTSRCDIR}testConsole.hpp\
-${TESTSRCDIR}testConsolePattern.hpp\
-${TESTSRCDIR}test.cpp\
-${TESTSRCDIR}testCmdHistory.hpp\
-${TESTSRCDIR}testSingleton.hpp\
-${TESTSRCDIR}testStdUtil.hpp\
-${TESTSRCDIR}testStringUtil.hpp\
-${TESTSRCDIR}testUiConsole.hpp
+${TESTSRCDIR}include/testAbsDir.hpp\
+${TESTSRCDIR}include/testArgHandler.hpp\
+${TESTSRCDIR}include/testCommand.hpp\
+${TESTSRCDIR}include/testConsole.hpp\
+${TESTSRCDIR}include/testConsolePattern.hpp\
+${TESTSRCDIR}src/test.cpp\
+${TESTSRCDIR}include/testCmdHistory.hpp\
+${TESTSRCDIR}include/testSingleton.hpp\
+${TESTSRCDIR}include/testStdUtil.hpp\
+${TESTSRCDIR}include/testStringUtil.hpp\
+${TESTSRCDIR}include/testUiConsole.hpp
 
 TESTBIN = test/bin/
 
@@ -85,7 +85,7 @@ testobj : ${TESTOBJS}
 #build test 
 .PHONY : test 
 test : ${TESTSRCS}
-	g++ ${CFLAGS} -pthread -o ${TESTBIN}/$@ test/test.cpp /usr/local/lib/libgtest.a\
+	g++ ${CFLAGS} -pthread -o ${TESTBIN}/$@ test/src/test.cpp /usr/local/lib/libgtest.a\
 		bin/libconsole.a ${INCLUDES} ${LIBS}
 #--------------------------------------------------------------------
 .PHONY : clean

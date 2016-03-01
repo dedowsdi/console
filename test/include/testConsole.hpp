@@ -234,6 +234,7 @@ TEST_F(TestConsole, promptCmdSet) {
   EXPECT_EQ("set paramString", getCmdLine());
   sgConsole.getUi()->setCmdLine("set paramString ");
   sgConsole.prompt();
+
   EXPECT_EQ("set paramString ", getCmdLine());
   EXPECT_EQ("\none  three  two  ", getLastOutput());
   sgConsole.getUi()->setCmdLine("set paramString o");

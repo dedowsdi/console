@@ -113,7 +113,8 @@ protected:
   bool createParamDict();
 
 public:
-  StringInterface(const std::string& name) : mName(name), mParamDict(NULL) {}
+  StringInterface(const std::string& name, bool artifical = false)
+      : mArtifical(artifical), mName(name), mParamDict(NULL) {}
   virtual ~StringInterface() {}
 
   ParamDictionary* getParamDict(void) { return mParamDict; }
@@ -170,6 +171,13 @@ public:
     as soon as one of the ResourceManager implementers (e.g. MaterialManager)
     initializes.*/
   static void cleanupDictionary();
+
+  bool getArtifical() const { return mArtifical; }
+  void setArtifical(bool v) { mArtifical = v; }
+
+protected:
+  bool mArtifical;  // it's true if this object doesn't exist unless you call
+                    // some command to edit something
 };
 }
 

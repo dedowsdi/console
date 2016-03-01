@@ -42,14 +42,9 @@ Console::~Console() {
 void Console::init() {
   new Logger();
   initCmdHistory();
+  initArghandler();
+  initCommand();
   initDir();
-
-  new CommandLib();
-  new ArgHandlerLib();
-
-  sgArgLib.init();
-  sgCmdLib.init();
-
   initConoslePattern();
 }
 
@@ -67,6 +62,20 @@ void Console::initDir() {
   setCwd(&sgRootDir);
   AbsDir* uiDir = new AbsDir("uiConsole", mUi);
   sgRootDir.addChild(uiDir);
+}
+
+//------------------------------------------------------------------------------
+void Console::initArghandler()
+{
+  new ArgHandlerLib();
+  sgArgLib.init();
+}
+
+//------------------------------------------------------------------------------
+void Console::initCommand()
+{
+  new CommandLib();
+  sgCmdLib.init();
 }
 
 //------------------------------------------------------------------------------

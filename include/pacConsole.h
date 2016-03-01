@@ -82,6 +82,10 @@ protected:
   virtual void initCmdHistory();
   // set up dir system
   virtual void initDir();
+  //set up arg handlers
+  virtual void initArghandler();
+  //set up commands 
+  virtual void initCommand();
 
 private:
   /**

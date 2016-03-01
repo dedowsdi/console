@@ -146,6 +146,24 @@ bool ArgHandler::validate(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
+StringVector::iterator ArgHandler::beginPromptBuffer() {
+  return mPromptBuffer.begin();
+}
+
+//------------------------------------------------------------------------------
+StringVector::iterator ArgHandler::endPromptBuffer() {
+  return mPromptBuffer.end();
+}
+
+//------------------------------------------------------------------------------
+size_t ArgHandler::getPromptBufferSize() { return mPromptBuffer.size(); }
+
+//------------------------------------------------------------------------------
+void ArgHandler::getPromptArgHandlers(ArgHandlerVec& ahv) {
+  ahv.push_back(this);
+}
+
+//------------------------------------------------------------------------------
 void ArgHandler::validateBranch(
     Branches& branches, ArgHandlerVec& promptHandlers) {
   PacAssert(!branches.empty(), "empty branch");
@@ -186,24 +204,6 @@ void ArgHandler::applyPromptBuffer(const std::string& s, bool autoComplete) {
 //------------------------------------------------------------------------------
 void ArgHandler::outputErrMessage(const std::string& s) {
   sgConsole.outputLine(s + " is not a valid " + getName());
-}
-
-//------------------------------------------------------------------------------
-StringVector::iterator ArgHandler::beginPromptBuffer() {
-  return mPromptBuffer.begin();
-}
-
-//------------------------------------------------------------------------------
-StringVector::iterator ArgHandler::endPromptBuffer() {
-  return mPromptBuffer.end();
-}
-
-//------------------------------------------------------------------------------
-size_t ArgHandler::getPromptBufferSize() { return mPromptBuffer.size(); }
-
-//------------------------------------------------------------------------------
-void ArgHandler::getPromptArgHandlers(ArgHandlerVec& ahv) {
-  ahv.push_back(this);
 }
 
 //------------------------------------------------------------------------------
@@ -622,20 +622,8 @@ bool TreeArgHandler::validate(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-void TreeArgHandler::validateBranch(
-    Branches& branches, ArgHandlerVec& promptHandlers) {
-  this->checkWholeness();
-  this->runtimeInit();
-  getRoot()->validateBranch(branches, promptHandlers);
-}
-
-//------------------------------------------------------------------------------
-void TreeArgHandler::outputErrMessage(const std::string& s) {
-  sgConsole.outputLine(
-      s + " is not a valid " + getName() + " which takes following formats:");
-  NodeVector&& nv = getLeaves();
-  std::for_each(nv.begin(), nv.end(),
-      [&](Node* v) -> void { sgConsole.outputLine(v->getArgPath()); });
+void TreeArgHandler::getPromptArgHandlers(ArgHandlerVec& ahv) {
+  return getRoot()->getPromptArgHandlers(ahv);
 }
 
 //------------------------------------------------------------------------------
@@ -682,25 +670,25 @@ TreeArgHandler* TreeArgHandler::getSubTree(const std::string& nodeName) {
   return static_cast<TreeArgHandler*>(node->getArgHandler());
 }
 
-void checkWholeness(Node* n) {
-  if (n->isLeaf()) return;
+//------------------------------------------------------------------------------
+void TreeArgHandler::validateBranch(
+    Branches& branches, ArgHandlerVec& promptHandlers) {
+  this->checkWholeness();
+  this->runtimeInit();
+  getRoot()->validateBranch(branches, promptHandlers);
+}
 
-  if (n->getNumChildren() == 0)
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "do you  forget to endbranch for" +
-                                                 n->getTree()->getName() +
-                                                 " at " + n->getName());
-
-  std::for_each(n->beginChildIter(), n->endChildIter(),
-      [&](Node* v) -> void { checkWholeness(v); });
+//------------------------------------------------------------------------------
+void TreeArgHandler::outputErrMessage(const std::string& s) {
+  sgConsole.outputLine(
+      s + " is not a valid " + getName() + " which takes following formats:");
+  NodeVector&& nv = getLeaves();
+  std::for_each(nv.begin(), nv.end(),
+      [&](Node* v) -> void { sgConsole.outputLine(v->getArgPath()); });
 }
 
 //------------------------------------------------------------------------------
 void TreeArgHandler::checkWholeness() { pac::checkWholeness(getRoot()); }
-
-//------------------------------------------------------------------------------
-void TreeArgHandler::getPromptArgHandlers(ArgHandlerVec& ahv) {
-  return getRoot()->getPromptArgHandlers(ahv);
-}
 
 //------------------------------------------------------------------------------
 ArgHandlerLib::~ArgHandlerLib() {
@@ -773,6 +761,10 @@ void ArgHandlerLib::init() {
   // arg lib is inited before command lib, moved to CommandLib::init()
   // this->registerArgHandler(new CmdArgHandler());
   this->registerArgHandler(new ParamArgHandler());
+  // reParam
+  ParamArgHandler* handler = new ParamArgHandler();
+  handler->setName("reParam") handler->setRegexMatch(true);
+  this->registerArgHandler(handler);
   this->registerArgHandler(new PparamArgHandler());
   this->registerArgHandler(new ValueArgHandler());
 }
@@ -802,6 +794,17 @@ TreeArgHandler* ArgHandlerLib::createMonoTree(
 //------------------------------------------------------------------------------
 bool ArgHandlerLib::exists(const std::string& name) {
   return mArgHandlerMap.find(name) != mArgHandlerMap.end();
+}
+
+void checkWholeness(Node* n) {
+  if (n->isLeaf()) return;
+
+  if (n->getNumChildren() == 0)
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "do you  forget to endbranch for" +
+                                                 n->getTree()->getName() +
+                                                 " at " + n->getName());
+  std::for_each(n->beginChildIter(), n->endChildIter(),
+      [&](Node* v) -> void { checkWholeness(v); });
 }
 
 template <>

@@ -6,17 +6,19 @@
 namespace pac {
 
 /**
- * ls ("0") 
+ * ls ("0")
  * ls path+ ("1")
  * list dir under path
  */
 class _PacExport LsCmd : public Command {
 public:
-  defCmdCom(LsCmd) LsCmd();
+  virtual Command* clone() { return new LsCmd(*this); }
+
+protected:
   virtual bool doExecute();
+  virtual bool buildArgHandler();
 
 private:
-  virtual bool buildArgHandler();
   /**
    * output child dir under dir
    * @param dir : working directory
@@ -30,9 +32,11 @@ private:
  */
 class _PacExport PwdCmd : public Command {
 public:
-  defCmdCom(PwdCmd) PwdCmd();
-  virtual bool doExecute();
+  PwdCmd();
+  virtual Command* clone() { return new PwdCmd(*this); }
 
+protected:
+  virtual bool doExecute();
 };
 
 /**
@@ -41,7 +45,10 @@ public:
  */
 class _PacExport CdCmd : public Command {
 public:
-  defCmdCom(CdCmd) CdCmd();
+  CdCmd();
+  virtual Command* clone() { return new CdCmd(*this); }
+
+protected:
   virtual bool doExecute();
 };
 
@@ -51,29 +58,48 @@ public:
  */
 class _PacExport SetCmd : public Command {
 public:
-  defCmdCom(SetCmd) SetCmd();
-  virtual bool doExecute();
+  SetCmd();
+  virtual Command* clone() { return new SetCmd(*this); }
 
-private:
+protected:
+  virtual bool doExecute();
   virtual bool buildArgHandler();
 };
 
 /**
- * lp ("0")
- * lp param ("1")
- * lp path ("2")
- * lp path param ("3")
+ * get ("0")
+ * get reParam ("1")
+ * get path ("2")
+ * get path reParam ("3")
  *
- * list properties 
+ * list properties
  */
-class _PacExport LpCmd : public Command {
+class _PacExport GetCmd : public Command {
 public:
-  defCmdCom(LpCmd) LpCmd();
+  GetCmd();
+  virtual Command* clone() { return new GetCmd(*this); }
+
+protected:
   virtual bool doExecute();
+  virtual bool buildArgHandler();
 
 private:
+  void outputProperties(AbsDir* dir, const SVCIter beg, const SVCIter end);
+};
+
+/**
+ * serialize dir
+ * sz ("0")
+ * sz path ("1")
+ */
+class _PacExport SzCmd : public Command {
+public:
+  SzCmd();
+  virtual Command* clone() { return new SzCmd(*this); }
+
+protected:
+  virtual bool doExecute();
   virtual bool buildArgHandler();
-  void outputProperties(AbsDir* dir);
 };
 };
 

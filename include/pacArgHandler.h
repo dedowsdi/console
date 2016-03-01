@@ -83,10 +83,6 @@ struct Branch {
   TreeStartPairs treeStartPairs;
 };
 
-// argument handler common
-#define defArgCom(type) \
-  virtual ArgHandler* clone() { return new type(*this); }
-
 /**
  * Base class of all Argument handler. Arghandler such as int2, real2 only have
  * object prototype, so i choose prototype to create them. Some handler such as
@@ -129,43 +125,6 @@ public:
    * @param s : test string
    */
   virtual bool validate(const std::string& s);
-
-  /**
-   * Test next item in each branches with this handler, remove it if it's
-   * invalid or args already consumed. Increment the testing string iterator if
-   * it's valid.
-   * @param branches : candidate branches
-   */
-  virtual void validateBranch(Branches& branches, ArgHandlerVec& promptHandlers);
-
-  /**
-   * Populate prompt buffer, to be used later in applyPromptBuffer.
-   * @param s : buffer
-   */
-  virtual void populatePromptBuffer(const std::string& s) { (void)s; };
-
-  /**
-   * Apply prompt buffer, if it's note buffer, output it line by line, if it's
-   * complete buffer and autoComplete is true, complete current typing as much
-   * as possible, if size of complete buffer is not 1, output them in console
-   * format.
-   * @param autoComplete : auto complete current typing
-   */
-  virtual void applyPromptBuffer(
-      const std::string& s, bool autoComplete = true);
-
-  /**
-   * output error message to console
-   * @param s : test string
-   */
-  virtual void outputErrMessage(const std::string& s);
-
-  /**
-   * Some handler need context node to decide it's behavier. This function
-   * should  be called at validate, validateBranch, prompt.
-   */
-  virtual void runtimeInit(){};
-
   virtual ArgHandler* clone() = 0;
 
   const std::string& getName() const { return mName; }
@@ -194,6 +153,42 @@ public:
   void getPromptArgHandlers(ArgHandlerVec& ahv);
 
 protected:
+  /**
+   * Test next item in each branches with this handler, remove it if it's
+   * invalid or args already consumed. Increment the testing string iterator if
+   * it's valid.
+   * @param branches : candidate branches
+   */
+  virtual void validateBranch(
+      Branches& branches, ArgHandlerVec& promptHandlers);
+
+  /**
+   * Populate prompt buffer, to be used later in applyPromptBuffer.
+   * @param s : buffer
+   */
+  virtual void populatePromptBuffer(const std::string& s) { (void)s; };
+
+  /**
+   * Apply prompt buffer, if it's note buffer, output it line by line, if it's
+   * complete buffer and autoComplete is true, complete current typing as much
+   * as possible, if size of complete buffer is not 1, output them in console
+   * format.
+   * @param autoComplete : auto complete current typing
+   */
+  virtual void applyPromptBuffer(
+      const std::string& s, bool autoComplete = true);
+
+  /**
+   * output error message to console
+   * @param s : test string
+   */
+  virtual void outputErrMessage(const std::string& s);
+
+  /**
+   * Some handler need context node to decide it's behavier. This function
+   * should  be called at validate, validateBranch, prompt.
+   */
+  virtual void runtimeInit(){};
   /**
    * check if s is valid. Derived primitive handler class must override this
    */
@@ -399,9 +394,9 @@ private:
  */
 class TreeArgHandler : public ArgHandler {
 public:
-  defArgCom(TreeArgHandler)
+  virtual ArgHandler* clone() { return new TreeArgHandler(*this); }
 
-      TreeArgHandler(const std::string& name);
+  TreeArgHandler(const std::string& name);
   /**
    * deep copy
    */
@@ -410,13 +405,6 @@ public:
   virtual void prompt(const std::string& s);
 
   virtual bool validate(const std::string& s);
-
-  /**
-   * see Node::validateBranch
-   */
-  virtual void validateBranch(Branches& branches, ArgHandlerVec& promptHandlers);
-
-  virtual void outputErrMessage(const std::string& s);
 
   virtual void getPromptArgHandlers(ArgHandlerVec& ahv);
 
@@ -471,6 +459,15 @@ public:
    * @return :
    */
   TreeArgHandler* getSubTree(const std::string& nodeName);
+
+protected:
+  /**
+   * see Node::validateBranch
+   */
+  virtual void validateBranch(
+      Branches& branches, ArgHandlerVec& promptHandlers);
+
+  virtual void outputErrMessage(const std::string& s);
 
 private:
   /**
@@ -531,6 +528,12 @@ public:
    * @return :
    */
   void registerArgHandler(ArgHandler* proto);
+
+  /**
+   * register proto->getName() and "re"+proto->getName()
+   * @param proto : prototype
+   */
+  void registerStringAH(StringArgHandler* proto);
 
   /**
    * register intrinsic arg handler

@@ -6,7 +6,11 @@ namespace pac {
 UiConsole::Alpha UiConsole::msAlpha;
 
 //------------------------------------------------------------------------------
-UiConsole::UiConsole() : StringInterface("uiConsole"), mTextWidth(80) {}
+UiConsole::UiConsole() : StringInterface("uiConsole"), mTextWidth(80) {
+  if(createParamDict()){
+    this->initParams();
+  }
+}
 
 //------------------------------------------------------------------------------
 void UiConsole::init() { setUpTextMetric(); }
@@ -38,5 +42,12 @@ std::string UiConsole::Alpha::doGet(const void* target) const {
 void UiConsole::Alpha::doSet(void* target, ArgHandler* handler) {
   UiConsole* ui = static_cast<UiConsole*>(target);
   ui->setAlpha(StringUtil::parsePrimitiveDecimal<Real>(handler->getValue()));
+}
+
+//------------------------------------------------------------------------------
+void UiConsole::initParams()
+{
+  ParamDictionary* dict = this->getParamDict();
+  dict->addParameter("alpha", &msAlpha);
 }
 }
