@@ -9,11 +9,12 @@
 
 using namespace pac;
 
-//test every arghandler except path, param, pparam, value, they will be tested
-//at testConsole.hpp.
+// test every arghandler except path, param, pparam, value, they will be tested
+// at testConsole.hpp.
 class TestArgHandler : public ::testing::Test {
 protected:
   virtual void SetUp() {
+    mLtlAbc = "abc";
     mBoolTrue = "true";
     mBoolFalse = "false";
     mShortMax = StringUtil::toString(std::numeric_limits<short>::max());
@@ -58,6 +59,7 @@ protected:
     mCmdPwd = "pwd";
     mCmdSet = "set";
 
+    mMap["ltlAbc"] = mLtlAbc;
     mMap["boolTrue"] = mBoolTrue;
     mMap["boolFalse"] = mBoolFalse;
     mMap["shortMax"] = mShortMax;
@@ -145,6 +147,10 @@ protected:
     root->addChildNode("real3LoopNode", "real3", Node::NT_LOOP)
         ->addChildNode("boolLoopNode", "bool", Node::NT_LOOP)
         ->endBranch("0");
+
+    if (!sgArgLib.exists("ltlAbc")) {
+      sgArgLib.registerArgHandler(new LiteralArgHandler("abc"));
+    }
   }
 
   virtual void TearDown() {
@@ -202,6 +208,11 @@ protected:
 
     std::string itemName;
 
+    itemName = "ltlAbc";
+    if (ifUseTrue(itemName, beg, end, maskPass))
+      EXPECT_TRUE(handler->validate(mMap[itemName]));
+    else
+      EXPECT_FALSE(handler->validate(mMap[itemName]));
     itemName = "boolTrue";
     if (ifUseTrue(itemName, beg, end, maskPass))
       EXPECT_TRUE(handler->validate(mMap[itemName]));
@@ -404,6 +415,7 @@ protected:
       EXPECT_FALSE(handler->validate(mMap[itemName]));
   }
 
+  std::string mLtlAbc;
   std::string mBoolTrue;
   std::string mBoolFalse;
   std::string mShortMax;
@@ -460,6 +472,11 @@ protected:
   TreeArgHandler* ml2real3bool;
 };
 
+TEST_F(TestArgHandler, ltlAbc) {
+  StringVector sv;
+  sv.push_back("ltlAbc");
+  test("ltlAbc", sv.begin(), sv.end(), 1);
+}
 TEST_F(TestArgHandler, bool) {
   StringVector sv;
   sv.push_back("boolTrue");

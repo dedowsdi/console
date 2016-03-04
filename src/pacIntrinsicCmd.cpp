@@ -5,6 +5,8 @@
 #include "pacArgHandler.h"
 #include "pacStdUtil.h"
 #include "pacIntrinsicArgHandler.h"
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 namespace pac {
 
@@ -35,8 +37,8 @@ bool LsCmd::doExecute() {
 bool LsCmd::buildArgHandler() {
   TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
   Node* root = handler->getRoot();
-  root->endBranch("0");
-  root->addChildNode("path", "path", Node::NT_LOOP)->endBranch("1");
+  root->eb("0");
+  root->acn("path", "path", Node::NT_LOOP)->eb("1");
   this->mArgHandler = handler;
   return true;
 }
@@ -55,6 +57,15 @@ PwdCmd::PwdCmd() : Command("pwd", "blank") {}
 bool PwdCmd::doExecute() {
   AbsDir* curDir = sgConsole.getCwd();
   sgConsole.outputLine(curDir->getFullPath());
+  return true;
+}
+
+//------------------------------------------------------------------------------
+CtdCmd::CtdCmd() : Command("Ctd", "blank") {}
+
+//------------------------------------------------------------------------------
+bool CtdCmd::doExecute() {
+  sgConsole.cleanTempDirs();
   return true;
 }
 
@@ -102,11 +113,8 @@ bool SetCmd::buildArgHandler() {
   TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
   this->mArgHandler = handler;
   Node* root = handler->getRoot();
-  root->addChildNode("param")->addChildNode("value")->endBranch("0");
-  root->addChildNode("path")
-      ->addChildNode("param")
-      ->addChildNode("value")
-      ->endBranch("1");
+  root->acn("param")->acn("value")->eb("0");
+  root->acn("path")->acn("param")->acn("value")->eb("1");
   return true;
 }
 
@@ -116,37 +124,45 @@ GetCmd::GetCmd() : Command("get") {}
 //------------------------------------------------------------------------------
 bool GetCmd::doExecute() {
   TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
-  AbsDir* curDir = sgConsole.getCwd();
 
   const std::string& branch = handler->getMatchedBranch();
-  if (branch == "0") {
-    // lp
-    outputProperties(curDir, curDir->getParameters());
-  } else if (branch == "1") {
-    // lp param
-    const std::string& reParam = handler->getMatchedNode("reParam")->getValue();
-    fo::RegexMatch rm(reParam);
-    StringVector&& params = curDir->getParameters();
-    params.erase(
-        std::remove_if(params.begin(), params.end(), rm), params.end());
-    outputProperties(curDir, params);
+  if (branch != "0" && branch != "1" && branch != "2" && branch != "3" &&
+      branch != "4" && branch != "5")
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalid branch:" + branch);
 
-  } else if (branch == "2") {
-    // lp path
-    PathArgHandler* pathHandler =
-        static_cast<PathArgHandler*>(handler->getMatchedNodeHandler("path"));
-    AbsDir* dir = pathHandler->getPathDir();
-    outputProperties(dir, dir->getParameters());
-  } else if (branch == "3") {
-    // lp path param
-    const std::string& param = handler->getMatchedNode("param")->getValue();
-    PathArgHandler* pathHandler =
-        static_cast<PathArgHandler*>(handler->getMatchedNodeHandler("path"));
-    AbsDir* dir = pathHandler->getPathDir();
-    StringVector&& params = dir->getParameters();
-    params.erase(
-        std::remove_if(params.begin(), params.end(), rm), params.end());
-    outputProperties(dir, params);
+  AbsDir* curDir = sgConsole.getCwd();
+
+  std::string param;
+
+  // get path param ("4")
+  // get path ltl_regex regex("5")
+  if (branch == "0" || branch == "1" || branch == "2") {
+    if (branch == "0") {
+      // get ("0")
+      outputProperties(curDir);
+    } else if (branch == "1") {
+      // get param ("1")
+      outputProperties(curDir, handler->getMatchedNodeValue("param"));
+    } else {
+      // get ltl_regex regex("2")
+      outputProperties(curDir, "", handler->getMatchedNodeValue("regex"));
+    }
+  } else if (branch == "3" || branch == "4" || branch == "5") {
+
+    AbsDir* dir =
+        AbsDirUtil::findPath(handler->getMatchedNodeValue("path"), curDir);
+    if (branch == "3") {
+      // get path ("3")
+      outputProperties(dir);
+    } else if (branch == "4") {
+      // get param ("1")
+      outputProperties(dir, handler->getMatchedNodeValue("param"));
+    } else {
+      // get ltl_regex regex("2")
+      outputProperties(dir, "", handler->getMatchedNodeValue("regex"));
+    }
+  } else {
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalid branch:" + branch);
   }
   return true;
 }
@@ -154,21 +170,77 @@ bool GetCmd::doExecute() {
 bool GetCmd::buildArgHandler() {
   TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
   Node* root = handler->getRoot();
-  root->endBranch("0");                           // lp
-  root->addChildNode("reParam")->endBranch("1");  // lp reParam
-  Node* pathNode = root->addChildNode("path", "path");
-  pathNode->endBranch("1");                         // lp path
-  pathNode->addChildNode("reParam")->endBranch("2");  // lp path reParam
   this->mArgHandler = handler;
+
+  // get ("0")
+  root->eb("0");
+  // get param ("1")
+  root->acn("param")->eb("1");
+  // get ltl_regex regex("2")
+  root->acn("ltl_regex")->acn("regex")->eb("2");
+
+  Node* pathNode = root->acn("path");
+  // get path ("3")
+  pathNode->eb("3");
+  // get path param ("4")
+  pathNode->acn("param")->eb("4");
+  // get path ltl_regex regex("5")
+  pathNode->acn("ltl_regex")->acn("regex")->eb("5");
   return true;
 }
 
 //------------------------------------------------------------------------------
-void GetCmd::outputProperties(
-    AbsDir* dir, const SVCIter beg, const SVCIter end) {
+void GetCmd::outputProperties(AbsDir* dir, const std::string& param /*= ""*/,
+    const std::string& reExp /*= ""*/) {
   RaiiConsoleBuffer raii;
-  std::for_each(beg, end, [&](const std::string& v) -> void {
-    sgConsole.output(v + " : " + dir->getParameter(v));
+  if (!param.empty()) {
+    sgConsole.output(param + " : " + dir->getParameter(param));
+    return;
+  }
+
+  boost::regex regex(reExp);
+  StringVector&& sv = dir->getParameters();
+  std::for_each(sv.begin(), sv.end(), [&](const std::string& v) -> void {
+    if (reExp.empty() || boost::regex_match(v, regex))
+      sgConsole.output(v + " : " + dir->getParameter(v));
   });
+}
+
+//------------------------------------------------------------------------------
+SzCmd::SzCmd() : Command("sz", "blank") {}
+
+//------------------------------------------------------------------------------
+bool SzCmd::doExecute() {
+  TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
+  const std::string& branch = handler->getMatchedBranch();
+  bool recursive = !hasOption('R');
+  const std::string& fileName = handler->getMatchedNodeValue("id");
+
+  boost::filesystem::ofstream ofs(fileName, std::fstream::trunc);
+  AbsDir* curDir = sgConsole.getCwd();
+
+  if (branch == "0") {
+    // sz id
+    curDir->serialize(ofs, recursive);
+  } else if (branch == "1") {
+    // sz id path
+    AbsDir* dir =
+        AbsDirUtil::findPath(handler->getMatchedNodeValue("path"), curDir);
+    dir->serialize(ofs, recursive);
+  } else {
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "unknown branch");
+  }
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool SzCmd::buildArgHandler() {
+  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
+  Node* root = handler->getRoot();
+  root->eb("0");               // sz
+  root->acn("path")->eb("1");  // sz path
+  this->mArgHandler = handler;
+  return true;
 }
 }

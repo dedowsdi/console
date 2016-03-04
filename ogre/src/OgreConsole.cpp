@@ -3,11 +3,13 @@
 #include "OgreArgHandler.h"
 #include "OgreSI.h"
 #include "OgreCommand.h"
+#include "OgreLight.h"
 
 namespace pac {
 
 //------------------------------------------------------------------------------
-OgreConsole::OgreConsole(Ogre::SceneManager* sceneMgr) : mSceneMgr(sceneMgr) {}
+OgreConsole::OgreConsole(Ogre::SceneManager* sceneMgr)
+    : mSceneMgr(sceneMgr), mMovableDir(0), mNodeDir(0) {}
 
 //------------------------------------------------------------------------------
 void OgreConsole::initArghandler() {
@@ -21,13 +23,22 @@ void OgreConsole::initArghandler() {
   mod->addString("Entity");
   sgArgLib.registerArgHandler(mod);
 
-  //literal
+  // literal
   sgArgLib.registerArgHandler(new LiteralArgHandler("sceneNode"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("tagPoint"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("light"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("entity"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("particle"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("direct"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("all"));
 
+  // enum and their regex form
+  DEFINE_ENUM_CONVERSION(
+      Ogre::Light::, LightTypes, (LT_POINT)(LT_DIRECTIONAL)(LT_SPOTLIGHT))
+  sgArgLib.registerStringAH(
+      new EnumArgHandler<Ogre::LightType>("en_lightType"));
+
+  // movable, scenenode, mesh  and their regex form
   sgArgLib.registerStringAH(new MovableAH("movable"));
   sgArgLib.registerStringAH(new MovableAH("particle", "ParticleSystem"));
   sgArgLib.registerStringAH(new MovableAH("light", "Light"));
@@ -53,6 +64,9 @@ void OgreConsole::initCommand() {
 //------------------------------------------------------------------------------
 void OgreConsole::initDir() {
   Console::initDir();
+
   sgDirRoot->addChild(new AbsDir("scene", new SceneSI(mSceneMgr)));
+  sgDirRoot->addChild(new AbsDir("movable"));
+  sgDirRoot->addChild(new AbsDir("node"));
 }
 }

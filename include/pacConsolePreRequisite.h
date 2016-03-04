@@ -12,6 +12,7 @@
 #include <sstream>
 #include <algorithm>
 #include <assert.h>
+#include <initializer_list>
 
 #include "pacConfig.h"
 #include "pacPlatform.h"

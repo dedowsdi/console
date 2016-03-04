@@ -133,6 +133,7 @@ void CommandLib::init() {
   this->registerCommand((new SetCmd())->init());
   this->registerCommand((new GetCmd())->init());
   this->registerCommand((new SzCmd())->init());
+  this->registerCommand((new CtdCmd())->init());
 
   sgArgLib.registerArgHandler(new CmdArgHandler());
 }

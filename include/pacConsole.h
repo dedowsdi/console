@@ -53,7 +53,6 @@ public:
    * @param dir : target dir
    */
   void setCwd(AbsDir* dir);
-
   AbsDir* getCwd() { return mDir; }
 
   /**
@@ -71,6 +70,11 @@ public:
    * @param backWard : roll back or roll front
    */
   void rollCommand(bool backWard = true);
+
+  /**
+   * Clean all temporary dirs.
+   */
+  void cleanTempDirs();
 
   UiConsole* getUi() const { return mUi; }
   void setUi(UiConsole* v) { mUi = v; }

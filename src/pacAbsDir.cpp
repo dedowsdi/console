@@ -4,12 +4,10 @@
 #include "pacStringUtil.h"
 
 namespace pac {
-template <>
-RootDir* Singleton<RootDir>::msSingleton = 0;
 
 //------------------------------------------------------------------------------
-AbsDir::AbsDir(const std::string& name, StringInterface* si)
-    : mParent(0), mStringInterface(si), mName(name) {}
+  AbsDir::AbsDir(const std::string& name, StringInterface* si /*= 0*/)
+    : mTemp(false), mParent(0), mStringInterface(si), mName(name) {}
 
 //------------------------------------------------------------------------------
 AbsDir::~AbsDir() {
@@ -18,8 +16,7 @@ AbsDir::~AbsDir() {
   AbsDirs dirs(mChildren);
   std::for_each(dirs.begin(), dirs.end(), [&](AbsDir* v) -> void { delete v; });
   mChildren.clear();
-  if(mStringInterface->getArtifical())
-    delete mStringInterface;
+  if (mStringInterface->getArtifical()) delete mStringInterface;
 }
 
 //------------------------------------------------------------------------------
@@ -58,7 +55,7 @@ bool AbsDir::setParameter(const std::string& name, ArgHandler* valueHandler) {
 }
 
 //------------------------------------------------------------------------------
-void AbsDir::addChild(AbsDir* dir) {
+void AbsDir::addChild(AbsDir* dir, bool temp) {
   // name check. It's not checked at ctor for root dir name is equal to delim
   if (dir->getName().find_first_of(" " + pac::delim) != std::string::npos)
     PAC_EXCEPT(Exception::ERR_INVALIDPARAMS,
@@ -69,6 +66,8 @@ void AbsDir::addChild(AbsDir* dir) {
   if (iter != mChildren.end())
     PAC_EXCEPT(
         Exception::ERR_DUPLICATE_ITEM, dir->getName() + " already exists");
+
+  dir->setTemp(temp);
 
   mChildren.push_back(dir);
   dir->setParent(this);
@@ -127,6 +126,32 @@ void AbsDir::removeChild(AbsDir* dir) {
 }
 
 //------------------------------------------------------------------------------
+void AbsDir::serialize(
+    std::ostream& os, bool recursive /*= true*/, size_t lvl /*= 0*/) {
+  const StringVector&& params = getParameters();
+  std::string indent(" ", lvl);
+  std::for_each(params.begin(), params.end(),
+      [&](const std::string& v)
+          -> void { os << indent << v << mStringInterface->getParameter(v); });
+
+  if (recursive) {
+    size_t childLvl = ++lvl;
+    std::for_each(mChildren.begin(), mChildren.end(),
+        [&](AbsDir* v) -> void { v->serialize(os, recursive, childLvl); });
+  }
+}
+
+//------------------------------------------------------------------------------
+void AbsDir::cleanTempDirs() {
+  if (mTemp) {
+    delete this;
+    return;
+  }
+  std::for_each(mChildren.begin(), mChildren.end(),
+      [&](AbsDir* v) -> void { v->cleanTempDirs(); });
+}
+
+//------------------------------------------------------------------------------
 AbsDirs::iterator AbsDir::beginChildIter() { return mChildren.begin(); }
 
 //------------------------------------------------------------------------------
@@ -177,4 +202,6 @@ AbsDir* AbsDirUtil::findRelativePath(const std::string& path, AbsDir* curDir) {
   }
   return curDir;
 }
+template <>
+RootDir* Singleton<RootDir>::msSingleton = 0;
 }

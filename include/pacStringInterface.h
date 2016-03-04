@@ -13,9 +13,9 @@ namespace pac {
 class _PacExport ParamCmd {
 public:
   ParamCmd(const std::string& _ahName) : ahName(_ahName) {}
-  void doSet(void* target, const std::string& val);
+  void doSet(void* target, const std::string& val) ;
   virtual std::string doGet(const void* target) const = 0;
-  virtual void doSet(void* target, ArgHandler* handler) = 0;
+  virtual void doSet(void* target, ArgHandler* handler) ;
   virtual ~ParamCmd() {}
   std::string ahName;  // argument handler name
 };

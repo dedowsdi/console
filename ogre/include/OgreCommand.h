@@ -3,75 +3,144 @@
 
 #include "OgreConsolePreRequisite.h"
 #include "pacCommand.h"
+#include "OgreSI.h"
+#include <boost/regex.hpp>
 
 namespace pac {
 
 /**
- * List moveable object in scene
- * lsmo <moType> [reMoveable] ("0")
- */
-class _PacExport LsmoCmd : public Command {
-public:
-  LsmoCmd();
-};
-
-/**
- * lsmat [reMaterial] ("0")
+ * lsmat ("0")
+ * lsmat ltl_regex regex ("1")
  */
 class _PacExport LsmatCmd : public Command {
 public:
   LsmatCmd();
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
 };
 
 /**
- * lsnd [reNode] ("0")
- * lsnd [ltSub] [node] ("1")
+ * lsnd ("0")
+ * lsnd sceneNode ("1")
+ * lsnd ltl_direct sceneNode ("2")
+ * lsnd ltl_regex regex ("3")
  */
 class _PacExport Lsnd : public Command {
 public:
   Lsnd();
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+
+private:
+  /**
+   * recursively output node name
+   * @node : target node
+   */
+  void outputNode(const Ogre::Node* node);
+  /**
+   * recursive output node name if it matches regex
+   * @param node : target node
+   * @param regex : regex expression
+   */
+  void outputNode(const Ogre::Node* node, boost::regex& regex);
 };
 
 /**
- * ath <ltlSceneNode> <sceneNode> <ltlLight> <id> <lightType> ("sn0")
- * ath <ltlSceneNode> <sceneNode> <ltlEntity> <id> <mesh> ("sn1")
- * ath <ltlSceneNode> <sceneNode> <ltlParticle> <id> <pst> ("sn2")
- * ath <ltlTagPoint> <entity> <bone> <ltlLight> <id> <lightType> ("tag0")
- * ath <ltlTagPoint> <entity> <bone> <ltlEntity> <id> <mesh> ("tag1")
- * ath <ltlTagPoint> <entity> <bone> <ltlParticle> <id> <pst> ("tag2")
+ * ath ltl_sceneNode sceneNode ltl_light id ("sn0")
+ * ath ltl_sceneNode sceneNode ltl_entity id mesh ("sn1")
+ * ath ltl_sceneNode sceneNode ltl_particle id pst ("sn2")
+ * ath ltl_tagPoint entity bone ltl_light id ("tag0")
+ * ath ltl_tagPoint entity bone ltl_entity id mesh ("tag1")
+ * ath ltl_tagPoint entity bone ltl_particle id pst ("tag2")
+ *
+ * attach movable to scenenode or entity bone
  */
-class _PacExport AthCmd {
+class _PacExport AthCmd : public Command {
 public:
   AthCmd();
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
 };
 
-
 /**
- * dthmo <ltlSceneNode> <mot> <id>
- * dthmo <ltlEntity> <mot> id
+ * lsmo moType ("g0")
+ * lsmo moType ltl_regex regex ("g1")
+ * lsmo ltl_sceneNode sceneNode ("sn0")
+ * lsmo ltl_sceneNode sceneNode moType ("sn1")
+ * lsmo ltl_tagPoint entity ("tag0")
+ * lsmo ltl_tagPoint entity moType ("tag1")
+ * lsmo ltl_tagPoint entity bone ("tag2")
+ * lsmo ltl_tagPoint entity bone moType ("tag3")
  */
-class _PacExport Dthmo {
+class _PacExport LsmoCmd : public Command {
 public:
-  Dthmo();
+  LsmoCmd();
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
 };
 
 /**
- * Edit movable object
- * edmo <mot> <movable> ("0")
+ * dth moType movable... ("m0")
+ * dth ltl_sceneNode sceneNode ("sn0")
+ * dth ltl_sceneNode sceneNode moType ("sn1")
+ * dth ltl_entity entity ("tag0")
+ * dth ltl_entity entity moType  ("tag1")
+ * dth ltl_entity entity bone ("tag2")
+ * dth ltl_entity entity bone moType ("tag3")
+ *
+ * detach movable
  */
-class _PacExport EdmoCmd {
+class _PacExport DthCmd : public Command {
+public:
+  DthCmd();
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+
+private:
+  typedef std::vector<Ogre::MovableObject*> Movables;
+  void destroyMovableObjects(Movables& movables);
+};
+
+/**
+ * edmo moTyp movable ("0")
+ * edmo ltl_sceneNode sceneNode moType movable ("1")
+ * edmo ltl_tagPoint entity bone moType movable ("2")
+ *
+ * Edit movable object, you need to make sure this movable remains in scene when
+ * you edit it, and clean it after you have done your work
+ */
+class _PacExport EdmoCmd : public Command {
 public:
   EdmoCmd();
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
 };
 
 /**
- * Edit scene node
+ * ednd sceneNode ("0")
+ *
+ * Edit scenenode
  */
-class _PacExport EdndCmd {
+class _PacExport EdndCmd : public Command {
 public:
   EdndCmd();
-};
 
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+};
 }
 
 #endif /* OGRECOMMAND_H */

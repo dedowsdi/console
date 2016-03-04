@@ -528,6 +528,7 @@ TreeArgHandler::TreeArgHandler(const TreeArgHandler& rhs)
   mRoot->setTree(this);
   // make sure no duplicate branch exists
   NodeVector&& leaves = mRoot->getLeaves();
+  std::sort(leaves.begin(), leaves.end());
   NodeVector::iterator iter = std::unique(leaves.begin(), leaves.end());
   if (iter != leaves.end())
     PAC_EXCEPT(Exception::ERR_INVALID_STATE, "duplicate tree branches");
@@ -755,18 +756,19 @@ void ArgHandlerLib::init() {
   this->registerArgHandler(sgArgLib.createMonoTree("nmatrix2", "nreal", 4));
   this->registerArgHandler(sgArgLib.createMonoTree("nmatrix3", "nreal", 9));
   this->registerArgHandler(sgArgLib.createMonoTree("nmatrix4", "nreal", 16));
+  this->registerArgHandler(new IdArgHandler());
+  this->registerArgHandler(new RegexArgHandler());
 
   // special handlers
   this->registerArgHandler(new PathArgHandler());
   // arg lib is inited before command lib, moved to CommandLib::init()
   // this->registerArgHandler(new CmdArgHandler());
   this->registerArgHandler(new ParamArgHandler());
-  // reParam
-  ParamArgHandler* handler = new ParamArgHandler();
-  handler->setName("reParam") handler->setRegexMatch(true);
-  this->registerArgHandler(handler);
   this->registerArgHandler(new PparamArgHandler());
   this->registerArgHandler(new ValueArgHandler());
+
+  //iteral
+  this->registerArgHandler(new LiteralArgHandler("regex"));
 }
 
 //------------------------------------------------------------------------------

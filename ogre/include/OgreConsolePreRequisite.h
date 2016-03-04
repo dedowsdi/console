@@ -5,7 +5,6 @@
 #include "OgrePrerequisites.h"
 
 namespace pac {
-class MolDir;
 class MovableSI;
 class LightSI;
 class CameraSI;
@@ -18,6 +17,8 @@ class LsmoCmd;
 class Lsnd;
 }
 
-#define sgOgreConsole static_cast<OgreConsole&>(pac::Console::getSingleton())
+#define sgOgreConsole static_cast<OgreConsole&>(::pac::Console::getSingleton())
+#define sgMatMgr ::Ogre::MaterialManager::getSingleton()
+#define sgPsMgr ::Ogre::ParticleSystemManager::getSingleton()
 
 #endif /* OGRECONSOLEPREREQUISITE_H */

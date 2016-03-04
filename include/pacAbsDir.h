@@ -12,7 +12,7 @@ typedef std::vector<AbsDir*> AbsDirs;
  */
 class AbsDir {
 public:
-  AbsDir(const std::string& name, StringInterface* si);
+  AbsDir(const std::string& name, StringInterface* si = 0);
   virtual ~AbsDir();
 
   /**
@@ -54,8 +54,9 @@ public:
   /**
    * Add dir to children.
    * @param dir : child dir
+   * @param temp : add dir as temp dir which will be removed at cleanTempDir
    */
-  void addChild(AbsDir* dir);
+  void addChild(AbsDir* dir, bool temp);
 
   /**
    * Get full path until root
@@ -96,9 +97,15 @@ public:
   void removeChild(AbsDir* dir);
 
   /**
-   * serialize dir content
+   * serialize dir content to output stream
+   * @param os : targte output stream
+   * @param recursive : recursive or not
+   * @lvl : current recursive level, each level taks 2 spaces
    */
-  virtual void serialize(std::ostream& os);
+  virtual void serialize(
+      std::ostream& os, bool recursive = true, size_t lvl = 0);
+
+  virtual void cleanTempDirs();
 
   AbsDirs::iterator beginChildIter();
   AbsDirs::iterator endChildIter();
@@ -112,7 +119,11 @@ public:
   StringInterface* getStringInterface() const { return mStringInterface; }
   void setStringInterface(StringInterface* v) { mStringInterface = v; }
 
+  bool getTemp() const { return mTemp; }
+  void setTemp(bool v) { mTemp = v; }
+
 protected:
+  bool mTemp;
   AbsDir* mParent;
   StringInterface* mStringInterface;
   std::string mName;
@@ -154,8 +165,6 @@ private:
    * @return : target dir or 0
    */
   static AbsDir* findRelativePath(const std::string& path, AbsDir* curDir);
-
-
 };
 }
 

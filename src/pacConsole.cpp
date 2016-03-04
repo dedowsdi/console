@@ -65,15 +65,13 @@ void Console::initDir() {
 }
 
 //------------------------------------------------------------------------------
-void Console::initArghandler()
-{
+void Console::initArghandler() {
   new ArgHandlerLib();
   sgArgLib.init();
 }
 
 //------------------------------------------------------------------------------
-void Console::initCommand()
-{
+void Console::initCommand() {
   new CommandLib();
   sgCmdLib.init();
 }
@@ -157,7 +155,10 @@ Console& Console::complete(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-void Console::setCwd(AbsDir* dir) { mDir = dir; }
+void Console::setCwd(AbsDir* dir) {
+  mDir = dir;
+  mUi->setCwd(dir->getFullPath());
+}
 
 //------------------------------------------------------------------------------
 void Console::startBuffer() {
@@ -187,6 +188,12 @@ void Console::rollCommand(bool backWard /*= true*/) {
     mUi->setCmdLine(mCmdHistory->previous());
   else
     mUi->setCmdLine(mCmdHistory->next());
+}
+
+//------------------------------------------------------------------------------
+void Console::cleanTempDirs() {
+  //@TODO implement
+  throw new std::runtime_error("unimplemented function called");
 }
 
 //------------------------------------------------------------------------------

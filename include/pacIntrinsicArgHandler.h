@@ -18,6 +18,7 @@ public:
 
   PriDeciArgHandler(const std::string& name) : ArgHandler(name) {}
 
+protected:
   virtual void populatePromptBuffer(const std::string& s) {
     (void)s;
     appendPromptBuffer(getName());
@@ -47,6 +48,7 @@ public:
       const std::string& name, T min, T max, bool equal = true)
       : ArgHandler(name), mMin(min), mMax(max), mEqual(equal) {}
 
+protected:
   virtual void populatePromptBuffer(const std::string& s) {
     (void)s;
     appendPromptBuffer(getName() + " between " + StringUtil::toString(mMin) +
@@ -76,7 +78,7 @@ class _PacExport StringArgHandler : public ArgHandler {
 public:
   virtual ArgHandler* clone() { return new StringArgHandler(*this); }
 
-  StringArgHandler(const std::string& name, bool regexMatch = false);
+  StringArgHandler(const std::string& name);
 
   /**
    * insert new element
@@ -93,21 +95,43 @@ public:
   size_t size() { return mStrings.size(); }
   void remove(const std::string& s);
 
+protected:
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
 
-  bool getRegexMatch() const { return mRegexMatch; }
-  void setRegexMatch(bool v) { mRegexMatch = v; }
-
 protected:
   StringSet mStrings;
-  bool mRegexMatch;
 };
 
-class _PacExport LiteralArgHandler 
-{
+/**
+ * Enumerate type handler, you need to call DEFINE_ENUM_CONVERSION first before
+ * you create arg handler for enum. It's name should start with en_ by
+ * tridiation, it's regex formal will be re_en_
+ */
+template <typename T>
+class _PacExport EnumArgHandler : public StringArgHandler {
 public:
-	LiteralArgHandler(const std::string& text);
+  EnumArgHandler(const std::string& name) : StringArgHandler(name) {
+    if (EnumData<T>::empty())
+      PAC_EXCEPT(Exception::ERR_INVALID_STATE,
+          "Pls use DEFINE_ENUM_CONVERSION to define enum string conversion "
+          "before you call registerEnumHandler");
+    mStrings.insert(
+        EnumData<T>::beginStringIter(), EnumData<T>::endStringIter());
+  }
+};
+
+/**
+ * Literial handler. It's name should start with ltl_ + text
+ */
+class _PacExport LiteralArgHandler : public ArgHandler {
+public:
+  LiteralArgHandler(const std::string& text);
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
+
 protected:
   std::string mText;
 };
@@ -121,6 +145,7 @@ public:
 
   BlankArgHandler();
 
+protected:
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
 };
@@ -135,13 +160,14 @@ public:
   PathArgHandler();
   PathArgHandler(const PathArgHandler& rhs);
 
-  virtual void populatePromptBuffer(const std::string& s);
-  virtual bool doValidate(const std::string& s);
-
   AbsDir* getDir() const { return mDir; }
   void setDir(AbsDir* v) { mDir = v; }
   AbsDir* getPathDir() const { return mPathDir; }
   void setPathDir(AbsDir* v) { mPathDir = v; }
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
 
 protected:
   virtual void completeTyping(const std::string& s);
@@ -222,17 +248,46 @@ public:
   ArgHandler* getHandler() const { return mHandler; }
   void setHandler(ArgHandler* v) { mHandler = v; }
 
-  virtual void populatePromptBuffer(const std::string& s);
-  virtual bool doValidate(const std::string& s);
-
   /**
    * Get param handler from previous node.
    */
   ParamArgHandler* getParamHandler();
 
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
+
 private:
   ArgHandler* mHandler;
   AbsDir* mDir;
+};
+
+/**
+ * identifier
+ */
+class _PacExport IdArgHandler : public ArgHandler {
+public:
+  IdArgHandler();
+  virtual ArgHandler* clone() { return new IdArgHandler(*this); }
+
+protected:
+  virtual bool doValidate(const std::string& s);
+};
+
+/**
+ * regex
+ */
+class _PacExport RegexArgHandler : public ArgHandler {
+public:
+  RegexArgHandler() : ArgHandler("regex") {}
+  virtual ArgHandler* clone() { return new RegexArgHandler(*this); }
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s) { (void)s; }
+  virtual bool doValidate(const std::string& s) {
+    (void)s;
+    return true;
+  };
 };
 }
 

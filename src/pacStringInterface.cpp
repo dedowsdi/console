@@ -1,5 +1,6 @@
 #include "pacStringInterface.h"
 #include "pacArgHandler.h"
+#include "pacConsole.h"
 
 namespace pac {
 
@@ -10,6 +11,13 @@ void ParamCmd::doSet(void* target, const std::string& val) {
     PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, val + " is not a valid " + ahName);
   doSet(target, handler);
   delete handler;
+}
+
+//------------------------------------------------------------------------------
+void ParamCmd::doSet(void* target, ArgHandler* handler) {
+  (void)target;
+  (void)handler;
+  sgConsole.outputLine("You can not set this param!, might be it's get only");
 }
 
 ParamDictionaryMap StringInterface::msDictionary;

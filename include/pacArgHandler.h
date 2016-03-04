@@ -2,6 +2,7 @@
 #define PACARGHANDLER_H
 
 #include "pacSingleton.h"
+#include "pacEnumUtil.h"
 
 namespace pac {
 
@@ -271,6 +272,14 @@ public:
       NodeType nt = NT_NORMAL);
 
   /**
+   * abbreviation of addChildNode, to save some space.
+   */
+  Node* acn(const std::string& name, const std::string& ahName = "",
+      NodeType nt = NT_NORMAL) {
+    return addChildNode(name, ahName, nt);
+  }
+
+  /**
    * Get child node by name.
    * @param name : child node name
    * @param recursive : recursive child of child, set this to false if you just
@@ -297,6 +306,11 @@ public:
    * @param branchName : leaf node name, also used as branch name.
    */
   Node* endBranch(const std::string& branchName);
+
+  /**
+   * abbrivation of endBranch, save some space
+   */
+  Node* eb(const std::string& branchName) { return endBranch(branchName); }
 
   Node* getParent() { return mParent; }
   void setParent(Node* v) { mParent = v; }
@@ -424,6 +438,16 @@ public:
    * @return : catched value
    */
   const std::string& getMatchedNodeValue(const std::string& name);
+  /**
+   * get matcheed node value if matched branch is in branches
+   * @param name : node name
+   */
+  const std::string& getMatchedNodeValue(
+      const std::string& name, std::initializer_list<const char*> branches) {
+    static std::string blank;
+    auto iter = std::find(branches.begin(), branches.end(), name);
+    return iter == branches.end() ? blank : getMatchedNodeValue("name");
+  }
 
   /**
    * get all leaves
@@ -530,7 +554,7 @@ public:
   void registerArgHandler(ArgHandler* proto);
 
   /**
-   * register proto->getName() and "re"+proto->getName()
+   * register proto->getName() and "re_"+proto->getName()
    * @param proto : prototype
    */
   void registerStringAH(StringArgHandler* proto);

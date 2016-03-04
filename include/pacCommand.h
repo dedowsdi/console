@@ -5,7 +5,6 @@
 
 namespace pac {
 
-
 class Command {
 public:
   friend class CommandLib;
@@ -38,14 +37,13 @@ public:
    */
   virtual bool execute();
 
-
   virtual Command* clone() = 0;
 
   const std::string& getName() const { return mName; }
   void setName(const std::string& v) { mName = v; }
 
   /**
-   * Left trim, parse args and options. 
+   * Left trim, parse args and options.
    * @param v : args and options string
    */
   void setArgsAndOptions(const std::string& v);
@@ -57,12 +55,7 @@ public:
   const std::string& getArgs() const { return mArgs; }
   void setArgs(const std::string& v) { mArgs = v; }
 
-private:
-  /**
-   * Init cmd, build arghandler. Should be called when registered
-   * @return : this
-   */
-  Command* init();
+
 
 protected:
   /**
@@ -77,9 +70,23 @@ protected:
    * If your cmd has it's own arghandler, you should override this, it's name
    * should be getDefAhName(), you can use it later in other place if you want.
    * Otherwise you should setup mAhName in ctor.
-   * @return : return true if you build cmd specific arg handler. 
+   * @return : return true if you build cmd specific arg handler.
    */
-  virtual bool buildArgHandler(){ return false; };
+  virtual bool buildArgHandler() { return false; };
+
+  /**
+   * check if has option
+   * @param c : target option
+   * @return : true if has option
+   */
+  bool hasOption(char c);
+
+private:
+  /**
+   * Init cmd, build arghandler. Should be called when registered at cmd lib
+   * @return : this
+   */
+  Command* init();
 
 protected:
   std::string mName;

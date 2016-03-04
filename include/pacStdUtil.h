@@ -31,7 +31,7 @@ public:
   }
 
   /**
-   * Get identical string from string vector .
+   * Get max identical string(from beginning) from string vector .
    */
   static std::string getIdenticalString(
       StringVector::iterator beg, StringVector::iterator end);
