@@ -4,34 +4,35 @@
 #include "OgreConsolePreRequisite.h"
 #include "pacStringInterface.h"
 #include "OgreMovableObject.h"
+#include "OgreSiWrapper.h"
 
 namespace pac {
 
 class OgreSiUtil {
 public:
-  static MovableSI* createMovableSI(Ogre::MovableObject* mo);
+  static StringInterface* createMovableSI(Ogre::MovableObject* mo);
 };
 
-class _PacExport _PacExport MovableSI : public StringInterface {
+class _PacExport MovableSI : public StringInterface {
 public:
-  MovableSI(Ogre::MovableObject* obj);
-
-protected:
-  void initParams();
-
-protected:
-  Ogre::MovableObject* mMo;
-};
-
-class _PacExport LightSI : public MovableSI {
-public:
-  LightSI(Ogre::Light* light);
   struct _PacExport Visible : public ParamCmd {
     Visible() : ParamCmd("bool") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
+  MovableSI(Ogre::MovableObject* obj);
+  Ogre::MovableObject* getMovable() const;
 
+protected:
+  void initParams();
+
+protected:
+  static Visible msVisible;
+  Ogre::MovableObject* mMovable;
+};
+
+class _PacExport LightSI : public MovableSI {
+public:
   struct _PacExport LightType : public ParamCmd {
     LightType() : ParamCmd("lightType") {}
     virtual std::string doGet(const void* target) const;
@@ -93,7 +94,7 @@ public:
   };
 
   struct _PacExport Attenuation : public ParamCmd {
-    Attenuation() : ParamCmd("real4") {}
+    Attenuation() : ParamCmd("real3") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
@@ -109,12 +110,14 @@ public:
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
+  LightSI(Ogre::Light* light);
+
+  Ogre::Light* getLight() const;
 
 protected:
   void initParams();
 
 protected:
-  static Visible mVisible;
   static LightType msLightType;
   static Position msPosition;
   static Diffuse msDiffuse;
@@ -132,41 +135,143 @@ protected:
 
 class _PacExport CameraSI : public MovableSI {
 public:
+  struct _PacExport Position : public ParamCmd {
+    Position() : ParamCmd("real3") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport PolygonMode : public ParamCmd {
+    PolygonMode() : ParamCmd("polytonMode") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport Direction : public ParamCmd {
+    Direction() : ParamCmd("real3") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport Orientation : public ParamCmd {
+    Orientation() : ParamCmd("quaternion") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
   CameraSI(Ogre::Camera* camera);
-  mPosition
-  mPolygonMode
-  mDirection
-    
+  Ogre::Camera* getCamera() const;
 
 protected:
   void initParams();
+
+protected:
+  static Position msPosition;
+  static Orientation msOrientation;
+  static PolygonMode msPolygonMode;
+  static Direction msDirection;
 };
 
 class _PacExport EntitySI : public MovableSI {
 public:
   EntitySI(Ogre::Entity* ent);
+  Ogre::Entity* getEntity() const;
 
 protected:
   void initParams();
+};
+
+class _PacExport NodeSI : public StringInterface {
+public:
+  struct _PacExport Position : public ParamCmd {
+    Position() : ParamCmd("real3") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport Scale : public ParamCmd {
+    Scale() : ParamCmd("real") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport Orientation : public ParamCmd {
+    Orientation() : ParamCmd("quaternion") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport Parent : public ReadonlyParamCmd {
+    Parent() {}
+    virtual std::string doGet(const void* target) const;
+  };
+
+  NodeSI(Ogre::Node* sceneNode);
+
+  Ogre::Node* getNode() const { return mNode; }
+
+protected:
+  void initParams();
+
+protected:
+  Ogre::Node* mNode;
+  static Position msPosition;
+  static Scale msScale;
+  static Orientation msOrientation;
+  static Parent msParent;
 };
 
 class _PacExport SceneNodeSI : public StringInterface {
 public:
   SceneNodeSI(Ogre::SceneNode* sceneNode);
 
+  Ogre::SceneNode* getSceneNode() const;
+
+protected:
+  void initParams();
+
 protected:
   Ogre::SceneNode* mSceneNode;
 };
 
-class _PacExport SceneSI : public MovableSI {
+class _PacExport SceneManagerSI : public StringInterface {
 public:
-  SceneSI(Ogre::SceneManager* sceneMgr);
+  struct _PacExport ShadowTechnique : public ParamCmd {
+    ShadowTechnique() : ParamCmd("en_shadowTechnique") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport ShadowColour : public ParamCmd {
+    ShadowColour() : ParamCmd("nreal4") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport AmbientLight : public ParamCmd {
+    AmbientLight() : ParamCmd("nreal4") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport Fog : public ParamCmd {
+    Fog() : ParamCmd("fog") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+  SceneManagerSI(Ogre::SceneManager* sceneMgr);
 
   Ogre::SceneManager* getSceneMgr() const { return mSceneMgr; }
-  void setSceneMgr(Ogre::SceneManager* v) { mSceneMgr = v; }
 
-private:
+protected:
+  void initParams();
+
+protected:
   Ogre::SceneManager* mSceneMgr;
+  static ShadowTechnique msShadowTechnique;
+  static ShadowColour msShadowColour;
+  static AmbientLight msAmbientLight;
+  static Fog msFog;
 };
 }
 

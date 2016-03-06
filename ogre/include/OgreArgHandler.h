@@ -12,18 +12,52 @@ namespace pac {
  */
 class _PacExport MovableAH : public ArgHandler {
 public:
-  MovableAH(const std::string& name, const std::string& moType = "");
-  virtual void populatePromptBuffer(const std::string& s);
-  virtual bool doValidate(const std::string& s);
+  MovableAH();
 
 protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
   void runtimeInit();
+  virtual void onLinked(Node* grandNode);
 
 private:
-  std::string mMovableType;
   Ogre::Entity* mEntity;
-  std::string mBone;
   Ogre::SceneNode* mSceneNode;
+  Node* mEntityNode, mBoneNode, mSnNode, mMoTypeNode;
+};
+
+/**
+ * bone, must follow entity? or skeleton ?
+ */
+class _PacExport BoneAH : public ArgHandler {
+public:
+  BoneAH();
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
+  void runtimeInit();
+  virtual void onLinked(Node* grandNode);
+
+protected:
+  Ogre::Entity* mEntity;
+  Node* mEntityNode;
+};
+
+/**
+ * base clase of movable like particle, light, camera, entity
+ */
+class _PacExport MovableBaseAH : public ArgHandler {
+public:
+  /**
+   * @param name : handler name
+   * @return :
+   */
+  MovableBaseAH(const std::string& name, const std::string& moType);
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
 };
 
 class _PacExport SceneNodeAH : public ArgHandler {
@@ -33,15 +67,23 @@ public:
 protected:
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
+  /**
+   * Don't have access to scene nodes list in scene manager, have to do it
+   * manually
+   */
+  void loopNode(Ogre::SceneNode* sceneNode, const std::string& s);
 };
 
-class _PacExport MeshAH : public ArgHandler {
+class _PacExport ResourceAh : public ArgHandler {
 public:
-  MeshAH();
+  ResourceAh(const std::string& name, Ogre::ResourceManager* rm);
 
 protected:
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
+
+protected:
+  Ogre::ResourceManager* mResourceMgr;
 };
 }
 

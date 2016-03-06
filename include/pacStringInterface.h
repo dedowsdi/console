@@ -20,6 +20,12 @@ public:
   std::string ahName;  // argument handler name
 };
 
+class _PacExport ReadonlyParamCmd : public ParamCmd{
+public:
+  ReadonlyParamCmd() : ParamCmd("readonly") {}
+  void doSet(void* target, const std::string& val);
+};
+
 /**
  * Param definition. include getset command and argument handler name.
  */
@@ -92,14 +98,6 @@ typedef std::map<std::string, ParamDictionary> ParamDictionaryMap;
  * if it does not exist yet.
  */
 class _PacExport StringInterface {
-private:
-  // Dictionary of parameters
-  static ParamDictionaryMap msDictionary;
-
-  // Class name for this instance to be used as a lookup (must be
-  // initialised by subclasses)
-  std::string mName;
-  ParamDictionary* mParamDict;
 
 protected:
   /**
@@ -178,6 +176,14 @@ public:
 protected:
   bool mArtifical;  // it's true if this object doesn't exist unless you call
                     // some command to edit something
+  std::string mName;
+  // Dictionary of parameters
+
+  // Class name for this instance to be used as a lookup (must be
+  // initialised by subclasses)
+  ParamDictionary* mParamDict;
+
+  static ParamDictionaryMap msDictionary;
 };
 }
 

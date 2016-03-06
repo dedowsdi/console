@@ -14,30 +14,6 @@ typedef Ogre::SceneManager::MovableObjectIterator SceneMgrMoIter;
 typedef Ogre::Node::ChildNodeIterator NodeIter;
 
 //------------------------------------------------------------------------------
-bool LsmoCmd::doExecute() {
-  TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
-  const std::string& branch = handler->getMatchedBranch();
-  const std::string& moType = handler->getMatchedNodeValue("moType");
-  Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
-
-  RaiiConsoleBuffer rcb;
-
-  else {
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalidate branch:" + branch);
-  }
-
-  return true;
-}
-
-//------------------------------------------------------------------------------
-bool LsmoCmd::buildArgHandler() {
-  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
-  Node* root = handler->getRoot();
-  mArgHandler = handler;
-  return true;
-}
-
-//------------------------------------------------------------------------------
 LsmatCmd::LsmatCmd() : Command("lsmat") {}
 
 //------------------------------------------------------------------------------

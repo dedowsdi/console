@@ -133,6 +133,10 @@ public:
 
   virtual const std::string& getValue() const { return mValue; }
   virtual void setValue(const std::string& v) { mValue = v; }
+  /**
+   * sometimes tree arghandler with multiple branch has the same abstract value
+   */
+  virtual const std::string getUniformValue() const{return mValue;}
 
   Node* getTreeNode() const { return mNode; }
   void setTreeNode(Node* v) { mNode = v; }
@@ -148,7 +152,7 @@ public:
   void setArgHandlerType(ArgHandlerType v) { mArgHandlerType = v; }
 
   /**
-   * push arg handlers to prompt current typing.
+   * Deprecated. push arg handlers to prompt current typing.
    * @param{out} ahv : target vector to be pushed into
    */
   void getPromptArgHandlers(ArgHandlerVec& ahv);
@@ -204,6 +208,14 @@ protected:
   void appendPromptBuffer(const std::string& buf);
 
   virtual void completeTyping(const std::string& s);
+
+  /**
+   * This will be called when tree node of this handler be added as a child of
+   * another node.
+   * @grandNode : parent node of tree node of this handler, not tree node,
+   * becareful!!!!!!!.
+   */
+  virtual void onLinked(Node* grandNode){(void)grandNode;}
 
 protected:
   ArgHandlerType mArgHandlerType;
@@ -354,6 +366,8 @@ public:
 
   ArgHandler* getArgHandler() const;
 
+  const std::string& getAhName()const ;
+
   /**
    * Get direct leaf child.
    * @return : direct leaf child or 0
@@ -443,11 +457,7 @@ public:
    * @param name : node name
    */
   const std::string& getMatchedNodeValue(
-      const std::string& name, std::initializer_list<const char*> branches) {
-    static std::string blank;
-    auto iter = std::find(branches.begin(), branches.end(), name);
-    return iter == branches.end() ? blank : getMatchedNodeValue("name");
-  }
+      const std::string& name, std::initializer_list<const char*> branches);
 
   /**
    * get all leaves
@@ -507,39 +517,47 @@ protected:
 /**
  * Registered with following type:
  *
- * blank
- * bool
- * short
- * ushort
- * int
- * uint
- * long
- * ulong
- * real
- * nreal
- * npreal
- * int2
- * int3
- * int4
- * int5
- * real2
- * real3
- * real4
- * real5
- * nreal2
- * nreal3
- * nreal4
- * nreal5
- * matrix2
- * matrix3
- * matrix4
- * nmatrix2
- * nmatrix3
- * nmatrix4
- * path
- * cmd
- * parameter
- * value
+ * primitive:
+ *  blank
+ *  bool
+ *  short
+ *  ushort
+ *  int
+ *  uint
+ *  long
+ *  ulong
+ *  real
+ *  nreal
+ *  npreal
+ *  int2
+ *  int3
+ *  int4
+ *  int5
+ *  real2
+ *  real3
+ *  real4
+ *  real5
+ *  nreal2
+ *  nreal3
+ *  nreal4
+ *  nreal5
+ *  matrix2
+ *  matrix3
+ *  matrix4
+ *  nmatrix2
+ *  nmatrix3
+ *  nmatrix4
+ *  quaternion
+ * special:
+ *  regex
+ *  readonly
+ *  path
+ *  cmd
+ *  param
+ *  value
+ * literal:
+ *  ltl_regex
+ *  ltl_angleAxis
  */
 class ArgHandlerLib : public Singleton<ArgHandlerLib> {
 public:

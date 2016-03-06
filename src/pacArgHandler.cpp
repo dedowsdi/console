@@ -116,7 +116,7 @@ Node* Branch::getLastNode() {
 //------------------------------------------------------------------------------
 ArgHandler::ArgHandler(const std::string& name)
     : mArgHandlerType(AHT_PRIMITIVE),
-      mPromptType(PT_PROMPTONLY),
+      mPromptType(PT_PROMPTANDCOMPLETE),
       mNode(0),
       mName(name) {}
 
@@ -285,7 +285,10 @@ Node* Node::addChildNode(Node* child) {
 Node* Node::addChildNode(const std::string& name,
     const std::string& ahName /*= ""*/, NodeType nt /*= NT_NORMAL*/) {
   Node* node = new Node(name, ahName.empty() ? name : ahName, nt);
-  return this->addChildNode(node);
+  this->addChildNode(node);
+  if (nt != NT_LEAF) node->getArgHandler()->onLinked();
+
+  return node;
 }
 
 //------------------------------------------------------------------------------
@@ -449,6 +452,12 @@ std::string Node::getArgPath() {
 ArgHandler* Node::getArgHandler() const {
   PacAssert(mArgHandler, "0 arghandler");
   return mArgHandler;
+}
+
+//------------------------------------------------------------------------------
+const std::string& Node::getAhName() const {
+  if (!mArgHandler) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 arghandler");
+  return mArgHandler->getName();
 }
 
 //------------------------------------------------------------------------------
@@ -643,6 +652,14 @@ const std::string& TreeArgHandler::getMatchedNodeValue(
 }
 
 //------------------------------------------------------------------------------
+const std::string& TreeArgHandler::getMatchedNodeValue(
+    const std::string& name, std::initializer_list<const char*> branches) {
+  static std::string blank;
+  auto iter = std::find(branches.begin(), branches.end(), name);
+  return iter == branches.end() ? blank : getMatchedNodeValue("name");
+}
+
+//------------------------------------------------------------------------------
 NodeVector TreeArgHandler::getLeaves() { return mRoot->getLeaves(); }
 
 //------------------------------------------------------------------------------
@@ -764,11 +781,11 @@ void ArgHandlerLib::init() {
   // arg lib is inited before command lib, moved to CommandLib::init()
   // this->registerArgHandler(new CmdArgHandler());
   this->registerArgHandler(new ParamArgHandler());
-  this->registerArgHandler(new PparamArgHandler());
   this->registerArgHandler(new ValueArgHandler());
 
-  //iteral
+  // iteral
   this->registerArgHandler(new LiteralArgHandler("regex"));
+  this->registerArgHandler(new LiteralArgHandler("angleAxis"));
 }
 
 //------------------------------------------------------------------------------

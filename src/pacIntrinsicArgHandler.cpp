@@ -4,15 +4,13 @@
 #include "pacAbsDir.h"
 #include "pacConsole.h"
 #include <boost/regex.hpp>
+#include <cmath>
 
 namespace pac {
 
 //------------------------------------------------------------------------------
-StringArgHandler::StringArgHandler(
-    const std::string& name, bool regexMatch /* = false*/)
-    : ArgHandler(name) {
-  setPromptType(PT_PROMPTANDCOMPLETE);
-}
+StringArgHandler::StringArgHandler(const std::string& name)
+    : ArgHandler(name) {}
 
 //------------------------------------------------------------------------------
 StringArgHandler* StringArgHandler::insert(const std::string& s) {
@@ -51,10 +49,13 @@ void LiteralArgHandler::populatePromptBuffer(const std::string& s) {
 bool LiteralArgHandler::doValidate(const std::string& s) { return mText == s; }
 
 //------------------------------------------------------------------------------
-BlankArgHandler::BlankArgHandler() : ArgHandler("blank") {}
+BlankArgHandler::BlankArgHandler() : ArgHandler("blank") {
+  setPromptType(PT_PROMPTONLY);
+}
 
 //------------------------------------------------------------------------------
 void BlankArgHandler::populatePromptBuffer(const std::string& s) {
+  (void)s;
   appendPromptBuffer("blank");
 }
 
@@ -62,9 +63,7 @@ void BlankArgHandler::populatePromptBuffer(const std::string& s) {
 bool BlankArgHandler::doValidate(const std::string& s) { return s.empty(); }
 
 //------------------------------------------------------------------------------
-PathArgHandler::PathArgHandler() : ArgHandler("path"), mDir(0) {
-  setPromptType(PT_PROMPTANDCOMPLETE);
-}
+PathArgHandler::PathArgHandler() : ArgHandler("path"), mDir(0) {}
 
 //------------------------------------------------------------------------------
 PathArgHandler::PathArgHandler(const PathArgHandler& rhs) : ArgHandler(rhs) {
@@ -113,30 +112,29 @@ CmdArgHandler::CmdArgHandler() : StringArgHandler("cmd") {
 }
 
 //------------------------------------------------------------------------------
-ParamArgHandler::ParamArgHandler() : StringArgHandler("param"), mDir(0) {
-  setPromptType(PT_PROMPTANDCOMPLETE);
-}
+ParamArgHandler::ParamArgHandler()
+    : StringArgHandler("param"), mDir(0), mPathNode(0) {}
 
 //------------------------------------------------------------------------------
 void ParamArgHandler::runtimeInit() {
-  setUpWd();
+  mDir = sgConsole.getCwd();
+  if (mPathNode) {
+    mDir = AbsDirUtil::findPath(mPathNode->getValue(), mDir);
+  }
   if (!mDir) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 dir");
+
+  //@TODO, might cause problem if dir has tons of params
   StringVector&& sv = mDir->getParameters();
   this->insert(sv.begin(), sv.end());
 }
 
 //------------------------------------------------------------------------------
-void ParamArgHandler::setUpWd() {
-  mDir = sgConsole.getCwd();
-  Node* node = getTreeNode();
-  if (node) {
-    Node* parentNode = node->getParent();
-    if (parentNode && !parentNode->isRoot()) {
-      ArgHandler* handler = parentNode->getArgHandler();
-      if (handler->getName() == "path") {
-        mDir = AbsDirUtil::findPath(handler->getValue(), mDir);
-      }
-    }
+void ParamArgHandler::onLinked(Node* grandNode) {
+  if (!grandNode->isRoot()) {
+    if (grandNode->getArgHandler()->getName() == "path") mPathNode = grandNode;
+    if (mPathNode->isLoop())
+      PAC_EXCEPT(
+          Exception::ERR_INVALID_STATE, "unexcepted loop path before param");
   }
 }
 
@@ -154,9 +152,8 @@ ParamArgHandler* PparamArgHandler::getParamHandler() {
 }
 
 //------------------------------------------------------------------------------
-ValueArgHandler::ValueArgHandler() : ArgHandler("value"), mHandler(0), mDir(0) {
-  setPromptType(PT_PROMPTANDCOMPLETE);
-}
+ValueArgHandler::ValueArgHandler()
+    : ArgHandler("value"), mHandler(0), mDir(0) {}
 
 //------------------------------------------------------------------------------
 ValueArgHandler::ValueArgHandler(const ValueArgHandler& rhs)
@@ -206,6 +203,61 @@ IdArgHandler::IdArgHandler() : ArgHandler("id") {}
 
 //------------------------------------------------------------------------------
 bool IdArgHandler::doValidate(const std::string& s) {
-  static boost::regex("\\h\\w*") return boost::regex_match(s, regex);
+  static boost::regex regex("\\h\\w*");
+  return boost::regex_match(s, regex);
+}
+
+//------------------------------------------------------------------------------
+void RegexArgHandler::populatePromptBuffer(const std::string& s) {
+  appendPromptBuffer("pls input regex expression")
+}
+
+//------------------------------------------------------------------------------
+ReadonlyArgHandler::ReadonlyArgHandler() : ArgHandler("readonly") {}
+
+//------------------------------------------------------------------------------
+void ReadonlyArgHandler::populatePromptBuffer(const std::string& s) {
+  appendPromptBuffer("it's readonly, don't edit");
+}
+
+//------------------------------------------------------------------------------
+Quaternion::Quaternion() : TreeArgHandler("quaternion") {
+  Node* root = getRoot();
+  root->acn("real0", "real")
+      ->acn("real1", "real")
+      ->acn("real2", "real")
+      ->acn("real3", "real")
+      ->eb("0");
+  root->acn("ltl_angleAxis")
+      ->acn("real0", "real")
+      ->acn("real1", "real")
+      ->acn("real2", "real")
+      ->acn("real3", "real")
+      ->eb("1");
+}
+
+//------------------------------------------------------------------------------
+std::string Quaternion::getUniformValue() {
+  static Real pi = std::acos(-1);
+  static Real toAngle = 180 / pi;
+  Real r0 = StringUtil::parsePrimitiveDecimal<Real>(
+      this->getMatchedNodeValue("real0"));
+  Real r1 = StringUtil::parsePrimitiveDecimal<Real>(
+      this->getMatchedNodeValue("real1"));
+  Real r2 = StringUtil::parsePrimitiveDecimal<Real>(
+      this->getMatchedNodeValue("real2"));
+  Real r3 = StringUtil::parsePrimitiveDecimal<Real>(
+      this->getMatchedNodeValue("rea3"));
+  if (getMatchedBranch() == "1") {
+    Real halfAngle = r0 * toAngle * 0.5f;
+    r0 = std::cos(halfAngle);
+    Real sinHalfAngle = std::sin(halfAngle);
+    r1 = sinHalfAngle * r1;
+    r2 = sinHalfAngle * r2;
+    r3 = sinHalfAngle * r3;
+  }
+  std::stringstream ss;
+  ss << r0 << " " << r1 << " " << r2 << " " << r3 << " ";
+  return ss.str();
 }
 }

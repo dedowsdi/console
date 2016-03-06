@@ -16,7 +16,9 @@ class _PacExport PriDeciArgHandler : public ArgHandler {
 public:
   virtual ArgHandler* clone() { return new PriDeciArgHandler(*this); }
 
-  PriDeciArgHandler(const std::string& name) : ArgHandler(name) {}
+  PriDeciArgHandler(const std::string& name) : ArgHandler(name) {
+    setPromptType(PT_PROMPTONLY);
+  }
 
 protected:
   virtual void populatePromptBuffer(const std::string& s) {
@@ -195,24 +197,21 @@ public:
   virtual ArgHandler* clone() { return new ParamArgHandler(*this); }
 
   ParamArgHandler();
-  virtual void runtimeInit();
 
   AbsDir* getDir() const { return mDir; }
   void setDir(AbsDir* v) { mDir = v; }
 
-private:
-  /**
-   * Set up working directory. If handler of parent node is "path", set
-   * directory to value of parent node, Otherwise use cwd of console.
-   */
-  void setUpWd();
+protected:
+  virtual void runtimeInit();
+  virtual void onLinked(Node* grandNode);
 
 private:
   AbsDir* mDir;  // cwd
+  Node* mPathNode;
 };
 
 /**
- * pparam handler. path + param. Takes following format
+ * Deprecated. pparam handler. path + param. Takes following format
  * param( branch "0")
  * path param (branch "1")
  */
@@ -283,11 +282,39 @@ public:
   virtual ArgHandler* clone() { return new RegexArgHandler(*this); }
 
 protected:
-  virtual void populatePromptBuffer(const std::string& s) { (void)s; }
+  virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s) {
     (void)s;
     return true;
   };
+};
+
+/*
+ * readonly
+ */
+class _PacExport ReadonlyArgHandler : public ArgHandler {
+public:
+  ReadonlyArgHandler();
+  virtual ArgHandler* clone() { return new ReadonlyArgHandler(*this); }
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s) {
+    (void)s;
+    return false;
+  };
+};
+
+/**
+ * quaternion:
+ * real real real real
+ * ltl_angleAxis real real real real
+ */
+class _PacExport Quaternion : public TreeArgHandler {
+public:
+  Quaternion();
+  virtual ArgHandler* clone() { return new Quaternion(*this); }
+  std::string getUniformValue();
 };
 }
 

@@ -11,29 +11,6 @@ public:
   OgreConsole(Ogre::SceneManager* sceneMgr);
 
   /**
-   * register following arghandler
-   *
-   * moType
-   * movable
-   * particle
-   * light
-   * camara
-   * entity
-   * node
-   * ltl_sceneNode
-   * ltl_tagPoint
-   * ltl_light
-   * ltl_entity
-   * ltl_particle
-   * ltl_direct
-   * ltl_all
-   * en_lightType
-   */
-  virtual void initArghandler();
-  virtual void initCommand();
-  virtual void initDir();
-
-  /**
    * The scene need better be freezed when you want to change properties of some
    * movable object  or scenenode, otherwise if the editting object got removed
    * from scene, your next set type command will crash.
@@ -52,8 +29,56 @@ public:
   AbsDir* getNodeDir() const { return mNodeDir; }
 
 protected:
+  /**
+   * registered with following arg handler
+   *
+   * movable:
+   *   particle
+   *   light
+   *   camara
+   *   entity
+   * resource:
+   *   material
+   *   mesh
+   *   texture
+   *   pst    (particle system template)
+   *   compositor
+   * node:
+   *   bone
+   *   sceneNode
+   * enum:
+   *   en_lightType
+   *   en_polygonMode
+   *   en_fogMode
+   *   en_cullingMode
+   * string:
+   *   moType   (movable type)
+   *   affector_force_application
+   * literal:
+   *   ltl_sceneNode
+   *   ltl_tagPoint
+   *   ltl_light
+   *   ltl_entity
+   *   ltl_particle
+   *   ltl_direct
+   *   ltl_all
+   */
+  virtual void initArghandler();
+
+  // just some place to shrink initArgHandler
+  virtual void initCommand();
+  virtual void initDir();
+  virtual void initEnumArgHandler();
+  virtual void initResourceArghandler();
+  virtual void initMovableArgHandler();
+  virtual void initNodeArgHandler();
+  virtual void initStringArgHandler();
+  virtual void initLiteralArgHandler();
+  virtual void initTreeArgHandler();
+
+protected:
   Ogre::SceneManager* mSceneMgr;
-  AbsDir* mMovableDir; 
+  AbsDir* mMovableDir;
   AbsDir* mNodeDir;
 };
 }
