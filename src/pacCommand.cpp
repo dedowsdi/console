@@ -79,6 +79,11 @@ void Command::setArgsAndOptions(const std::string& v) {
 ArgHandler* Command::getArgHandler() const { return mArgHandler; }
 
 //------------------------------------------------------------------------------
+bool Command::hasOption(char c) {
+  return mOptions.find_first_of(c) != std::string::npos;
+}
+
+//------------------------------------------------------------------------------
 Command* Command::init() {
   if (buildArgHandler()) sgArgLib.registerArgHandler(mArgHandler->clone());
 

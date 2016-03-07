@@ -67,7 +67,7 @@ void MovableSI::Visible::doSet(void* target, ArgHandler* handler) {
 
 //------------------------------------------------------------------------------
 MovableSI::MovableSI(Ogre::MovableObject* obj)
-    : StringInterface(obj->getMovableType()), mMovable(obj) {
+    : StringInterface(obj->getMovableType(), true), mMovable(obj) {
   if (createParamDict()) initParams();
 }
 
@@ -406,7 +406,7 @@ std::string NodeSI::Parent::doGet(const void* target) const {
 }
 
 //------------------------------------------------------------------------------
-NodeSI::NodeSI(Ogre::Node* sceneNode) : StringInterface("Node") {
+NodeSI::NodeSI(Ogre::Node* sceneNode) : StringInterface("Node", true) {
   if (createParamDict()) initParams()
 }
 
@@ -420,7 +420,7 @@ void NodeSI::initParams() {
 
 //------------------------------------------------------------------------------
 SceneNodeSI::SceneNodeSI(Ogre::SceneNode* sceneNode)
-    : StringInterface("SceneNode") {
+    : StringInterface("SceneNode", true) {
   if (createParamDict) initParams();
 }
 
@@ -503,7 +503,7 @@ void SceneManagerSI::Fog::doSet(void* target, ArgHandler* handler) {
 
 //------------------------------------------------------------------------------
 SceneManagerSI::SceneManagerSI(Ogre::SceneManager* sceneMgr)
-    : StringInterface("SceneManager") {
+    : StringInterface("SceneManager", true) {
   if (createParamDict) initParams();
 }
 

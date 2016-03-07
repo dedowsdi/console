@@ -25,7 +25,7 @@ void StringArgHandler::remove(const std::string& s) { mStrings.erase(s); }
 void StringArgHandler::populatePromptBuffer(const std::string& s) {
   std::for_each(
       mStrings.begin(), mStrings.end(), [&](const std::string& v) -> void {
-        if (s.empty() || StringUtil::startsWith(v, s, true)) {
+        if (s.empty() || StringUtil::startsWith(v, s)) {
           appendPromptBuffer(v);
         }
       });
@@ -79,7 +79,7 @@ void PathArgHandler::populatePromptBuffer(const std::string& s) {
   AbsDir* headDir = AbsDirUtil::findPath(head, mDir);
   std::for_each(headDir->beginChildIter(), headDir->endChildIter(),
       [&](AbsDir* v) -> void {
-        if (tail.empty() || StringUtil::startsWith(v->getName(), tail, true)) {
+        if (tail.empty() || StringUtil::startsWith(v->getName(), tail)) {
           appendPromptBuffer(v->getName());
         }
       });
@@ -203,13 +203,13 @@ IdArgHandler::IdArgHandler() : ArgHandler("id") {}
 
 //------------------------------------------------------------------------------
 bool IdArgHandler::doValidate(const std::string& s) {
-  static boost::regex regex("\\h\\w*");
+  static boost::regex regex("[_a-zA-z]\\w*");
   return boost::regex_match(s, regex);
 }
 
 //------------------------------------------------------------------------------
 void RegexArgHandler::populatePromptBuffer(const std::string& s) {
-  appendPromptBuffer("pls input regex expression")
+  appendPromptBuffer("pls input regex expression");
 }
 
 //------------------------------------------------------------------------------
@@ -221,7 +221,7 @@ void ReadonlyArgHandler::populatePromptBuffer(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-Quaternion::Quaternion() : TreeArgHandler("quaternion") {
+QuaternionArgHandler::QuaternionArgHandler() : TreeArgHandler("quaternion") {
   Node* root = getRoot();
   root->acn("real0", "real")
       ->acn("real1", "real")
@@ -237,9 +237,10 @@ Quaternion::Quaternion() : TreeArgHandler("quaternion") {
 }
 
 //------------------------------------------------------------------------------
-std::string Quaternion::getUniformValue() {
+  std::string QuaternionArgHandler::getUniformValue() const
+{
   static Real pi = std::acos(-1);
-  static Real toAngle = 180 / pi;
+  static Real toAngle = pi / 180;
   Real r0 = StringUtil::parsePrimitiveDecimal<Real>(
       this->getMatchedNodeValue("real0"));
   Real r1 = StringUtil::parsePrimitiveDecimal<Real>(
@@ -247,7 +248,7 @@ std::string Quaternion::getUniformValue() {
   Real r2 = StringUtil::parsePrimitiveDecimal<Real>(
       this->getMatchedNodeValue("real2"));
   Real r3 = StringUtil::parsePrimitiveDecimal<Real>(
-      this->getMatchedNodeValue("rea3"));
+      this->getMatchedNodeValue("real3"));
   if (getMatchedBranch() == "1") {
     Real halfAngle = r0 * toAngle * 0.5f;
     r0 = std::cos(halfAngle);

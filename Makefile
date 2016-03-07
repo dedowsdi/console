@@ -13,6 +13,7 @@ INCLUDES = \
 
 SRCDIR = src/
 BIN = bin/
+CML = {clang++}
 
 OBJDIR = obj/
 OBJS =\
@@ -61,7 +62,7 @@ console: shared static test
 #build shared lib
 .PHONY : shared
 shared : obj
-	gcc -shared -fPIC -o bin/libconsole.so ${OBJS} 
+	${CPL} -shared -fPIC -o bin/libconsole.so ${OBJS} 
 
 #--------------------------------------------------------------------
 #build static lib
@@ -72,7 +73,7 @@ static : obj
 #--------------------------------------------------------------------
 #implicit obj
 ${OBJDIR}%.o : ${SRCDIR}%.cpp
-	g++ ${CFLAGS} -fPIC -o $@ -c $< ${INCLUDES} ${LIBS} 
+	${CPL} ${CFLAGS} -fPIC -o $@ -c $< ${INCLUDES} ${LIBS} 
 #--------------------------------------------------------------------
 #build all obj
 .PHONY : obj
@@ -85,7 +86,7 @@ testobj : ${TESTOBJS}
 #build test 
 .PHONY : test 
 test : ${TESTSRCS}
-	g++ ${CFLAGS} -pthread -o ${TESTBIN}/$@ test/src/test.cpp /usr/local/lib/libgtest.a\
+	${CPL} ${CFLAGS} -pthread -o ${TESTBIN}/$@ test/src/test.cpp /usr/local/lib/libgtest.a\
 		bin/libconsole.a ${INCLUDES} ${LIBS}
 #--------------------------------------------------------------------
 .PHONY : clean

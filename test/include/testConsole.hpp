@@ -11,10 +11,9 @@ class TestConsole : public ::testing::Test {
 protected:
   void SetUp() {
     d = pac::delim;
-    testSI = new TestSI();
-    dir0 = new AbsDir("dir0", testSI);
-    dir0_0 = new AbsDir("dir0_0", testSI);
-    dir0_0_0 = new AbsDir("dir0_0_0", testSI);
+    dir0 = new AbsDir("dir0", new TestSI());
+    dir0_0 = new AbsDir("dir0_0", new TestSI());
+    dir0_0_0 = new AbsDir("dir0_0_0", new TestSI());
     sgRootDir.addChild(dir0);
     dir0->addChild(dir0_0);
     dir0_0->addChild(dir0_0_0);
@@ -28,8 +27,8 @@ protected:
   }
 
   void TearDown() {
-    delete dir0;
-    delete testSI;
+    if(dir0)
+      delete dir0;
   }
 
   ImplUiConsole* getImplUi() {
@@ -41,7 +40,6 @@ protected:
   std::string getCmdLine() { return getImplUi()->getCmdLine(); }
 
   AbsDir* dir0, *dir0_0, *dir0_0_0;
-  TestSI* testSI;
   std::string d;
   std::string pathDir0, pathDir0_0, pathDir0_0_0, pathConsole;
 };
@@ -70,22 +68,23 @@ TEST_F(TestConsole, paramArgHandler) {
   EXPECT_TRUE(handler->validate("paramString"));
   delete handler;
 }
-TEST_F(TestConsole, pparamArgHandler) {
-  sgConsole.setCwd(dir0);
-  PparamArgHandler* handler =
-      static_cast<PparamArgHandler*>(sgArgLib.createArgHandler("pparam"));
-  EXPECT_TRUE(handler->validate("paramBool"));
-  EXPECT_TRUE(handler->validate("paramInt"));
-  EXPECT_TRUE(handler->validate("paramString"));
-  EXPECT_FALSE(handler->validate(d));
-  EXPECT_FALSE(handler->validate(pathDir0_0));
-  EXPECT_FALSE(handler->validate(pathDir0_0_0));
-  EXPECT_FALSE(handler->validate(pathDir0 + " bool"));
-  EXPECT_TRUE(handler->validate(pathDir0 + " paramBool"));
-  EXPECT_TRUE(handler->validate(pathDir0 + " paramInt"));
-  EXPECT_TRUE(handler->validate(pathDir0 + " paramString"));
-  delete handler;
-}
+//deprecated
+//TEST_F(TestConsole, pparamArgHandler) {
+  //sgConsole.setCwd(dir0);
+  //PparamArgHandler* handler =
+      //static_cast<PparamArgHandler*>(sgArgLib.createArgHandler("pparam"));
+  //EXPECT_TRUE(handler->validate("paramBool"));
+  //EXPECT_TRUE(handler->validate("paramInt"));
+  //EXPECT_TRUE(handler->validate("paramString"));
+  //EXPECT_FALSE(handler->validate(d));
+  //EXPECT_FALSE(handler->validate(pathDir0_0));
+  //EXPECT_FALSE(handler->validate(pathDir0_0_0));
+  //EXPECT_FALSE(handler->validate(pathDir0 + " bool"));
+  //EXPECT_TRUE(handler->validate(pathDir0 + " paramBool"));
+  //EXPECT_TRUE(handler->validate(pathDir0 + " paramInt"));
+  //EXPECT_TRUE(handler->validate(pathDir0 + " paramString"));
+  //delete handler;
+//}
 
 // TEST_F(TestConsole, valueArgHandler) {
 // sgConsole.setCwd(dir0);
@@ -106,15 +105,15 @@ TEST_F(TestConsole, promptCmd) {
   sgConsole.getUi()->setCmdLine("pwd");
   sgConsole.prompt();
   EXPECT_EQ("pwd", getCmdLine());
-  sgConsole.getUi()->setCmdLine(" c");
+  sgConsole.getUi()->setCmdLine(" ct");
   sgConsole.prompt();
-  EXPECT_EQ(" cd", getCmdLine());
+  EXPECT_EQ(" ctd", getCmdLine());
   sgConsole.getUi()->setCmdLine("  ");
   sgConsole.prompt();
   EXPECT_EQ("  ", getCmdLine());
   sgConsole.getUi()->setCmdLine("s");
   sgConsole.prompt();
-  EXPECT_EQ("set", getCmdLine());
+  EXPECT_EQ("s", getCmdLine());
   sgConsole.getUi()->setCmdLine("se");
   sgConsole.prompt();
   EXPECT_EQ("set", getCmdLine());
@@ -252,6 +251,12 @@ TEST_F(TestConsole, promptCmdSet) {
   sgConsole.getUi()->setCmdLine("set " + pathDir0_0_0 + " paramBool f");
   sgConsole.prompt();
   EXPECT_EQ("set " + pathDir0_0_0 + " paramBool false", getCmdLine());
+}
+
+TEST_F(TestConsole, executeCmdCtd) {
+  sgConsole.execute("ctd");
+  EXPECT_EQ(1,sgRootDir.getNumChildren());
+  dir0 = 0;
 }
 }
 

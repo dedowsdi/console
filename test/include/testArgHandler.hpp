@@ -6,6 +6,7 @@
 #include "pacStringUtil.h"
 #include <limits>
 #include <gtest/gtest.h>
+#include "pacEnumUtil.h"
 
 using namespace pac;
 
@@ -54,12 +55,12 @@ protected:
     mNmatrix4 = mNmatrix3 + " " + mNreal5 + " " + mNreal2;
     mBlank = "";
     mCmdCd = "cd";
-    mCmdLp = "lp";
+    mCmdGet = "get";
     mCmdLs = "ls";
     mCmdPwd = "pwd";
     mCmdSet = "set";
 
-    mMap["ltlAbc"] = mLtlAbc;
+    mMap["ltl_abc"] = mLtlAbc;
     mMap["boolTrue"] = mBoolTrue;
     mMap["boolFalse"] = mBoolFalse;
     mMap["shortMax"] = mShortMax;
@@ -97,7 +98,7 @@ protected:
     mMap["nmatrix4"] = mNmatrix4;
     mMap["blank"] = "";
     mMap["cmdCd"] = mCmdCd;
-    mMap["cmdLp"] = mCmdLp;
+    mMap["cmdGet"] = mCmdGet;
     mMap["cmdLs"] = mCmdLs;
     mMap["cmdPwd"] = mCmdPwd;
     mMap["cmdSet"] = mCmdSet;
@@ -148,7 +149,7 @@ protected:
         ->addChildNode("boolLoopNode", "bool", Node::NT_LOOP)
         ->endBranch("0");
 
-    if (!sgArgLib.exists("ltlAbc")) {
+    if (!sgArgLib.exists("ltl_abc")) {
       sgArgLib.registerArgHandler(new LiteralArgHandler("abc"));
     }
   }
@@ -208,7 +209,7 @@ protected:
 
     std::string itemName;
 
-    itemName = "ltlAbc";
+    itemName = "ltl_abc";
     if (ifUseTrue(itemName, beg, end, maskPass))
       EXPECT_TRUE(handler->validate(mMap[itemName]));
     else
@@ -398,7 +399,7 @@ protected:
       EXPECT_TRUE(handler->validate(mMap[itemName]));
     else
       EXPECT_FALSE(handler->validate(mMap[itemName]));
-    itemName = "cmdLp";
+    itemName = "cmdGet";
     if (ifUseTrue(itemName, beg, end, maskPass))
       EXPECT_TRUE(handler->validate(mMap[itemName]));
     else
@@ -453,7 +454,7 @@ protected:
   std::string mNmatrix4;
   std::string mBlank;
   std::string mCmdCd;
-  std::string mCmdLp;
+  std::string mCmdGet;
   std::string mCmdLs;
   std::string mCmdPwd;
   std::string mCmdSet;
@@ -474,8 +475,8 @@ protected:
 
 TEST_F(TestArgHandler, ltlAbc) {
   StringVector sv;
-  sv.push_back("ltlAbc");
-  test("ltlAbc", sv.begin(), sv.end(), 1);
+  sv.push_back("ltl_abc");
+  test("ltl_abc", sv.begin(), sv.end(), 1);
 }
 TEST_F(TestArgHandler, bool) {
   StringVector sv;
@@ -752,7 +753,7 @@ TEST_F(TestArgHandler, blank) {
 TEST_F(TestArgHandler, cmd) {
   StringVector sv;
   sv.push_back("cmdCd");
-  sv.push_back("cmdLp");
+  sv.push_back("cmdGet");
   sv.push_back("cmdPwd");
   sv.push_back("cmdLs");
   sv.push_back("cmdSet");
@@ -876,6 +877,11 @@ TEST_F(TestArgHandler, LoopReal3Bool) {
   const std::string&& s1 =
       StringUtil::join(node->beginLoopValueIter(), node->endLoopValueIter());
   EXPECT_EQ(mBoolFalse + " " + mBoolFalse, s1);
+}
+
+TEST_F(TestArgHandler, regex) {
+  StringVector sv;
+  test("regex", sv.begin(), sv.end(), false);
 }
 
 TEST(TestLoop, loopInt) {
@@ -1143,5 +1149,64 @@ TEST_F(TestLivingThing, livingThing) {
   Node* catNode = mammalHandler->getMatchedNode("catNode");
   ASSERT_STREQ("cat0", catNode->getValue().c_str());
 }
+
+TEST(TestArghandler, id) {
+  ArgHandler* handler = sgArgLib.createArgHandler("id");
+  EXPECT_TRUE(handler->validate("_abc0"));
+  EXPECT_TRUE(handler->validate("a0bc_"));
+  EXPECT_FALSE(handler->validate("0abc"));
+  std::string f = "!@#$%^&*()+= |\\`~;:'\",.<>?/";
+  std::for_each(f.begin(), f.end(), [&](char c) -> void {
+    std::string s;
+    s.push_back(c);
+    EXPECT_FALSE(handler->validate("abc" + s));
+  });
+  delete handler;
+}
+
+enum GE0 { GE0_0, GE0_1, GE0_2 };
+
+class TestEnum : public ::testing::Test {
+public:
+  enum CE0 { CE0_0, CE0_1, CE0_2 };
+
+  template <typename T>
+  void testEnum(const std::string& ahName) {
+    ArgHandler* handler = sgArgLib.createArgHandler(ahName);
+    EnumData<T> data;
+    std::for_each(data.beginStringIter(), data.endStringIter(),
+        [&](const std::string& v)
+            -> void { EXPECT_TRUE(handler->validate(v)); });
+    std::for_each(data.beginEnumIter(), data.endEnumIter(),
+        [&](T v) -> void { EXPECT_TRUE(handler->validate(enumToString(v))); });
+    delete handler;
+  }
+
+protected:
+  void SetUp() {
+    if (!sgArgLib.exists("en_ge0")) {
+      sgArgLib.registerArgHandler(new EnumArgHandler<GE0>("en_ge0"));
+    }
+    if (!sgArgLib.exists("en_ce0")) {
+      sgArgLib.registerArgHandler(new EnumArgHandler<TestEnum::CE0>("en_ce0"));
+    }
+  }
+
+  void TearDown() {}
+};
+
+DEFINE_ENUM_CONVERSION(, GE0, (GE0_0)(GE0_1)(GE0_2))
+DEFINE_ENUM_CONVERSION(TestEnum::, CE0, (CE0_0)(CE0_1)(CE0_2))
+
+TEST_F(TestEnum, global) { testEnum<GE0>("en_ge0"); }
+TEST_F(TestEnum, scope) { testEnum<TestEnum::CE0>("en_ce0"); }
+
+//deviation exists 
+//TEST(TestQuaternion, testQuaternion) {
+  //ArgHandler* handler = sgArgLib.createArgHandler("quaternion");
+  //EXPECT_TRUE(handler->validate("angleAxis 180 0 1 0"));
+  //EXPECT_STREQ(handler->getUniformValue().c_str(), "0 0 1 0");
+  //delete handler;
+//}
 
 #endif /* TESTPACARGHANDLER_H */

@@ -16,7 +16,7 @@ Console* Singleton<Console>::msSingleton = 0;
 
 //------------------------------------------------------------------------------
 Console::Console(UiConsole* ui)
-    : StringInterface("console"),
+    : StringInterface("console",false),
       mIsBuffering(false),
       mDir(0),
       mUi(ui),
@@ -28,9 +28,6 @@ Console::Console(UiConsole* ui)
 //------------------------------------------------------------------------------
 Console::~Console() {
   delete &sgCmdLib;
-
-  mCmdHistory = 0;
-
   // clean arg lib
   delete &sgArgLib;
   delete &sgLogger;
@@ -61,7 +58,7 @@ void Console::initDir() {
   new RootDir();
   setCwd(&sgRootDir);
   AbsDir* uiDir = new AbsDir("uiConsole", mUi);
-  sgRootDir.addChild(uiDir);
+  sgRootDir.addChild(uiDir, false);
 }
 
 //------------------------------------------------------------------------------
@@ -191,10 +188,7 @@ void Console::rollCommand(bool backWard /*= true*/) {
 }
 
 //------------------------------------------------------------------------------
-void Console::cleanTempDirs() {
-  //@TODO implement
-  throw new std::runtime_error("unimplemented function called");
-}
+void Console::cleanTempDirs() { cleanTempDir(&sgRootDir); }
 
 //------------------------------------------------------------------------------
 void Console::promptCommandName(const std::string& cmdName) {
@@ -210,6 +204,17 @@ void Console::fakeOutputDirAndCmd(const std::string& cmdLine) {
 
 //------------------------------------------------------------------------------
 void Console::appendBuffer(const std::string& v) { mBuffer.push_back(v); }
+
+//------------------------------------------------------------------------------
+void Console::cleanTempDir(AbsDir* dir) {
+  if (dir->getTemp()) {
+    delete dir;
+    return;
+  }
+
+  std::for_each(dir->beginChildIter(), dir->endChildIter(),
+      [&](AbsDir* d) -> void { cleanTempDir(d); });
+}
 
 //------------------------------------------------------------------------------
 RaiiConsoleBuffer::RaiiConsoleBuffer() { sgConsole.startBuffer(); }

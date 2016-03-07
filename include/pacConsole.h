@@ -107,6 +107,8 @@ private:
 
   void appendBuffer(const std::string& v);
 
+  void cleanTempDir(AbsDir* dir);
+
 private:
   int mIsBuffering;
 

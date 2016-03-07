@@ -22,7 +22,8 @@ void ParamCmd::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-void ReadonlyParamCmd::doSet(void* target, const std::string& val) {
+  void ReadonlyParamCmd::doSet(void* target, ArgHandler* handler)
+{
   PAC_EXCEPT(Exception::ERR_INVALID_STATE,
       "it's readonly, you should not be able to reach this point");
 }

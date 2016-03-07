@@ -6,8 +6,8 @@ namespace pac {
 UiConsole::Alpha UiConsole::msAlpha;
 
 //------------------------------------------------------------------------------
-UiConsole::UiConsole() : StringInterface("uiConsole"), mTextWidth(80) {
-  if(createParamDict()){
+UiConsole::UiConsole() : StringInterface("uiConsole", false), mTextWidth(80) {
+  if (createParamDict()) {
     this->initParams();
   }
 }
@@ -45,8 +45,7 @@ void UiConsole::Alpha::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-void UiConsole::initParams()
-{
+void UiConsole::initParams() {
   ParamDictionary* dict = this->getParamDict();
   dict->addParameter("alpha", &msAlpha);
 }

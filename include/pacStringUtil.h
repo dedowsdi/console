@@ -77,7 +77,7 @@ left to right.
       comparison, pattern should also be in lower case.
   */
   static bool startsWith(const std::string& str, const std::string& pattern,
-			 bool lowerCase = true);
+			 bool lowerCase = false);
 
   /** Returns whether the string ends with the pattern passed in.
   @param pattern The pattern to compare with.

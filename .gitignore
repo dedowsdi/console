@@ -4,6 +4,7 @@
 *.log
 *.a
 *.so
+.fuse_hidden*
 bin/*
 test/bin/*
 pj.sh

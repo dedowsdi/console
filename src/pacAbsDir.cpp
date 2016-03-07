@@ -6,8 +6,10 @@
 namespace pac {
 
 //------------------------------------------------------------------------------
-  AbsDir::AbsDir(const std::string& name, StringInterface* si /*= 0*/)
-    : mTemp(false), mParent(0), mStringInterface(si), mName(name) {}
+AbsDir::AbsDir(const std::string& name, StringInterface* si /*= 0*/)
+    : mTemp(false), mParent(0), mStringInterface(si), mName(name) {
+  if (mStringInterface) mStringInterface->onCreateDir(this);
+}
 
 //------------------------------------------------------------------------------
 AbsDir::~AbsDir() {
@@ -15,8 +17,10 @@ AbsDir::~AbsDir() {
   // operator on copy
   AbsDirs dirs(mChildren);
   std::for_each(dirs.begin(), dirs.end(), [&](AbsDir* v) -> void { delete v; });
-  mChildren.clear();
-  if (mStringInterface->getArtifical()) delete mStringInterface;
+  PacAssert(mChildren.size() == 0, "non 0 children after remove children");
+  // mChildren.clear();
+  if (mStringInterface && mStringInterface->getWrapper())
+    delete mStringInterface;
 }
 
 //------------------------------------------------------------------------------
@@ -55,7 +59,7 @@ bool AbsDir::setParameter(const std::string& name, ArgHandler* valueHandler) {
 }
 
 //------------------------------------------------------------------------------
-void AbsDir::addChild(AbsDir* dir, bool temp) {
+void AbsDir::addChild(AbsDir* dir, bool temp /*= true*/) {
   // name check. It's not checked at ctor for root dir name is equal to delim
   if (dir->getName().find_first_of(" " + pac::delim) != std::string::npos)
     PAC_EXCEPT(Exception::ERR_INVALIDPARAMS,

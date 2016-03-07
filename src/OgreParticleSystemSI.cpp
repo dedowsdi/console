@@ -1,4 +1,5 @@
 #include "pacStable.h"
+#include "pacAbsDir.h"
 #include "OgreParticleSystemSI.h"
 #include "Ogre.h"
 #include "OgreParticleSystemRenderer.h"
@@ -12,12 +13,54 @@ ParticleSystemSI::ParticleSystemSI(Ogre::ParticleSystem* ps)
 }
 
 //------------------------------------------------------------------------------
+void ParticleSystemSI::onCreateDir(AbsDir* dir) {
+  Ogre::ParticleSystem* ps = getParticleSystem();
+  //add emitters
+  for (size_t i = 0; i < ps->getNumEmitters(); i++) {
+    Ogre::ParticleEmitter* emitter = ps->getEmitter(i);
+    dir->addChild(new AbsDir(
+        emitter->getType() + "_" + Ogre::StringConverter::toString(i),
+        new ParticleEmitterSI(emitter)));
+  }
+
+  //add affectors
+  for (size_t i = 0; i < ps->getNumAffectors(); i++) {
+    Ogre::ParticleAffector* affector = ps->getAffector(i);
+    dir->addChild(new AbsDir(
+        affector->getType() + "_" + Ogre::StringConverter::toString(i),
+        new ParticleAffectorSI(affector)));
+  }
+
+  // add renderer
+  if (ps->getRenderer()) {
+    Ogre::ParticleSystemRenderer* renderer = ps->getRenderer(i);
+    dir->addChild(
+        new AbsDir(affector->getType(), new ParticleRendererSI(affector)));
+  }
+
+  // sort by name
+  // std::sort(mChildren.begin(), mChildren.end(),
+  //[=](AbstractDir* pA, AbstractDir* pB)
+  //-> bool { return pA->getName() < pB->getName(); });
+}
+
+//------------------------------------------------------------------------------
+Ogre::ParticleSystem* ParticleSystemSI::getparticleSystem() const {
+  return static_cast<Ogre::ParticleSystem*>(mOgreSI);
+}
+
+//------------------------------------------------------------------------------
 void ParticleSystemSI::bindArgHandlers() { bindArgHandlerByType(); }
 
 //------------------------------------------------------------------------------
 ParticleEmitterSI::ParticleEmitterSI(Ogre::ParticleEmitter* emitter)
     : OgreSiWrapper(emitter->getType(), emitter) {
   if (createaAhDict()) bindArgHandlers();
+}
+
+//------------------------------------------------------------------------------
+Ogre::ParticleEmitter* ParticleEmitterSI::getParticleEmitter() {
+  return static_cast<Ogre::ParticleEmitter*>(mOgreSI);
 }
 
 //------------------------------------------------------------------------------
@@ -35,6 +78,11 @@ ParticleAffectorSI::ParticleAffectorSI(Ogre::ParticleAffector* affector)
 }
 
 //------------------------------------------------------------------------------
+Ogre::ParticleAffector* ParticleAffectorSI::getParticleAffector() const {
+  return static_cast<Ogre::ParticleAffector*>(mOgreSI);
+}
+
+//------------------------------------------------------------------------------
 void ParticleAffectorSI::bindArgHandlers() {
   bindArgHandlerByType();
   if (mName == "LinearForceAffector") {
@@ -49,6 +97,12 @@ void ParticleAffectorSI::bindArgHandlers() {
 ParticleRendererSI::ParticleRendererSI(Ogre::ParticleSystemRenderer* renderer)
     : OgreSiWrapper(renderer->getType(), renderer) {
   if (createaAhDict()) bindArgHandlers();
+}
+
+//------------------------------------------------------------------------------
+Ogre::ParticleSystemRenderer* ParticleRendererSI::getParticleSystemRenderer()
+    const {
+  return static_cast<Ogre::ParticleSystemRenderer*>(mOgreSI);
 }
 
 //------------------------------------------------------------------------------

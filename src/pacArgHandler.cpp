@@ -146,21 +146,20 @@ bool ArgHandler::validate(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-StringVector::iterator ArgHandler::beginPromptBuffer() {
-  return mPromptBuffer.begin();
-}
+void ArgHandler::applyPromptBuffer(const std::string& s, bool autoComplete) {
+  if (mPromptBuffer.empty()) return;
 
-//------------------------------------------------------------------------------
-StringVector::iterator ArgHandler::endPromptBuffer() {
-  return mPromptBuffer.end();
-}
-
-//------------------------------------------------------------------------------
-size_t ArgHandler::getPromptBufferSize() { return mPromptBuffer.size(); }
-
-//------------------------------------------------------------------------------
-void ArgHandler::getPromptArgHandlers(ArgHandlerVec& ahv) {
-  ahv.push_back(this);
+  if (mPromptType == PT_PROMPTONLY) {
+    std::for_each(mPromptBuffer.begin(), mPromptBuffer.end(),
+        [&](const std::string& v) -> void { sgConsole.outputLine(v); });
+  } else {
+    if (mPromptBuffer.size() > 1 || !autoComplete) {
+      RaiiConsoleBuffer raii;
+      std::for_each(mPromptBuffer.begin(), mPromptBuffer.end(),
+          [&](const std::string& v) -> void { sgConsole.output(v); });
+    }
+    if (autoComplete) this->completeTyping(s);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -185,25 +184,26 @@ void ArgHandler::validateBranch(
 }
 
 //------------------------------------------------------------------------------
-void ArgHandler::applyPromptBuffer(const std::string& s, bool autoComplete) {
-  if (mPromptBuffer.empty()) return;
-
-  if (mPromptType == PT_PROMPTONLY) {
-    std::for_each(mPromptBuffer.begin(), mPromptBuffer.end(),
-        [&](const std::string& v) -> void { sgConsole.outputLine(v); });
-  } else {
-    if (mPromptBuffer.size() > 1 || !autoComplete) {
-      RaiiConsoleBuffer raii;
-      std::for_each(mPromptBuffer.begin(), mPromptBuffer.end(),
-          [&](const std::string& v) -> void { sgConsole.output(v); });
-    }
-    if (autoComplete) this->completeTyping(s);
-  }
+void ArgHandler::outputErrMessage(const std::string& s) {
+  sgConsole.outputLine(s + " is not a valid " + getName());
 }
 
 //------------------------------------------------------------------------------
-void ArgHandler::outputErrMessage(const std::string& s) {
-  sgConsole.outputLine(s + " is not a valid " + getName());
+StringVector::iterator ArgHandler::beginPromptBuffer() {
+  return mPromptBuffer.begin();
+}
+
+//------------------------------------------------------------------------------
+StringVector::iterator ArgHandler::endPromptBuffer() {
+  return mPromptBuffer.end();
+}
+
+//------------------------------------------------------------------------------
+size_t ArgHandler::getPromptBufferSize() { return mPromptBuffer.size(); }
+
+//------------------------------------------------------------------------------
+void ArgHandler::getPromptArgHandlers(ArgHandlerVec& ahv) {
+  ahv.push_back(this);
 }
 
 //------------------------------------------------------------------------------
@@ -286,15 +286,16 @@ Node* Node::addChildNode(const std::string& name,
     const std::string& ahName /*= ""*/, NodeType nt /*= NT_NORMAL*/) {
   Node* node = new Node(name, ahName.empty() ? name : ahName, nt);
   this->addChildNode(node);
-  if (nt != NT_LEAF) node->getArgHandler()->onLinked();
+  if (nt != NT_LEAF) node->getArgHandler()->onLinked(this);
 
   return node;
 }
 
 //------------------------------------------------------------------------------
-Node* Node::getChildNode(const std::string& name, bool recursive /*= true*/) {
-  for (NodeVector::iterator iter = mChildren.begin(); iter != mChildren.end();
-       ++iter) {
+Node* Node::getChildNode(
+    const std::string& name, bool recursive /*= true*/) const {
+  for (NodeVector::const_iterator iter = mChildren.begin();
+       iter != mChildren.end(); ++iter) {
     if (isLeaf()) continue;
     if ((*iter)->getName() == name) return *iter;
     if (recursive) {
@@ -306,7 +307,7 @@ Node* Node::getChildNode(const std::string& name, bool recursive /*= true*/) {
 }
 
 //------------------------------------------------------------------------------
-Node* Node::getAncestorNode(const std::string& name) {
+Node* Node::getAncestorNode(const std::string& name) const {
   if (!mParent) return 0;
 
   if (mParent->getName() == name)
@@ -316,7 +317,7 @@ Node* Node::getAncestorNode(const std::string& name) {
 }
 
 //------------------------------------------------------------------------------
-TreeArgHandler* Node::getSubTree() {
+TreeArgHandler* Node::getSubTree() const {
   if (isLeaf() || isRoot()) return 0;
   if (mArgHandler->getArgHandlerType() == ArgHandler::AHT_TREE)
     return static_cast<TreeArgHandler*>(mArgHandler);
@@ -403,7 +404,8 @@ void Node::restoreValue(SVCIter first, SVCIter last) {
 }
 
 //------------------------------------------------------------------------------
-NodeVector Node::getLeaves() {
+  NodeVector Node::getLeaves()
+{
   NodeVector nv;
   if (isLeaf()) {
     nv.push_back(this);
@@ -418,14 +420,14 @@ NodeVector Node::getLeaves() {
 }
 
 //------------------------------------------------------------------------------
-std::string Node::getArgPath() {
+std::string Node::getArgPath() const {
   // PacAssertS(isLeaf(), "You can not call getArgPath with type :" +
   // StringUtil::toString(static_cast<int>(mNodeType)));
 
   // get reverse path
   std::stringstream ss;
   ss << "[";
-  Node* node = this;
+  const Node* node = this;
   while (node) {
     if (node->isRoot()) {
       // output tree name
@@ -637,58 +639,6 @@ void TreeArgHandler::getPromptArgHandlers(ArgHandlerVec& ahv) {
 }
 
 //------------------------------------------------------------------------------
-Node* TreeArgHandler::getNode(const std::string& name) {
-  Node* node = mRoot->getChildNode(name, true);
-  if (node == 0)
-    PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
-        name + " not found in tree handler" + getName());
-  return node;
-}
-
-//------------------------------------------------------------------------------
-const std::string& TreeArgHandler::getMatchedNodeValue(
-    const std::string& name) {
-  return getMatchedNode(name)->getValue();
-}
-
-//------------------------------------------------------------------------------
-const std::string& TreeArgHandler::getMatchedNodeValue(
-    const std::string& name, std::initializer_list<const char*> branches) {
-  static std::string blank;
-  auto iter = std::find(branches.begin(), branches.end(), name);
-  return iter == branches.end() ? blank : getMatchedNodeValue("name");
-}
-
-//------------------------------------------------------------------------------
-NodeVector TreeArgHandler::getLeaves() { return mRoot->getLeaves(); }
-
-//------------------------------------------------------------------------------
-const std::string& TreeArgHandler::getMatchedBranch() {
-  PacAssertS(mMatchedLeaf, "Havn't found matched leaf for " + getName());
-  return mMatchedLeaf->getName();
-}
-
-//------------------------------------------------------------------------------
-Node* TreeArgHandler::getMatchedNode(const std::string& name) {
-  return getMatchedLeaf()->getAncestorNode(name);
-}
-
-//------------------------------------------------------------------------------
-ArgHandler* TreeArgHandler::getMatchedNodeHandler(const std::string& nodeName) {
-  return getMatchedNode(nodeName)->getArgHandler();
-}
-
-//------------------------------------------------------------------------------
-TreeArgHandler* TreeArgHandler::getSubTree(const std::string& nodeName) {
-  Node* node = this->getRoot()->getChildNode(nodeName);
-  if (node->isLeaf() || node->isRoot() ||
-      node->getArgHandler()->getArgHandlerType() != ArgHandler::AHT_TREE)
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "no tree under " + nodeName);
-
-  return static_cast<TreeArgHandler*>(node->getArgHandler());
-}
-
-//------------------------------------------------------------------------------
 void TreeArgHandler::validateBranch(
     Branches& branches, ArgHandlerVec& promptHandlers) {
   this->checkWholeness();
@@ -706,7 +656,71 @@ void TreeArgHandler::outputErrMessage(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-void TreeArgHandler::checkWholeness() { pac::checkWholeness(getRoot()); }
+Node* TreeArgHandler::getNode(const std::string& name) {
+  Node* node = mRoot->getChildNode(name, true);
+  if (node == 0)
+    PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
+        name + " not found in tree handler" + getName());
+  return node;
+}
+
+//------------------------------------------------------------------------------
+const std::string& TreeArgHandler::getMatchedNodeValue(
+    const std::string& name) const {
+  return getMatchedNode(name)->getValue();
+}
+
+//------------------------------------------------------------------------------
+const std::string& TreeArgHandler::getMatchedNodeValue(const std::string& name,
+    std::initializer_list<const char*> branches) const {
+  static std::string blank;
+  auto iter = std::find(branches.begin(), branches.end(), name);
+  return iter == branches.end() ? blank : getMatchedNodeValue("name");
+}
+
+//------------------------------------------------------------------------------
+NodeVector TreeArgHandler::getLeaves() { return mRoot->getLeaves(); }
+
+//------------------------------------------------------------------------------
+const std::string& TreeArgHandler::getMatchedBranch() const {
+  PacAssertS(mMatchedLeaf, "Havn't found matched leaf for " + getName());
+  return mMatchedLeaf->getName();
+}
+
+//------------------------------------------------------------------------------
+Node* TreeArgHandler::getMatchedNode(const std::string& name) const {
+  return getMatchedLeaf()->getAncestorNode(name);
+}
+
+//------------------------------------------------------------------------------
+ArgHandler* TreeArgHandler::getMatchedNodeHandler(
+    const std::string& nodeName) const {
+  return getMatchedNode(nodeName)->getArgHandler();
+}
+
+//------------------------------------------------------------------------------
+TreeArgHandler* TreeArgHandler::getSubTree(const std::string& nodeName) const {
+  Node* node = this->getRoot()->getChildNode(nodeName);
+  if (node->isLeaf() || node->isRoot() ||
+      node->getArgHandler()->getArgHandlerType() != ArgHandler::AHT_TREE)
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "no tree under " + nodeName);
+
+  return static_cast<TreeArgHandler*>(node->getArgHandler());
+}
+
+//------------------------------------------------------------------------------
+void TreeArgHandler::checkWholeness() { checkWholeness(getRoot()); }
+
+void TreeArgHandler::checkWholeness(Node* n) {
+  if (n->isLeaf()) return;
+
+  if (n->getNumChildren() == 0)
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "do you  forget to endbranch for" +
+                                                 n->getTree()->getName() +
+                                                 " at " + n->getName());
+  std::for_each(n->beginChildIter(), n->endChildIter(),
+      [&](Node* v) -> void { checkWholeness(v); });
+}
 
 //------------------------------------------------------------------------------
 ArgHandlerLib::~ArgHandlerLib() {
@@ -773,19 +787,21 @@ void ArgHandlerLib::init() {
   this->registerArgHandler(sgArgLib.createMonoTree("nmatrix2", "nreal", 4));
   this->registerArgHandler(sgArgLib.createMonoTree("nmatrix3", "nreal", 9));
   this->registerArgHandler(sgArgLib.createMonoTree("nmatrix4", "nreal", 16));
+
+  // iteral
+  this->registerArgHandler(new LiteralArgHandler("regex"));
+  this->registerArgHandler(new LiteralArgHandler("angleAxis"));
+
+  this->registerArgHandler(new QuaternionArgHandler());
   this->registerArgHandler(new IdArgHandler());
   this->registerArgHandler(new RegexArgHandler());
 
-  // special handlers
   this->registerArgHandler(new PathArgHandler());
   // arg lib is inited before command lib, moved to CommandLib::init()
   // this->registerArgHandler(new CmdArgHandler());
   this->registerArgHandler(new ParamArgHandler());
   this->registerArgHandler(new ValueArgHandler());
 
-  // iteral
-  this->registerArgHandler(new LiteralArgHandler("regex"));
-  this->registerArgHandler(new LiteralArgHandler("angleAxis"));
 }
 
 //------------------------------------------------------------------------------
@@ -813,17 +829,6 @@ TreeArgHandler* ArgHandlerLib::createMonoTree(
 //------------------------------------------------------------------------------
 bool ArgHandlerLib::exists(const std::string& name) {
   return mArgHandlerMap.find(name) != mArgHandlerMap.end();
-}
-
-void checkWholeness(Node* n) {
-  if (n->isLeaf()) return;
-
-  if (n->getNumChildren() == 0)
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "do you  forget to endbranch for" +
-                                                 n->getTree()->getName() +
-                                                 " at " + n->getName());
-  std::for_each(n->beginChildIter(), n->endChildIter(),
-      [&](Node* v) -> void { checkWholeness(v); });
 }
 
 template <>

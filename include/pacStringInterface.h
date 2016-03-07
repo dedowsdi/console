@@ -13,17 +13,17 @@ namespace pac {
 class _PacExport ParamCmd {
 public:
   ParamCmd(const std::string& _ahName) : ahName(_ahName) {}
-  void doSet(void* target, const std::string& val) ;
+  void doSet(void* target, const std::string& val);
   virtual std::string doGet(const void* target) const = 0;
-  virtual void doSet(void* target, ArgHandler* handler) ;
+  virtual void doSet(void* target, ArgHandler* handler);
   virtual ~ParamCmd() {}
   std::string ahName;  // argument handler name
 };
 
-class _PacExport ReadonlyParamCmd : public ParamCmd{
+class _PacExport ReadonlyParamCmd : public ParamCmd {
 public:
   ReadonlyParamCmd() : ParamCmd("readonly") {}
-  void doSet(void* target, const std::string& val);
+  void doSet(void* target, ArgHandler* handler);
 };
 
 /**
@@ -98,7 +98,6 @@ typedef std::map<std::string, ParamDictionary> ParamDictionaryMap;
  * if it does not exist yet.
  */
 class _PacExport StringInterface {
-
 protected:
   /**
    * Internal method for creating a parameter dictionary for the class, if it
@@ -111,8 +110,8 @@ protected:
   bool createParamDict();
 
 public:
-  StringInterface(const std::string& name, bool artifical = false)
-      : mArtifical(artifical), mName(name), mParamDict(NULL) {}
+  StringInterface(const std::string& name, bool wrapper)
+      : mWrapper(wrapper), mName(name), mParamDict(NULL) {}
   virtual ~StringInterface() {}
 
   ParamDictionary* getParamDict(void) { return mParamDict; }
@@ -170,12 +169,16 @@ public:
     initializes.*/
   static void cleanupDictionary();
 
-  bool getArtifical() const { return mArtifical; }
-  void setArtifical(bool v) { mArtifical = v; }
+  /**
+   * called when dir was created with this string interface
+   */
+  virtual void onCreateDir(AbsDir* dir) { (void)dir; }
+
+  bool getWrapper() const { return mWrapper; }
+  void setWrapper(bool v) { mWrapper = v; }
 
 protected:
-  bool mArtifical;  // it's true if this object doesn't exist unless you call
-                    // some command to edit something
+  bool mWrapper;
   std::string mName;
   // Dictionary of parameters
 

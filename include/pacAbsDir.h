@@ -56,7 +56,7 @@ public:
    * @param dir : child dir
    * @param temp : add dir as temp dir which will be removed at cleanTempDir
    */
-  void addChild(AbsDir* dir, bool temp);
+  void addChild(AbsDir* dir, bool temp = true);
 
   /**
    * Get full path until root
@@ -77,6 +77,8 @@ public:
    * @return : 0 or child dir
    */
   AbsDir* getChildByName(const std::string& name);
+
+  size_t getNumChildren(){return mChildren.size();}
 
   /**
    * remove child by child index

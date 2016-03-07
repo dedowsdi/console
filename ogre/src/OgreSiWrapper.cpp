@@ -23,7 +23,7 @@ const std::string& AhDict::getParamAhName(const std::string& param) {
 
 //------------------------------------------------------------------------------
 OgreSiWrapper::OgreSiWrapper(const std::string& name, Ogre::StringInterface* si)
-    : StringInterface(name), mOgreSI(si), mAhDict(0) {}
+    : StringInterface(name, true), mOgreSI(si), mAhDict(0) {}
 
 //------------------------------------------------------------------------------
 bool OgreSiWrapper::setParameter(const std::string& name, ArgHandler* handler) {

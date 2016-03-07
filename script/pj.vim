@@ -5,7 +5,7 @@ let g:mycppMakes = {
 			\'console':'',
 			\'test':'test/test',
 			\}
-let g:mycppBuildDir = "build"
+let g:mycppBuildDir = "./build/"
 let g:mycppClassPrefix='_PacExport'
 let g:mycppPreRequisite=['pacConsolePreRequisite.h']
 let g:mycppStable=['pacStable.h']

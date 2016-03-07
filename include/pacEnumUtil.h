@@ -3,6 +3,7 @@
 
 #include "pacConsolePreRequisite.h"
 #include "pacException.h"
+#include <boost/preprocessor.hpp>
 namespace pac {
 
 // This is the type that will hold all the strings.  Each enumerate type will
@@ -15,22 +16,22 @@ template <typename T>
 class EnumData {
 public:
   static std::vector<std::string>::const_iterator beginStringIter() {
-    PacAssert(mStrins.size() == mEnums.size(), "unequal size");
+    PacAssert(mStrings.size() == mEnums.size(), "unequal size");
     return mStrings.begin();
   }
   static std::vector<std::string>::const_iterator endStringIter() {
-    PacAssert(mStrins.size() == mEnums.size(), "unequal size");
+    PacAssert(mStrings.size() == mEnums.size(), "unequal size");
     return mStrings.end();
   }
   static typename std::vector<T>::const_iterator beginEnumIter() {
-    PacAssert(mStrins.size() == mEnums.size(), "unequal size");
+    PacAssert(mStrings.size() == mEnums.size(), "unequal size");
     return mEnums.begin();
   }
   static typename std::vector<T>::const_iterator endEnumIter() {
-    PacAssert(mStrins.size() == mEnums.size(), "unequal size");
+    PacAssert(mStrings.size() == mEnums.size(), "unequal size");
     return mEnums.end();
   }
-  static const std::string& getmEnumstringAt(size_t i) { return mStrings[i]; }
+  static const std::string& getEnumStringAt(size_t i) { return mStrings[i]; }
   static const T& getEnumAt(size_t i) { return mEnums[i]; }
   static size_t size() { return mEnums.size(); }
   static bool empty() { return mEnums.empty(); }

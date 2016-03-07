@@ -12,7 +12,7 @@ namespace pac {
 
 class TestSI : public StringInterface {
 public:
-  TestSI() : StringInterface("test") {
+  TestSI() : StringInterface("test", true) {
     if (createParamDict()) {
       ParamDictionary* dict = getParamDict();
       dict->addParameter("paramBool", &msParamBool);
@@ -86,14 +86,13 @@ class TestAbsDir : public ::testing::Test {
 protected:
   void SetUp() {
     d = pac::delim;
-    testSI = new TestSI();
-    dir0 = new AbsDir("dir0", testSI);
-    dir0_0 = new AbsDir("dir0_0", testSI);
-    dir0_1 = new AbsDir("dir0_1", testSI);
-    dir0_0_0 = new AbsDir("dir0_0_0", testSI);
-    dir0_0_1 = new AbsDir("dir0_0_1", testSI);
-    dir0_1_0 = new AbsDir("dir0_1_0", testSI);
-    dir0_1_1 = new AbsDir("dir0_1_1", testSI);
+    dir0 = new AbsDir("dir0", new TestSI());
+    dir0_0 = new AbsDir("dir0_0", new TestSI());
+    dir0_1 = new AbsDir("dir0_1", new TestSI());
+    dir0_0_0 = new AbsDir("dir0_0_0", new TestSI());
+    dir0_0_1 = new AbsDir("dir0_0_1", new TestSI());
+    dir0_1_0 = new AbsDir("dir0_1_0", new TestSI());
+    dir0_1_1 = new AbsDir("dir0_1_1", new TestSI());
     sgRootDir.addChild(dir0);
     dir0->addChild(dir0_0);
     dir0->addChild(dir0_1);
@@ -103,7 +102,6 @@ protected:
     dir0_1->addChild(dir0_1_1);
   }
   void TearDown() {
-    delete testSI;
     delete dir0;
     // delete dir0_0;
     // delete dir0_1;
@@ -114,7 +112,6 @@ protected:
   }
 
   AbsDir* dir0, *dir0_0, *dir0_1, *dir0_0_0, *dir0_0_1, *dir0_1_0, *dir0_1_1;
-  TestSI* testSI;
   std::string d;  // delim
 };
 
