@@ -190,7 +190,7 @@ public:
   };
 
   struct _PacExport Scale : public ParamCmd {
-    Scale() : ParamCmd("real") {}
+    Scale() : ParamCmd("real3") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };

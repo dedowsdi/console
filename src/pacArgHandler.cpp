@@ -404,8 +404,7 @@ void Node::restoreValue(SVCIter first, SVCIter last) {
 }
 
 //------------------------------------------------------------------------------
-  NodeVector Node::getLeaves()
-{
+NodeVector Node::getLeaves() {
   NodeVector nv;
   if (isLeaf()) {
     nv.push_back(this);
@@ -751,9 +750,8 @@ void ArgHandlerLib::registerArgHandler(ArgHandler* handler) {
 void ArgHandlerLib::init() {
   this->registerArgHandler(new BlankArgHandler());
   // bool
-  StringArgHandler* boolHandler = new StringArgHandler("bool");
-  boolHandler->insert("true");
-  boolHandler->insert("false");
+  StringArgHandler* boolHandler =
+      new StringArgHandler("bool", {"true", "false"});
   this->registerArgHandler(boolHandler);
   // primitive decimal arg handlers
   this->registerArgHandler(new PriDeciArgHandler<short>("short"));
@@ -801,7 +799,6 @@ void ArgHandlerLib::init() {
   // this->registerArgHandler(new CmdArgHandler());
   this->registerArgHandler(new ParamArgHandler());
   this->registerArgHandler(new ValueArgHandler());
-
 }
 
 //------------------------------------------------------------------------------

@@ -177,6 +177,10 @@ public:
   bool getWrapper() const { return mWrapper; }
   void setWrapper(bool v) { mWrapper = v; }
 
+  const std::string& getName() const { return mName; }
+  void setName( const std::string& v){mName = v;}
+
+
 protected:
   bool mWrapper;
   std::string mName;

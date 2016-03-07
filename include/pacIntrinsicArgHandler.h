@@ -24,6 +24,7 @@ public:
     (void)s;
     appendPromptBuffer(getName());
   }
+
 protected:
   virtual bool doValidate(const std::string& s) {
     return StringUtil::isPrimitiveDecimal<T>(s);
@@ -55,6 +56,7 @@ public:
     appendPromptBuffer(getName() + " between " + StringUtil::toString(mMin) +
                        "and " + StringUtil::toString(mMax));
   }
+
 protected:
   virtual bool doValidate(const std::string& s) {
     if (StringUtil::isPrimitiveDecimal<T>(s)) {
@@ -81,6 +83,8 @@ public:
   virtual ArgHandler* clone() { return new StringArgHandler(*this); }
 
   StringArgHandler(const std::string& name);
+  StringArgHandler(
+      const std::string& name, std::initializer_list<std::string> il);
 
   /**
    * insert new element
@@ -98,6 +102,7 @@ public:
   void remove(const std::string& s);
 
   virtual void populatePromptBuffer(const std::string& s);
+
 protected:
   virtual bool doValidate(const std::string& s);
 
@@ -132,6 +137,7 @@ public:
   virtual ArgHandler* clone() { return new LiteralArgHandler(*this); }
 
   virtual void populatePromptBuffer(const std::string& s);
+
 protected:
   virtual bool doValidate(const std::string& s);
 
@@ -149,6 +155,7 @@ public:
   BlankArgHandler();
 
   virtual void populatePromptBuffer(const std::string& s);
+
 protected:
   virtual bool doValidate(const std::string& s);
 };
@@ -169,6 +176,7 @@ public:
   void setPathDir(AbsDir* v) { mPathDir = v; }
 
   virtual void populatePromptBuffer(const std::string& s);
+
 protected:
   virtual bool doValidate(const std::string& s);
   virtual void completeTyping(const std::string& s);
@@ -201,6 +209,7 @@ public:
   void setDir(AbsDir* v) { mDir = v; }
 
   virtual void runtimeInit();
+
 protected:
   virtual void onLinked(Node* grandNode);
 
@@ -252,6 +261,7 @@ public:
   ParamArgHandler* getParamHandler();
 
   virtual void populatePromptBuffer(const std::string& s);
+
 protected:
   virtual bool doValidate(const std::string& s);
 
@@ -281,6 +291,7 @@ public:
   virtual ArgHandler* clone() { return new RegexArgHandler(*this); }
 
   virtual void populatePromptBuffer(const std::string& s);
+
 protected:
   virtual bool doValidate(const std::string& s) {
     (void)s;
@@ -297,6 +308,7 @@ public:
   virtual ArgHandler* clone() { return new ReadonlyArgHandler(*this); }
 
   virtual void populatePromptBuffer(const std::string& s);
+
 protected:
   virtual bool doValidate(const std::string& s) {
     (void)s;

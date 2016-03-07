@@ -9,7 +9,7 @@ class MovableSI;
 class LightSI;
 class CameraSI;
 class AthCmd;
-class Dthmo;
+class DthCmd;
 class EdmoCmd;
 class EdndCmd;
 class LsmatCmd;

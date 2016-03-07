@@ -116,6 +116,8 @@ Command* CommandLib::createCommand(const std::string& cmdName) {
 //------------------------------------------------------------------------------
 void CommandLib::registerCommand(Command* cmdProto) {
   sgLogger.logMessage("register command " + cmdProto->getName());
+  //init it, let it build it's own arg handler
+  cmdProto->init();
   // check if it's already registerd
   CmdMap::iterator iter = std::find_if(mCmdMap.begin(), mCmdMap.end(),
       [&](CmdMap::value_type& v)
@@ -132,13 +134,13 @@ void CommandLib::registerCommand(Command* cmdProto) {
 //------------------------------------------------------------------------------
 void CommandLib::init() {
   // register intrinsic commands
-  this->registerCommand((new LsCmd())->init());
-  this->registerCommand((new PwdCmd())->init());
-  this->registerCommand((new CdCmd())->init());
-  this->registerCommand((new SetCmd())->init());
-  this->registerCommand((new GetCmd())->init());
-  this->registerCommand((new SzCmd())->init());
-  this->registerCommand((new CtdCmd())->init());
+  registerCommand(new LsCmd());
+  registerCommand(new PwdCmd());
+  registerCommand(new CdCmd());
+  registerCommand(new SetCmd());
+  registerCommand(new GetCmd());
+  registerCommand(new SzCmd());
+  registerCommand(new CtdCmd());
 
   sgArgLib.registerArgHandler(new CmdArgHandler());
 }

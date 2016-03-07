@@ -15,6 +15,7 @@ namespace pac {
 class _PacExport LsmatCmd : public Command {
 public:
   LsmatCmd();
+  virtual Command* clone() { return new LsmatCmd(*this); }
 
 protected:
   virtual bool doExecute();
@@ -30,6 +31,7 @@ protected:
 class _PacExport Lsnd : public Command {
 public:
   Lsnd();
+  virtual Command* clone() { return new Lsnd(*this); }
 
 protected:
   virtual bool doExecute();
@@ -62,6 +64,7 @@ private:
 class _PacExport AthCmd : public Command {
 public:
   AthCmd();
+  virtual Command* clone() { return new AthCmd(*this); }
 
 protected:
   virtual bool doExecute();
@@ -81,6 +84,7 @@ protected:
 class _PacExport LsmoCmd : public Command {
 public:
   LsmoCmd();
+  virtual Command* clone() { return new LsmoCmd(*this); }
 
 protected:
   virtual bool doExecute();
@@ -101,6 +105,7 @@ protected:
 class _PacExport DthCmd : public Command {
 public:
   DthCmd();
+  virtual Command* clone() { return new DthCmd(*this); }
 
 protected:
   virtual bool doExecute();
@@ -122,6 +127,7 @@ private:
 class _PacExport EdmoCmd : public Command {
 public:
   EdmoCmd();
+  virtual Command* clone() { return new EdmoCmd(*this); }
 
 protected:
   virtual bool doExecute();
@@ -136,6 +142,7 @@ protected:
 class _PacExport EdndCmd : public Command {
 public:
   EdndCmd();
+  virtual Command* clone() { return new EdndCmd(*this); }
 
 protected:
   virtual bool doExecute();

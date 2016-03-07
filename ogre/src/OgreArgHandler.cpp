@@ -6,7 +6,14 @@
 namespace pac {
 
 //------------------------------------------------------------------------------
-MovableAH::MovableAH() : ArgHandler("movable") {}
+MovableAH::MovableAH()
+    : ArgHandler("movable"),
+      mEntity(0),
+      mSceneNode(0),
+      mEntityNode(0),
+      mBoneNode(0),
+      mSnNode(0),
+      mMoTypeNode(0) {}
 
 //------------------------------------------------------------------------------
 void MovableAH::populatePromptBuffer(const std::string& s) {
@@ -14,11 +21,11 @@ void MovableAH::populatePromptBuffer(const std::string& s) {
 
   if (mSceneNode) {
     // sceneNode moType movable
-    auto oi = moType->getMovableObjectIterator();
+    auto oi = mSceneNode->getAttachedObjectIterator();
     while (oi.hasMoreElements()) {
       auto mo = oi.getNext();
       if (StringUtil::startsWith(mo->getName(), s) &&
-          mo->getMoveType() == mMoType)
+          mo->getMovableType() == mMoType)
         appendPromptBuffer(s);
     }
   } else if (mEntity) {
@@ -27,19 +34,19 @@ void MovableAH::populatePromptBuffer(const std::string& s) {
     while (oi.hasMoreElements()) {
       auto mo = oi.getNext();
       if (mBone.empty() ||
-          mBone == mo->GetParentNode()->getParent()->getName()) {
+          mBone == mo->getParentNode()->getParent()->getName()) {
         if (StringUtil::startsWith(mo->getName(), s) &&
-            mo->getMoveType() == mMoType)
+            mo->getMovableType() == mMoType)
           appendPromptBuffer(s);
       }
     }
   } else {
     // moType movable
-    auto oi = sm->getMovableObjectIterator();
+    auto oi = sm->getMovableObjectIterator(mMoType);
     while (oi.hasMoreElements()) {
       auto mo = oi.getNext();
       if (StringUtil::startsWith(mo->getName(), s) &&
-          mo->getMoveType() == mMoType)
+          mo->getMovableType() == mMoType)
         appendPromptBuffer(s);
     }
   }
@@ -50,10 +57,10 @@ bool MovableAH::doValidate(const std::string& s) {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
   if (mSceneNode) {
     // sceneNode moType movable
-    auto oi = moType->getMovableObjectIterator();
+    auto oi = mSceneNode->getAttachedObjectIterator();
     while (oi.hasMoreElements()) {
       auto mo = oi.getNext();
-      if (mo->getName() && mo->getMoveType() == mMoType) return true;
+      if (mo->getName() == s && mo->getMovableType() == mMoType) return true;
     }
     return false;
 
@@ -63,8 +70,8 @@ bool MovableAH::doValidate(const std::string& s) {
     while (oi.hasMoreElements()) {
       auto mo = oi.getNext();
       if (mBone.empty() ||
-          mBone == mo->GetParentNode()->getParent()->getName()) {
-        if (mo->getName() == s && mo->getMoveType() == mMoType) return true;
+          mBone == mo->getParentNode()->getParent()->getName()) {
+        if (mo->getName() == s && mo->getMovableType() == mMoType) return true;
       }
     }
     return false;
@@ -87,6 +94,11 @@ void MovableAH::runtimeInit() {
   mSceneNode = 0;
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
   mMoType = mMoTypeNode->getValue();
+
+  if (mMoType.empty()) {
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE,
+        "empty movable type is not allowed at movable arg handler");
+  }
   if (mSnNode) {
     mSceneNode = sm->getSceneNode(mSnNode->getValue());
   } else if (mEntityNode) {
@@ -97,12 +109,12 @@ void MovableAH::runtimeInit() {
 
 //------------------------------------------------------------------------------
 void MovableAH::onLinked(Node* grandNode) {
-  if (grandNode->isRoot() || grandNode()->getAhName() != "moType")
+  if (grandNode->isRoot() || grandNode->getAhName() != "moType")
     PAC_EXCEPT(
         Exception::ERR_INVALID_STATE, "plain movable must follow moType!!!");
 
   mMoTypeNode = grandNode;
-  Node* node = mMoTypeNode->getParentNode();
+  Node* node = mMoTypeNode->getParent();
   if (!node->isRoot()) {
     const std::string& ahName = node->getAhName();
     if (ahName == "bone") {
@@ -128,10 +140,10 @@ BoneAH::BoneAH() : ArgHandler("bone"), mEntity(0), mEntityNode(0) {}
 //------------------------------------------------------------------------------
 void BoneAH::populatePromptBuffer(const std::string& s) {
   if (mEntity->hasSkeleton()) {
-    Ogre::SkeletonInstance* sk = getEntity->getSkeleton();
+    Ogre::SkeletonInstance* sk = mEntity->getSkeleton();
     auto oi = sk->getBoneIterator();
-    while (oi->hasMoreElements()) {
-      const std::string& name = oi->getNext()->getName();
+    while (oi.hasMoreElements()) {
+      const std::string& name = oi.getNext()->getName();
       if (StringUtil::startsWith(name, s)) appendPromptBuffer(name);
     }
   }
@@ -140,7 +152,7 @@ void BoneAH::populatePromptBuffer(const std::string& s) {
 //------------------------------------------------------------------------------
 bool BoneAH::doValidate(const std::string& s) {
   if (mEntity->hasSkeleton()) {
-    Ogre::SkeletonInstance* sk = getEntity->getSkeleton();
+    Ogre::SkeletonInstance* sk = mEntity->getSkeleton();
     return sk->hasBone(s);
   }
 
@@ -171,7 +183,7 @@ void MovableBaseAH::populatePromptBuffer(const std::string& s) {
   while (oi.hasMoreElements()) {
     auto mo = oi.getNext();
     if (StringUtil::startsWith(mo->getName(), s) &&
-        mo->getMoveType() == mMoType)
+        mo->getMovableType() == mMoType)
       appendPromptBuffer(s);
   }
 }
@@ -193,7 +205,7 @@ SceneNodeAH::SceneNodeAH() : ArgHandler("sceneNode") {}
 //------------------------------------------------------------------------------
 void SceneNodeAH::populatePromptBuffer(const std::string& s) {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  loopNode(sm->getRootSceneNode());
+  loopNode(sm->getRootSceneNode(), s);
 }
 
 //------------------------------------------------------------------------------
@@ -208,22 +220,22 @@ bool SceneNodeAH::doValidate(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-void SceneNodeAH::loopNode(Ogre::SceneNode* sceneNode, const std::string& s) {
-  if (StringUtil::startsWith(sceneNode->getName(), s))
-    appendPromptBuffer(sceneNode->getName());
-  auto oi = sceneNode->getChildIterator();
-  while (oi->hasMoreElements()) loopNode(oi->getNext(), s);
+void SceneNodeAH::loopNode(Ogre::Node* node, const std::string& s) {
+  if (StringUtil::startsWith(node->getName(), s))
+    appendPromptBuffer(node->getName());
+  auto oi = node->getChildIterator();
+  while (oi.hasMoreElements()) loopNode(oi.getNext(), s);
 }
 
 //------------------------------------------------------------------------------
-ResourceAh::ResourceAh(const std::string& name, Ogre::ResourceManager* rm)
+ResourceAH::ResourceAH(const std::string& name, Ogre::ResourceManager* rm)
     : ArgHandler(name), mResourceMgr(rm) {}
 
 //------------------------------------------------------------------------------
-void ResourceAh::populatePromptBuffer(const std::string& s) {
+void ResourceAH::populatePromptBuffer(const std::string& s) {
   auto oi = mResourceMgr->getResourceIterator();
-  while (oi->hasMoreElements()) {
-    Ogre::ResourcePtr ptr = oi->getNext();
+  while (oi.hasMoreElements()) {
+    Ogre::ResourcePtr ptr = oi.getNext();
     if (StringUtil::startsWith(ptr->getName(), s)) {
       appendPromptBuffer(ptr->getName());
     }
@@ -231,8 +243,30 @@ void ResourceAh::populatePromptBuffer(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-bool ResourceAh::doValidate(const std::string& s) {
+bool ResourceAH::doValidate(const std::string& s) {
   Ogre::ResourcePtr ptr = mResourceMgr->getResourceByName(s);
-  return ptr.isEmpty();
+  return ptr.isNull();
+}
+
+//------------------------------------------------------------------------------
+ParticleSystemTemplateAH::ParticleSystemTemplateAH(
+    Ogre::ParticleSystemManager* pm)
+    : ArgHandler("pst"), mManager(pm) {}
+
+//------------------------------------------------------------------------------
+void ParticleSystemTemplateAH::populatePromptBuffer(const std::string& s) {
+  auto oi = mManager->getTemplateIterator();
+  while (oi.hasMoreElements()) {
+    auto* ps = oi.getNext();
+
+    if (StringUtil::startsWith(ps->getName(), s)) {
+      appendPromptBuffer(ps->getName());
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+bool ParticleSystemTemplateAH::doValidate(const std::string& s) {
+  return mManager->getTemplate(s);
 }
 }

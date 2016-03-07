@@ -4,8 +4,9 @@ project(CONSOLE)
 #options
 set(BUILD_TYPE "SHARED" CACHE STRING "library build type")
 set_property(CACHE BUILD_TYPE PROPERTY STRINGS "STATIC" "SHARED")
-option(BUILD_TEST "build unit test" OFF)
 option(BOOST_LOG_DYN_LINK "use shared boost log" ON)
+option(BUILD_TEST "build unit test" on)
+option(BUILD_OGRE "build ogre module" on)
 
 #flag
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pthread")
@@ -96,4 +97,7 @@ add_custom_target(uninstall
 #test
 if(BUILD_TEST)
 	add_subdirectory(test)
+endif()
+if(BUILD_OGRE)
+	add_subdirectory(ogre)
 endif()

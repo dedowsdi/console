@@ -13,6 +13,13 @@ StringArgHandler::StringArgHandler(const std::string& name)
     : ArgHandler(name) {}
 
 //------------------------------------------------------------------------------
+StringArgHandler::StringArgHandler(
+    const std::string& name, std::initializer_list<std::string> il)
+    : ArgHandler(name) {
+  mStrings.insert(il.begin(), il.end());
+}
+
+//------------------------------------------------------------------------------
 StringArgHandler* StringArgHandler::insert(const std::string& s) {
   mStrings.insert(s);
   return this;
@@ -237,8 +244,7 @@ QuaternionArgHandler::QuaternionArgHandler() : TreeArgHandler("quaternion") {
 }
 
 //------------------------------------------------------------------------------
-  std::string QuaternionArgHandler::getUniformValue() const
-{
+std::string QuaternionArgHandler::getUniformValue() const {
   static Real pi = std::acos(-1);
   static Real toAngle = pi / 180;
   Real r0 = StringUtil::parsePrimitiveDecimal<Real>(

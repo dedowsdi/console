@@ -12,11 +12,9 @@ set(TEST_SRCS
 	src/test.cpp)
 
 find_package(GTest REQUIRED)
-get_target_property(CONSOLE_INCLUDES console INCLUDE_DIRECTORIES)
+#get_target_property(CONSOLE_INCLUDES console INCLUDE_DIRECTORIES)
 
 add_executable(test ${TEST_SRCS})
-target_link_libraries(test console)
-target_link_libraries(test ${GTEST_LIBRARIES})
+target_link_libraries(test console ${GTEST_LIBRARIES})
 
-include_directories(include)
-include_directories(${GTest_INCLUDE_DIRS})
+include_directories(include ${GTest_INCLUDE_DIRS})

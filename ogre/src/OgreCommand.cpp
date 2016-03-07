@@ -6,6 +6,7 @@
 #include <OgreSI.h>
 #include "pacEnumUtil.h"
 #include "pacStringUtil.h"
+#include "pacAbsDir.h"
 
 namespace pac {
 
@@ -63,8 +64,8 @@ bool Lsnd::doExecute() {
   Ogre::SceneNode* rootNode = sceneMgr->getRootSceneNode();
 
   const std::string& nodeName =
-      handler->getMatchedNodeValue("sceneNode", ({"1", "2"}));
-  const std::string& reExp = handler->getMatchedNodeValue("regex", ({"3"}));
+      handler->getMatchedNodeValue("sceneNode", {"1", "2"});
+  const std::string& reExp = handler->getMatchedNodeValue("regex", {"3"});
 
   RaiiConsoleBuffer rcb;
   if (branch == "0") {
@@ -77,13 +78,15 @@ bool Lsnd::doExecute() {
   } else if (branch == "2") {
     // lsnd direct sceneNode
     Ogre::SceneNode* node = sceneMgr->getSceneNode(nodeName);
-    NodeIter ni = node->getChildIterator();
-    std::for_each(ni.begin(), ni.end(), [&](NodeIter::ValueType& v) -> void {
-      sgConsole.output(v->getName());
-    });
+    auto ni = node->getChildIterator();
+    while(ni.hasMoreElements()){
+      Ogre::Node* childNode = ni.getNext();
+      sgConsole.output(childNode->getName());
+    }
   } else if (branch == "3") {
     // lsnd ltl_regex regex ("3")
-    outputNode(rootNode, boost::regex(reExp));
+    boost::regex regex(reExp);
+    outputNode(rootNode, regex);
   } else {
     PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalid branch:" + branch);
   }
@@ -207,7 +210,7 @@ bool LsmoCmd::doExecute() {
   if (branch == "g0" || branch == "g1") {
     // lsmo moType ("g0")
     // lsmo moType ltl_regex regex ("g1")
-    const std::string& moType = getMatchedNodeValue("moType");
+    const std::string& moType = handler->getMatchedNodeValue("moType");
     const std::string& reExp = handler->getMatchedNodeValue("regex", {"g1"});
 
     boost::regex regex(reExp);
@@ -222,7 +225,7 @@ bool LsmoCmd::doExecute() {
     // lsmo ltl_sceneNode sceneNode moType ("sn1")
     Ogre::SceneNode* sceneNode =
         sceneMgr->getSceneNode(handler->getMatchedNodeValue("sceneNode"));
-    const std::string& moType = getMatchedNodeValue("moType", ({"sn1"}));
+    const std::string& moType = handler->getMatchedNodeValue("moType", {"sn1"});
     auto oi = sceneNode->getAttachedObjectIterator();
     RaiiConsoleBuffer rcb;
     while (oi.hasMoreElements()) {
@@ -239,9 +242,9 @@ bool LsmoCmd::doExecute() {
     Ogre::Entity* ent =
         sceneMgr->getEntity(handler->getMatchedNodeValue("entity"));
     const std::string& bone =
-        handler->getMatchedNodeValue("bone", ({"tag2", "tag3"}));
+        handler->getMatchedNodeValue("bone", {"tag2", "tag3"});
     const std::string& moType =
-        handler->getMatchedNodeValue("moType", ({"tag1", "tag3"}));
+        handler->getMatchedNodeValue("moType", {"tag1", "tag3"});
     auto oi = ent->getAttachedObjectIterator();
     RaiiConsoleBuffer rcb;
     while (oi.hasMoreElements()) {
@@ -306,14 +309,14 @@ bool DthCmd::doExecute() {
     // remove duplicate item
     std::sort(nodes.begin(), nodes.end());
     auto iter = std::unique(nodes.begin(), nodes.end());
-    std::erase(iter, nodes.end());
+    nodes.erase(iter, nodes.end());
 
     std::for_each(
         nodes.begin(), nodes.end(), [&](const std::string& v) -> void {
           Ogre::MovableObject* mo = sceneMgr->getMovableObject(
-              handelr->getMatchedNodeValue("moType"));
+              v, handler->getMatchedNodeValue("moType"));
           //  destroy it
-          sceneMgr->destroyManualObject(mo);
+          sceneMgr->destroyMovableObject(mo);
         });
   } else if (branch == "sn0" || branch == "sn1") {
     // dth ltl_sceneNode sceneNode ("sn0")
@@ -322,10 +325,10 @@ bool DthCmd::doExecute() {
     auto sceneNode =
         sceneMgr->getSceneNode(handler->getMatchedNodeValue("sceneNode"));
     const std::string& moType =
-        handler->getMatchedNodeValue("moType", ({"sn1"}));
+        handler->getMatchedNodeValue("moType", {"sn1"});
     auto oi = sceneNode->getAttachedObjectIterator();
-    while (oi->hasMoreElements()) {
-      Ogre::MovableObject* mo = oi->getNext();
+    while (oi.hasMoreElements()) {
+      Ogre::MovableObject* mo = oi.getNext();
       if (moType.empty() || moType == mo->getMovableType())
         movables.push_back(mo);
     }
@@ -341,13 +344,13 @@ bool DthCmd::doExecute() {
     Ogre::Entity* ent =
         sceneMgr->getEntity(handler->getMatchedNodeValue("entity"));
     const std::string& moType =
-        handler->getMatchedNodeValue("moType", ({"tag1", "tag3"}));
+        handler->getMatchedNodeValue("moType", {"tag1", "tag3"});
     const std::string& bone =
-        handler->getMatchedNodeValue("bone", ({"tag2", "tag3"}));
+        handler->getMatchedNodeValue("bone", {"tag2", "tag3"});
 
     auto oi = ent->getAttachedObjectIterator();
-    while (oi->hasMoreElements()) {
-      Ogre::MovableObject* mo = oi->getNext();
+    while (oi.hasMoreElements()) {
+      Ogre::MovableObject* mo = oi.getNext();
       if ((moType.empty() || moType == mo->getMovableType()) &&
           (bone.empty() || mo->getParentNode()->getParent()->getName() == bone))
         movables.push_back(mo);
@@ -378,7 +381,7 @@ bool DthCmd::buildArgHandler() {
   // dth ltl_entity entity ("tag0")
   entNode->eb("tag0");
   // dth ltl_entity entity moType  ("tag1")
-  engNode->acn("moType")->eb("tag1");
+  entNode->acn("moType")->eb("tag1");
 
   Node* boneNode = entNode->acn("bone");
   // dth ltl_entity entity bone ("tag2")
@@ -414,10 +417,10 @@ bool EdmoCmd::doExecute() {
   const std::string& movable = handler->getMatchedNodeValue("movable");
   sgOgreConsole.freeze();
   Ogre::MovableObject* mo = sceneMgr->getMovableObject(movable, moType);
-  MovableSI* si = OgreSiUtil::createMovableSI(mo);
+  StringInterface* si = OgreSiUtil::createMovableSI(mo);
   AbsDir* dir = new AbsDir(si->getName(), si);
   sgOgreConsole.getMovableDir()->addChild(dir);
-  sgConsole.setCwd(dir) : return true;
+  sgConsole.setCwd(dir) ; return true;
 }
 
 //------------------------------------------------------------------------------

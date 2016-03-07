@@ -55,8 +55,6 @@ public:
   const std::string& getArgs() const { return mArgs; }
   void setArgs(const std::string& v) { mArgs = v; }
 
-
-
 protected:
   /**
    * Get default command argument handler name. It's "cmd_"+getName()
@@ -83,7 +81,8 @@ protected:
 
 private:
   /**
-   * Init cmd, build arghandler. Should be called when registered at cmd lib
+   * Init cmd, build arghandler. Should be called by command lib when registered
+   * at cmd lib
    * @return : this
    */
   Command* init();

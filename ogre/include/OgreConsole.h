@@ -8,7 +8,7 @@ namespace pac {
 
 class _PacExport OgreConsole : public Console {
 public:
-  OgreConsole(Ogre::SceneManager* sceneMgr);
+  OgreConsole(UiConsole* ui, Ogre::SceneManager* sceneMgr);
 
   /**
    * The scene need better be freezed when you want to change properties of some
@@ -41,8 +41,8 @@ protected:
    *   material
    *   mesh
    *   texture
-   *   pst    (particle system template)
    *   compositor
+   *   pst    (particle system template)
    * node:
    *   bone
    *   sceneNode

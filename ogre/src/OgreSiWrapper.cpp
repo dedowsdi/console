@@ -59,7 +59,7 @@ bool OgreSiWrapper::createaAhDict() {
 void OgreSiWrapper::bindArghanderByType() {
   const Ogre::ParameterList& paramList = mOgreSI->getParameters();
   std::for_each(paramList.begin(), paramList.end(),
-      [&](Ogre::ParameterList::value_type& v) -> void {
+      [&](const Ogre::ParameterList::value_type& v) -> void {
         std::string ahName;
         switch (v.paramType) {
           case Ogre::PT_BOOL:

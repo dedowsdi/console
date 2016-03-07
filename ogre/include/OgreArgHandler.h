@@ -13,6 +13,7 @@ namespace pac {
 class _PacExport MovableAH : public ArgHandler {
 public:
   MovableAH();
+  virtual ArgHandler* clone() { return new MovableAH(*this); }
 
 protected:
   virtual void populatePromptBuffer(const std::string& s);
@@ -23,7 +24,8 @@ protected:
 private:
   Ogre::Entity* mEntity;
   Ogre::SceneNode* mSceneNode;
-  Node* mEntityNode, mBoneNode, mSnNode, mMoTypeNode;
+  std::string mMoType, mBone;
+  Node* mEntityNode, *mBoneNode, *mSnNode, *mMoTypeNode;
 };
 
 /**
@@ -32,6 +34,7 @@ private:
 class _PacExport BoneAH : public ArgHandler {
 public:
   BoneAH();
+  virtual ArgHandler* clone() { return new BoneAH(*this); }
 
 protected:
   virtual void populatePromptBuffer(const std::string& s);
@@ -50,19 +53,25 @@ protected:
 class _PacExport MovableBaseAH : public ArgHandler {
 public:
   /**
-   * @param name : handler name
-   * @return :
+   * ctor of specific movable type
+   * @param name : name
+   * @param moType : movable object type
    */
   MovableBaseAH(const std::string& name, const std::string& moType);
+  virtual ArgHandler* clone() { return new MovableBaseAH(*this); }
 
 protected:
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
+
+protected:
+  std::string mMoType;
 };
 
 class _PacExport SceneNodeAH : public ArgHandler {
 public:
   SceneNodeAH();
+  virtual ArgHandler* clone() { return new SceneNodeAH(*this); }
 
 protected:
   virtual void populatePromptBuffer(const std::string& s);
@@ -71,12 +80,13 @@ protected:
    * Don't have access to scene nodes list in scene manager, have to do it
    * manually
    */
-  void loopNode(Ogre::SceneNode* sceneNode, const std::string& s);
+  void loopNode(Ogre::Node* sceneNode, const std::string& s);
 };
 
-class _PacExport ResourceAh : public ArgHandler {
+class _PacExport ResourceAH : public ArgHandler {
 public:
-  ResourceAh(const std::string& name, Ogre::ResourceManager* rm);
+  ResourceAH(const std::string& name, Ogre::ResourceManager* rm);
+  virtual ArgHandler* clone() { return new ResourceAH(*this); }
 
 protected:
   virtual void populatePromptBuffer(const std::string& s);
@@ -84,6 +94,19 @@ protected:
 
 protected:
   Ogre::ResourceManager* mResourceMgr;
+};
+
+class _PacExport ParticleSystemTemplateAH : public ArgHandler {
+public:
+  ParticleSystemTemplateAH(Ogre::ParticleSystemManager* pm);
+  virtual ArgHandler* clone() { return new ParticleSystemTemplateAH(*this); }
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
+
+protected:
+  Ogre::ParticleSystemManager* mManager;
 };
 }
 
