@@ -8,14 +8,18 @@
 
 namespace pac {
 
+Ogre::ResourceManager* getResourceManager(const std::string& resType);
+
 /**
- * lsmat ("0")
- * lsmat ltl_regex regex ("1")
+ * lsres resType ("0")
+ * lsres resType ltl_regex regex ("1")
+ *
+ * list resource
  */
-class _PacExport LsmatCmd : public Command {
+class _PacExport LsresCmd : public Command {
 public:
-  LsmatCmd();
-  virtual Command* clone() { return new LsmatCmd(*this); }
+  LsresCmd();
+  virtual Command* clone() { return new LsresCmd(*this); }
 
 protected:
   virtual bool doExecute();
@@ -28,10 +32,10 @@ protected:
  * lsnd ltl_direct sceneNode ("2")
  * lsnd ltl_regex regex ("3")
  */
-class _PacExport Lsnd : public Command {
+class _PacExport LsndCmd : public Command {
 public:
-  Lsnd();
-  virtual Command* clone() { return new Lsnd(*this); }
+  LsndCmd();
+  virtual Command* clone() { return new LsndCmd(*this); }
 
 protected:
   virtual bool doExecute();
@@ -55,9 +59,11 @@ private:
  * ath ltl_sceneNode sceneNode ltl_light id ("sn0")
  * ath ltl_sceneNode sceneNode ltl_entity id mesh ("sn1")
  * ath ltl_sceneNode sceneNode ltl_particle id pst ("sn2")
+ * ath ltl_sceneNode sceneNode ltl_camera id("sn3")
  * ath ltl_tagPoint entity bone ltl_light id ("tag0")
  * ath ltl_tagPoint entity bone ltl_entity id mesh ("tag1")
  * ath ltl_tagPoint entity bone ltl_particle id pst ("tag2")
+ * ath ltl_tagPoint entity bone ltl_camera id ("tag3")
  *
  * attach movable to scenenode or entity bone
  */
@@ -88,17 +94,19 @@ public:
 
 protected:
   virtual bool doExecute();
-  virtual bool buildArgHandler();
+   virtual bool buildArgHandler();
 };
 
 /**
  * dth moType movable... ("m0")
  * dth ltl_sceneNode sceneNode ("sn0")
  * dth ltl_sceneNode sceneNode moType ("sn1")
- * dth ltl_entity entity ("tag0")
- * dth ltl_entity entity moType  ("tag1")
- * dth ltl_entity entity bone ("tag2")
- * dth ltl_entity entity bone moType ("tag3")
+ * dth ltl_sceneNode sceneNode moType movable("sn2")
+ * dth ltl_tagPoint entity ("tag0")
+ * dth ltl_tagPoint entity moType  ("tag1")
+ * dth ltl_tagPoint entity bone ("tag2")
+ * dth ltl_tagPoint entity bone moType ("tag3")
+ * dth ltl_tagPoint entity bone moType movable("tag4")
  *
  * detach movable
  */
@@ -147,6 +155,36 @@ public:
 protected:
   virtual bool doExecute();
   virtual bool buildArgHandler();
+};
+
+/**
+ * and id ("0")
+ * and sncneNode id ("1")
+ *
+ * add scenenode 
+ */
+class _PacExport AdndCmd : public Command {
+public:
+  AdndCmd();
+  virtual Command* clone() { return new AdndCmd(*this); }
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+};
+
+/**
+ * and sncneNode id ("0")
+ *
+ * add scenenode 
+ */
+class _PacExport RmndCmd : public Command {
+public:
+  RmndCmd();
+  virtual Command* clone() { return new RmndCmd(*this); }
+
+protected:
+  virtual bool doExecute();
 };
 }
 

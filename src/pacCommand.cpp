@@ -61,7 +61,7 @@ void Command::setArgsAndOptions(const std::string& v) {
   mArgs.clear();
   mOptions.clear();
   // extract options
-  boost::regex reOptions("-(\\S*)\\s*");
+  boost::regex reOptions("-([a-z]+)\\s*");
 
   // get options
   std::string::const_iterator start = v.begin();
@@ -109,7 +109,7 @@ Command* CommandLib::createCommand(const std::string& cmdName) {
   if (iter != mCmdMap.end()) {
     return iter->second->clone();
   } else {
-    PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, cmdName + " not found");
+    return 0;
   }
 }
 
@@ -141,8 +141,6 @@ void CommandLib::init() {
   registerCommand(new GetCmd());
   registerCommand(new SzCmd());
   registerCommand(new CtdCmd());
-
-  sgArgLib.registerArgHandler(new CmdArgHandler());
 }
 //------------------------------------------------------------------------------
 CommandLib::CmdMap::const_iterator CommandLib::beginCmdMapIterator() const {

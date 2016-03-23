@@ -167,6 +167,9 @@ public:
     a crash
     as soon as one of the ResourceManager implementers (e.g. MaterialManager)
     initializes.*/
+
+  virtual void serialize(std::ostream& os, size_t lvl = 0);
+
   static void cleanupDictionary();
 
   /**
@@ -178,8 +181,7 @@ public:
   void setWrapper(bool v) { mWrapper = v; }
 
   const std::string& getName() const { return mName; }
-  void setName( const std::string& v){mName = v;}
-
+  void setName(const std::string& v) { mName = v; }
 
 protected:
   bool mWrapper;

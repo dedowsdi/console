@@ -49,7 +49,7 @@ LiteralArgHandler::LiteralArgHandler(const std::string& text)
 
 //------------------------------------------------------------------------------
 void LiteralArgHandler::populatePromptBuffer(const std::string& s) {
-  if (StringUtil::startsWith(mText, s)) appendPromptBuffer(s);
+  if (s.empty() || StringUtil::startsWith(mText, s)) appendPromptBuffer(mText);
 }
 
 //------------------------------------------------------------------------------
@@ -112,10 +112,24 @@ void PathArgHandler::completeTyping(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-CmdArgHandler::CmdArgHandler() : StringArgHandler("cmd") {
+CmdArgHandler::CmdArgHandler() : ArgHandler("cmd") {}
+
+//------------------------------------------------------------------------------
+void CmdArgHandler::populatePromptBuffer(const std::string& s) {
   std::for_each(sgCmdLib.beginCmdMapIterator(), sgCmdLib.endCmdMapIterator(),
-      [&](const CommandLib::CmdMap::value_type& v)
-          -> void { mStrings.insert(v.first); });
+      [&](const CommandLib::CmdMap::value_type& v) -> void {
+        if (s.empty() || StringUtil::startsWith(v.first, s)) {
+          this->appendPromptBuffer(v.first);
+        }
+      });
+}
+
+//------------------------------------------------------------------------------
+bool CmdArgHandler::doValidate(const std::string& s) {
+  auto iter = std::find_if(sgCmdLib.beginCmdMapIterator(),
+      sgCmdLib.endCmdMapIterator(), [&](const CommandLib::CmdMap::value_type& v)
+                                        -> bool { return v.first == s; });
+  return iter != sgCmdLib.endCmdMapIterator();
 }
 
 //------------------------------------------------------------------------------
@@ -159,21 +173,22 @@ ParamArgHandler* PparamArgHandler::getParamHandler() {
 }
 
 //------------------------------------------------------------------------------
-ValueArgHandler::ValueArgHandler()
-    : ArgHandler("value"), mHandler(0), mDir(0) {}
-
-//------------------------------------------------------------------------------
-ValueArgHandler::ValueArgHandler(const ValueArgHandler& rhs)
-    : ArgHandler(rhs), mHandler(0), mDir(0) {}
+ValueArgHandler::ValueArgHandler() : ArgHandler("value") {}
 
 //------------------------------------------------------------------------------
 void ValueArgHandler::runtimeInit() {
   // get param name and working dir form param handler
   ParamArgHandler* paramHandler = getParamHandler();
-  setDir(paramHandler->getDir());
   const std::string& param = paramHandler->getValue();
-  const std::string& ahName = mDir->getValueArgHandler(param);
-  setHandler(sgArgLib.createArgHandler(ahName));
+  const std::string& ahName = paramHandler->getDir()->getValueArgHandler(param);
+  ArgHandler* handler = sgArgLib.createArgHandler(ahName);
+  if (!mNode)
+    PAC_EXCEPT(
+        Exception::ERR_INVALID_STATE, "value must be attatched to a node");
+
+  mNode->setArgHandler(handler);
+  // nolonger needed, it's job is done
+  delete this;
 }
 
 //------------------------------------------------------------------------------
@@ -192,21 +207,14 @@ ParamArgHandler* ValueArgHandler::getParamHandler() {
 }
 
 //------------------------------------------------------------------------------
-void ValueArgHandler::populatePromptBuffer(const std::string& s) {
-  PacAssert(mHandler, "0 handler in value handler");
-  mHandler->populatePromptBuffer(s);
-  mPromptBuffer.assign(
-      mHandler->beginPromptBuffer(), mHandler->endPromptBuffer());
+IdArgHandler::IdArgHandler() : ArgHandler("id") {
+  setPromptType(PT_PROMPTONLY);
 }
 
 //------------------------------------------------------------------------------
-bool ValueArgHandler::doValidate(const std::string& s) {
-  PacAssert(mHandler, "0 handler in value handler");
-  return mHandler->validate(s);
+void IdArgHandler::populatePromptBuffer(const std::string& s) {
+  appendPromptBuffer("enter an identifier pls");
 }
-
-//------------------------------------------------------------------------------
-IdArgHandler::IdArgHandler() : ArgHandler("id") {}
 
 //------------------------------------------------------------------------------
 bool IdArgHandler::doValidate(const std::string& s) {
@@ -216,7 +224,7 @@ bool IdArgHandler::doValidate(const std::string& s) {
 
 //------------------------------------------------------------------------------
 void RegexArgHandler::populatePromptBuffer(const std::string& s) {
-  appendPromptBuffer("pls input regex expression");
+  appendPromptBuffer("pls input regular expression");
 }
 
 //------------------------------------------------------------------------------

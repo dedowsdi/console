@@ -17,6 +17,8 @@ void CmdHistory::push(const std::string& cmdLine) {
   StringUtil::trim(l);
 
   if (l.empty()) PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, "empty cmdline!");
+  // do nothing if it's the same as last one
+  if (l == mStack[mTopIndex]) return;
 
   mTopIndex = getNextRollingIndex(mTopIndex);
   mStack[mTopIndex] = l;
@@ -32,7 +34,7 @@ const std::string& CmdHistory::previous() {
     return mStack[mSearchIndex];
   } else {
     size_t searchIndex = getPrevRollingIndex(mSearchIndex);
-    if (mRollOver || searchIndex != mTopIndex)  // check roll over
+    if (!mStack[searchIndex].empty() && (mRollOver || searchIndex != mTopIndex) )
       mSearchIndex = searchIndex;
 
     return mStack[mSearchIndex];

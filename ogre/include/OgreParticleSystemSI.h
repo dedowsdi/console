@@ -12,7 +12,7 @@ public:
 
   virtual void onCreateDir(AbsDir* dir);
 
-  Ogre::ParticleSystem* getparticleSystem() const;
+  Ogre::ParticleSystem* getParticleSystem() const;
 
 private:
   void bindArgHandlers();
@@ -23,6 +23,7 @@ public:
   ParticleEmitterSI(Ogre::ParticleEmitter* emitter);
 
   Ogre::ParticleEmitter* getParticleEmitter();
+
 private:
   void bindArgHandlers();
 };
@@ -36,7 +37,6 @@ public:
 private:
   void bindArgHandlers();
 };
-
 
 class _PacExport ParticleRendererSI : public OgreSiWrapper {
 public:

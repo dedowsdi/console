@@ -32,7 +32,11 @@ public:
     return mEnums.end();
   }
   static const std::string& getEnumStringAt(size_t i) { return mStrings[i]; }
-  static const T& getEnumAt(size_t i) { return mEnums[i]; }
+  static T getEnumAt(size_t i) { return mEnums[i]; }
+  static T randomEnum() { return mEnums[rand() % mEnums.size()]; }
+  static const std::string& randomEnumStr() {
+    return mStrings[rand() % mStrings.size()];
+  }
   static size_t size() { return mEnums.size(); }
   static bool empty() { return mEnums.empty(); }
 

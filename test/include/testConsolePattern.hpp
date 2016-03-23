@@ -34,8 +34,8 @@ void testOutputString(const std::string& s, size_t textWidth) {
   size_t totalColWidth = 0;
 
   for (size_t col = 0; col < numCol; ++col) {
-    size_t colSize = grid[0][col].size();
-    totalColWidth += colSize;
+    size_t colWidth = grid[0][col].size();
+    totalColWidth += colWidth;
 
     for (size_t row = 0; row < numRow; ++row) {
       // at lest numCol -1 is full filled
@@ -53,7 +53,10 @@ void testOutputString(const std::string& s, size_t textWidth) {
       }
 
       const std::string& val = grid[row][col];
-      EXPECT_EQ(colSize, val.size());
+      if (val.size() != colWidth) {
+        std::cout << "shit"  << std::endl;
+      }
+      EXPECT_EQ(colWidth, val.size());
       // at least 2 space in each item
       EXPECT_GT(val.size(), 2);
       EXPECT_STREQ("  ", val.substr(val.length() - 2).c_str());
@@ -163,7 +166,7 @@ TEST_F(TestConsolePattern80, 1item) {
   size_t numLine = std::count(s.begin(), s.end(), '\n');
   EXPECT_EQ(1, numLine);
   EXPECT_EQ(4, s.size());  // 2 spacing
-  EXPECT_STREQ("\n1  ", s.c_str());
+  EXPECT_STREQ("1  \n", s.c_str());
   testOutputString(s, mPattern->mTextWidth);
 }
 
@@ -178,7 +181,7 @@ TEST_F(TestConsolePattern80, 1tooBigItem) {
   size_t numLine = std::count(s.begin(), s.end(), '\n');
   EXPECT_EQ(1, numLine);
   EXPECT_EQ(84, s.size());
-  EXPECT_STREQ(("\n" + item + "  ").c_str(), s.c_str());
+  EXPECT_STREQ((item + "  \n").c_str(), s.c_str());
   testOutputString(s, mPattern->mTextWidth);
 }
 
@@ -208,7 +211,7 @@ TEST_F(TestConsolePattern80, 5ItemOneLine) {
   size_t numLine = std::count(s.begin(), s.end(), '\n');
   EXPECT_EQ(1, numLine);
   EXPECT_EQ(5 * 5 + 2 * 5 + 1, s.size());
-  EXPECT_STREQ("\nabcde  abcde  abcde  abcde  abcde  ", s.c_str());
+  EXPECT_STREQ("abcde  abcde  abcde  abcde  abcde  \n", s.c_str());
   testOutputString(s, mPattern->mTextWidth);
 }
 
@@ -225,8 +228,8 @@ TEST_F(TestConsolePattern80, 16ItemTwoLine) {
   EXPECT_EQ(8 * 16 + 2 * 16 + 2, s.size());
   std::stringstream ss;
   for (int i = 0; i < 16; ++i) {
-    if (i % 8 == 0) ss << "\n";
     ss << "abcdefgh  ";
+    if (i % 8 == 7) ss << "\n";
   }
   EXPECT_STREQ(ss.str().c_str(), s.c_str());
   testOutputString(s, mPattern->mTextWidth);

@@ -25,6 +25,9 @@ public:
    */
   virtual std::string applyPattern(SVIter beg, SVIter end) = 0;
 
+  size_t getTextWidth() const { return mTextWidth; }
+  void setTextWidth( size_t v){mTextWidth = v;}
+
 protected:
   size_t mTextWidth;  // line width
 };

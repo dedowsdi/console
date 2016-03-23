@@ -78,6 +78,21 @@ void AbsDir::addChild(AbsDir* dir, bool temp /*= true*/) {
 }
 
 //------------------------------------------------------------------------------
+AbsDir* AbsDir::addUniqueChild(
+    const std::string& name, StringInterface* si, bool temp /*= true*/) {
+  if (hasChild(name)) {
+    AbsDir* dir = getChildByName(name);
+    dir->setStringInterface(si);
+    dir->setTemp(temp);
+    return dir;
+  }
+
+  AbsDir* dir = new AbsDir(name, si);
+  this->addChild(dir, temp);
+  return dir;
+}
+
+//------------------------------------------------------------------------------
 std::string AbsDir::getFullPath() {
   if (!mParent) return this->getName();
   return mParent->getFullPath() + this->getName() + pac::delim;
@@ -100,6 +115,13 @@ AbsDir* AbsDir::getChildByName(const std::string& name) {
     PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, name + " not found at " + mName);
 
   return *iter;
+}
+
+//------------------------------------------------------------------------------
+bool AbsDir::hasChild(const std::string& name) {
+  AbsDirs::iterator iter = std::find_if(mChildren.begin(), mChildren.end(),
+      [&](AbsDirs::value_type& v) -> bool { return v->getName() == name; });
+  return iter != mChildren.end();
 }
 
 //------------------------------------------------------------------------------
@@ -132,11 +154,7 @@ void AbsDir::removeChild(AbsDir* dir) {
 //------------------------------------------------------------------------------
 void AbsDir::serialize(
     std::ostream& os, bool recursive /*= true*/, size_t lvl /*= 0*/) {
-  const StringVector&& params = getParameters();
-  std::string indent(" ", lvl);
-  std::for_each(params.begin(), params.end(),
-      [&](const std::string& v)
-          -> void { os << indent << v << mStringInterface->getParameter(v); });
+  if (mStringInterface) mStringInterface->serialize(os, lvl);
 
   if (recursive) {
     size_t childLvl = ++lvl;
@@ -181,9 +199,9 @@ AbsDir* AbsDirUtil::findPath(const std::string& path, AbsDir* curDir /*=0*/) {
 //------------------------------------------------------------------------------
 AbsDir* AbsDirUtil::findAbsolutePath(const std::string& path) {
   if (path == pac::delim)
-    return &sgDirRoot;
+    return &sgRootDir;
   else
-    return findRelativePath(path.substr(1), &sgDirRoot);
+    return findRelativePath(path.substr(1), &sgRootDir);
 }
 
 //------------------------------------------------------------------------------

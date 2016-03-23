@@ -1,4 +1,4 @@
-set(TEST_SRCS
+set(TEST_HEADS
 	include/testAbsDir.hpp
 	include/testArgHandler.hpp
 	include/testCmdHistory.hpp
@@ -8,8 +8,11 @@ set(TEST_SRCS
 	include/testSingleton.hpp
 	include/testStdUtil.hpp
 	include/testStringUtil.hpp
-	include/testUiConsole.hpp
-	src/test.cpp)
+	include/testConsoleUI.hpp
+	)
+set(TEST_SRCS
+	src/test.cpp
+	)
 
 find_package(GTest REQUIRED)
 #get_target_property(CONSOLE_INCLUDES console INCLUDE_DIRECTORIES)

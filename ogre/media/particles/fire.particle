@@ -1,0 +1,92 @@
+particle_system fireball
+{
+    quota 200
+    material PE/Lensflare
+    particle_width 0.25
+    particle_height 0.25
+    local_space true
+
+
+    emitter Point
+    {
+        angle 180
+        colour_range_start 1 0.5 0 1
+        colour_range_end 1 0 0 1
+        emission_rate 100
+        velocity_min 0.25
+        velocity_max 1.25
+        time_to_live_min 0.2
+        time_to_live_max 0.25
+        duration 0
+        repeat_delay 0
+    }
+}
+
+particle_system fireball_trail
+{
+    quota 200
+    material PE/Lensflare
+    particle_width 0.25
+    particle_height 0.25
+
+
+    emitter Cylinder
+    {
+        colour_range_start 1 0.5 0 1
+        colour_range_end 1 0 0 1
+        emission_rate 100
+        velocity 0
+        time_to_live_min 0.2
+        time_to_live_max 0.25
+        duration 0
+        repeat_delay 0
+        width 0.25
+        height 0.25
+        depth 0
+    }
+}
+
+particle_system firecast
+{
+    quota 50
+    material PE/Lensflare
+    particle_width 15
+    particle_height 15
+    local_space true
+
+
+    emitter Point
+    {
+        angle 180
+        colour_range_start 1 0.5 0 1
+        colour_range_end 1 0 0 1
+        emission_rate 50
+        velocity_min 20
+        velocity_max 30
+        time_to_live 0.25
+        duration 0
+        repeat_delay 0
+    }
+}
+
+particle_system fireball_explosion
+{
+    quota 100
+    material PE/Explosion
+    particle_width 2
+    particle_height 2
+
+
+    emitter Point
+    {
+        angle 180
+        colour_range_start 1 0.5 0 1
+        colour_range_end 1 0 0 1
+        emission_rate 100
+        velocity_min 5
+        velocity_max 10
+        time_to_live 0.3
+        duration 1
+        repeat_delay 0
+    }
+}

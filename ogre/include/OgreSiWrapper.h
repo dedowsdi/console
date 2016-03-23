@@ -33,7 +33,7 @@ public:
   bool createaAhDict();
 protected:
 
-  void bindArghanderByType();
+  void bindArgHandlerByType();
 
 protected:
   Ogre::StringInterface* mOgreSI;

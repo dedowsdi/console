@@ -83,6 +83,9 @@ protected:
   void loopNode(Ogre::Node* sceneNode, const std::string& s);
 };
 
+/**
+ * deal with material, compositor
+ */
 class _PacExport ResourceAH : public ArgHandler {
 public:
   ResourceAH(const std::string& name, Ogre::ResourceManager* rm);
@@ -94,6 +97,27 @@ protected:
 
 protected:
   Ogre::ResourceManager* mResourceMgr;
+};
+
+/**
+ * deal with mesh, texture. Only loaded mesh and texture appears in it's
+ * manager, but i need to get the unloaded ones too.
+ */
+class _PacExport PassiveResourceAH : public ArgHandler {
+public:
+  PassiveResourceAH(const std::string& name, Ogre::ResourceManager* rm,
+      std::initializer_list<std::string> exts);
+  virtual ArgHandler* clone() { return new PassiveResourceAH(*this); }
+  StringSet::const_iterator beginResourceIter() const;
+  StringSet::const_iterator endResourceIter() const;
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
+
+protected:
+  Ogre::ResourceManager* mResourceMgr;
+  StringSet mResources;  // resources on disk
 };
 
 class _PacExport ParticleSystemTemplateAH : public ArgHandler {

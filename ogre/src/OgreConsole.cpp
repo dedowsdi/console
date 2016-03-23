@@ -6,11 +6,12 @@
 #include "pacArgHandler.h"
 #include "pacAbsDir.h"
 #include "pacEnumUtil.h"
-#include "OgreMaterialManager.h"
-#include "OgreMeshManager.h"
-#include "OgreTextureManager.h"
-#include "OgreParticleSystemManager.h"
-#include "OgreCompositorManager.h"
+#include <OgreMaterialManager.h>
+#include <OgreMeshManager.h>
+#include <OgreTextureManager.h>
+#include <OgreParticleSystemManager.h>
+#include <OgreCompositorManager.h>
+#include <OgreNode.h>
 
 namespace pac {
 
@@ -30,9 +31,11 @@ DEFINE_ENUM_CONVERSION(
     Ogre::, FogMode, (FOG_NONE)(FOG_EXP)(FOG_EXP2)(FOG_LINEAR))
 DEFINE_ENUM_CONVERSION(
     Ogre::, CullingMode, (CULL_NONE)(CULL_CLOCKWISE)(CULL_ANTICLOCKWISE))
+DEFINE_ENUM_CONVERSION(
+    Ogre::Node::, TransformSpace, (TS_LOCAL)(TS_PARENT)(TS_WORLD))
 
 //------------------------------------------------------------------------------
-OgreConsole::OgreConsole(UiConsole* ui, Ogre::SceneManager* sceneMgr)
+OgreConsole::OgreConsole(ConsoleUI* ui, Ogre::SceneManager* sceneMgr)
     : Console(ui), mSceneMgr(sceneMgr), mMovableDir(0), mNodeDir(0) {}
 
 //------------------------------------------------------------------------------
@@ -54,19 +57,25 @@ void OgreConsole::initCommand() {
   sgCmdLib.registerCommand(new AthCmd());
   sgCmdLib.registerCommand(new DthCmd());
   sgCmdLib.registerCommand(new EdmoCmd());
-  sgCmdLib.registerCommand(new EdndCmd());
-  sgCmdLib.registerCommand(new LsmatCmd());
+  sgCmdLib.registerCommand(new LsresCmd());
   sgCmdLib.registerCommand(new LsmoCmd());
-  sgCmdLib.registerCommand(new Lsnd());
+  sgCmdLib.registerCommand(new LsndCmd());
+  sgCmdLib.registerCommand(new AdndCmd());
+  sgCmdLib.registerCommand(new EdndCmd());
+  sgCmdLib.registerCommand(new RmndCmd());
 }
 
 //------------------------------------------------------------------------------
 void OgreConsole::initDir() {
   Console::initDir();
 
-  sgRootDir.addChild(new AbsDir("scene", new SceneManagerSI(mSceneMgr)));
-  sgRootDir.addChild(new AbsDir("movable"));
-  sgRootDir.addChild(new AbsDir("node"));
+  mSceneDir = new AbsDir("scene", new SceneManagerSI(mSceneMgr));
+  mMovableDir = new AbsDir("movable");
+  mNodeDir = new AbsDir("node");
+
+  sgRootDir.addChild(mSceneDir);
+  sgRootDir.addChild(mMovableDir);
+  sgRootDir.addChild(mNodeDir);
 }
 
 //------------------------------------------------------------------------------
@@ -74,17 +83,15 @@ void OgreConsole::initEnumArgHandler() {
   // enum
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::Light::LightTypes>("en_lightType"));
-
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::PolygonMode>("en_polygonMode"));
-
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::ShadowTechnique>("en_shadowTenique"));
-
   sgArgLib.registerArgHandler(new EnumArgHandler<Ogre::FogMode>("en_fogMode"));
-
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::FogMode>("en_cullingMode"));
+  sgArgLib.registerArgHandler(
+      new EnumArgHandler<Ogre::Node::TransformSpace>("en_transformSpace"));
 }
 
 //------------------------------------------------------------------------------
@@ -92,13 +99,12 @@ void OgreConsole::initResourceArghandler() {
   // resource
   sgArgLib.registerArgHandler(
       new ResourceAH("material", Ogre::MaterialManager::getSingletonPtr()));
-  sgArgLib.registerArgHandler(
-      new ResourceAH("mesh", Ogre::MeshManager::getSingletonPtr()));
-  sgArgLib.registerArgHandler(
-      new ResourceAH("texture", Ogre::TextureManager::getSingletonPtr()));
+  sgArgLib.registerArgHandler(new PassiveResourceAH(
+      "mesh", Ogre::MeshManager::getSingletonPtr(), {"mesh"}));
+  sgArgLib.registerArgHandler(new PassiveResourceAH("texture",
+      Ogre::TextureManager::getSingletonPtr(), {"png", "jpg", "jpeg", "dds"}));
   sgArgLib.registerArgHandler(new ParticleSystemTemplateAH(
       Ogre::ParticleSystemManager::getSingletonPtr()));
-
   sgArgLib.registerArgHandler(
       new ResourceAH("compositor", Ogre::CompositorManager::getSingletonPtr()));
 }
@@ -121,15 +127,17 @@ void OgreConsole::initNodeArgHandler() {
 
 //------------------------------------------------------------------------------
 void OgreConsole::initStringArgHandler() {
-  // mot
   StringArgHandler* moType = new StringArgHandler(
       "moType", {"ParticleSystem", "Light", "Camera", "Entity"});
   sgArgLib.registerArgHandler(moType);
 
-  // particle related
   StringArgHandler* forceApp =
       new StringArgHandler("affector_force_application", {"average", "add"});
   sgArgLib.registerArgHandler(forceApp);
+
+  StringArgHandler* resType = new StringArgHandler(
+      "resType", {"material", "mesh", "texture", "compositor", "pst"});
+  sgArgLib.registerArgHandler(resType);
 }
 
 //------------------------------------------------------------------------------
@@ -140,6 +148,7 @@ void OgreConsole::initLiteralArgHandler() {
   sgArgLib.registerArgHandler(new LiteralArgHandler("light"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("entity"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("particle"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("camera"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("direct"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("all"));
 }
@@ -147,15 +156,21 @@ void OgreConsole::initLiteralArgHandler() {
 //------------------------------------------------------------------------------
 void OgreConsole::initTreeArgHandler() {
   // scenemanager related
-  TreeArgHandler* fog = new TreeArgHandler("fog");
-  Node* root = fog->getRoot();
+  TreeArgHandler* handler = new TreeArgHandler("handler");
+  Node* root = handler->getRoot();
   // fogMode colorValue expDensity linearStart linearEnd
-  root->acn("fogMode")
+  root->acn("en_fogMode")
       ->acn("colour", "real4")
       ->acn("expDensity", "real")
       ->acn("linearStart", "real")
       ->acn("linearEnd", "real")
       ->eb("0");
-  sgArgLib.registerArgHandler(fog);
+  sgArgLib.registerArgHandler(handler);
+
+  // node related
+  handler = new TreeArgHandler("ypr");  // ypr as yaw pitch roll
+  root = handler->getRoot();
+  root->acn("en_transformSpace")->acn("real")->eb("0");
+  sgArgLib.registerArgHandler(handler);
 }
 }

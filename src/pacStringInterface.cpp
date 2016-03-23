@@ -22,8 +22,7 @@ void ParamCmd::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-  void ReadonlyParamCmd::doSet(void* target, ArgHandler* handler)
-{
+void ReadonlyParamCmd::doSet(void* target, ArgHandler* handler) {
   PAC_EXCEPT(Exception::ERR_INVALID_STATE,
       "it's readonly, you should not be able to reach this point");
 }
@@ -140,7 +139,8 @@ void StringInterface::setParameterList(const NameValuePairList& paramList) {
 std::string StringInterface::getParameter(const std::string& name) const {
   const ParamDictionary* dict = getParamDict();
   const ParamCmd* cmd = dict->getParamCmd(name);
-  return cmd->doGet(this);
+  if (cmd) return cmd->doGet(this);
+  return "";
 }
 
 //------------------------------------------------------------------------------
@@ -163,6 +163,15 @@ void StringInterface::copyParametersTo(StringInterface* dest) const {
       dest->setParameter(i->first, getParameter(i->first));
     }
   }
+}
+
+//------------------------------------------------------------------------------
+void StringInterface::serialize(std::ostream& os, size_t lvl /*= 0*/) {
+  const StringVector&& params = getParameters();
+  std::string indent(" ", lvl);
+  std::for_each(params.begin(), params.end(),
+      [&](const std::string& v)
+          -> void { os << indent << v << this->getParameter(v); });
 }
 
 //-----------------------------------------------------------------------------

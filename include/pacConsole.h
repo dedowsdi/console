@@ -13,7 +13,7 @@ class Console : public Singleton<Console>, public StringInterface {
 public:
   friend class RaiiConsoleBuffer;
 
-  Console(UiConsole* ui);
+  Console(ConsoleUI* ui);
   virtual ~Console();
 
   virtual void init();
@@ -76,8 +76,16 @@ public:
    */
   void cleanTempDirs();
 
-  UiConsole* getUi() const { return mUi; }
-  void setUi(UiConsole* v) { mUi = v; }
+  ConsoleUI* getUi() const { return mUi; }
+  void setUi(ConsoleUI* v) { mUi = v; }
+
+  bool isActive();
+  void setActive(bool b);
+  void toggleActive();
+  ConsolePattern* getPattern() const { return mPattern; }
+
+  void resize();
+  
 
 protected:
   // set up console pattern
@@ -109,11 +117,12 @@ private:
 
   void cleanTempDir(AbsDir* dir);
 
+
 private:
   int mIsBuffering;
 
   AbsDir* mDir;
-  UiConsole* mUi;
+  ConsoleUI* mUi;
   ConsolePattern* mPattern;
   CmdHistory* mCmdHistory;
   StringVector mBuffer;

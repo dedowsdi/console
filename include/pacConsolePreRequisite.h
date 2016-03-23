@@ -74,7 +74,7 @@ namespace pac
 	class Node;
 	class StringInterface;
 	class TreeArgHandler;
-	class UiConsole;
+	class ConsoleUI;
   class CommandLib;
   class StringArgHandler;
 	struct Branch;

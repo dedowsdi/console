@@ -2,7 +2,7 @@
 #include "pacConsole.h"
 #include "pacCommand.h"
 #include "pacArgHandler.h"
-#include "pacUiConsole.h"
+#include "pacConsoleUI.h"
 #include "pacAbsDir.h"
 #include "pacConsolePattern.h"
 #include "pacCmdHistory.h"
@@ -15,8 +15,8 @@ template <>
 Console* Singleton<Console>::msSingleton = 0;
 
 //------------------------------------------------------------------------------
-Console::Console(UiConsole* ui)
-    : StringInterface("console",false),
+Console::Console(ConsoleUI* ui)
+    : StringInterface("console", false),
       mIsBuffering(false),
       mDir(0),
       mUi(ui),
@@ -57,7 +57,7 @@ void Console::initCmdHistory() { mCmdHistory = new CmdHistory(); }
 void Console::initDir() {
   new RootDir();
   setCwd(&sgRootDir);
-  AbsDir* uiDir = new AbsDir("uiConsole", mUi);
+  AbsDir* uiDir = new AbsDir("consoleUi", mUi);
   sgRootDir.addChild(uiDir, false);
 }
 
@@ -92,17 +92,19 @@ bool Console::execute(const std::string& cmdLine /*= ""*/) {
       cmd->setArgsAndOptions(m[2]);
       return cmd->execute();
     }
+
+    outputLine("unknown command : " + m[1]);
+  } else {
+    outputLine("unknown input");
   }
-  return true;
+  return false;
 }
 
 //------------------------------------------------------------------------------
 void Console::prompt() {
   std::string&& cmdLine = mUi->getCmdLine();
   StringUtil::trim(cmdLine, true, false);
-  if (cmdLine.empty()) return;
-
-  fakeOutputDirAndCmd(cmdLine);
+  // fakeOutputDirAndCmd(cmdLine);
 
   boost::regex reCmd("^\\s*(\\w*)$");
   boost::smatch m;
@@ -154,7 +156,15 @@ Console& Console::complete(const std::string& s) {
 //------------------------------------------------------------------------------
 void Console::setCwd(AbsDir* dir) {
   mDir = dir;
-  mUi->setCwd(dir->getFullPath());
+  std::string&& cwd = dir->getFullPath();
+  if (cwd.size() > 1) {
+    // replace trailing / with " "
+    *cwd.rbegin() = ' ';
+  } else {
+    // add trailing " " for root
+    cwd.append(" ");
+  }
+  mUi->setCwd(cwd);
 }
 
 //------------------------------------------------------------------------------
@@ -173,8 +183,7 @@ void Console::endBuffer() {
   PacAssert(mIsBuffering, "It'w wrong to end buffer without start it");
   mIsBuffering = false;
   if (!mBuffer.empty())
-    mUi->outputNoAutoWrap(
-        mPattern->applyPattern(mBuffer.begin(), mBuffer.end()));
+    mUi->output(mPattern->applyPattern(mBuffer.begin(), mBuffer.end()));
 
   mBuffer.clear();
 }
@@ -191,6 +200,21 @@ void Console::rollCommand(bool backWard /*= true*/) {
 void Console::cleanTempDirs() { cleanTempDir(&sgRootDir); }
 
 //------------------------------------------------------------------------------
+bool Console::isActive() { return mUi->getVisible(); }
+
+//------------------------------------------------------------------------------
+void Console::setActive(bool b) {
+  mUi->setVisible(b);
+  mUi->setFocus(b);
+}
+
+//------------------------------------------------------------------------------
+void Console::toggleActive() { return setActive(!isActive()); }
+
+//------------------------------------------------------------------------------
+void Console::resize() { mPattern->setTextWidth(mUi->getTextWidth()); }
+
+//------------------------------------------------------------------------------
 void Console::promptCommandName(const std::string& cmdName) {
   ArgHandler* handler = sgArgLib.createArgHandler("cmd");
   handler->prompt(cmdName);
@@ -199,7 +223,7 @@ void Console::promptCommandName(const std::string& cmdName) {
 
 //------------------------------------------------------------------------------
 void Console::fakeOutputDirAndCmd(const std::string& cmdLine) {
-  output(mDir->getFullPath() + ":" + cmdLine);
+  outputLine(mDir->getFullPath() + " " + cmdLine);
 }
 
 //------------------------------------------------------------------------------

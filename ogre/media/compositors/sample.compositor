@@ -1,0 +1,307 @@
+
+
+compositor grayScale
+{
+
+    technique
+    {
+        texture scene target_width target_height PF_A8R8G8B8 chain_scope
+
+        target scene
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_grayScale
+                input 0 scene 0
+            }
+        }
+    }
+}
+
+compositor gbSwap
+{
+
+    technique
+    {
+        texture scene target_width target_height PF_A8R8G8B8
+
+        target scene
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_gbSwap
+                input 0 scene 0
+            }
+        }
+    }
+}
+
+compositor squareMode
+{
+
+    technique
+    {
+        texture scene target_width target_height PF_A8R8G8B8
+
+        target scene
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_squareMode
+                input 0 scene 0
+            }
+        }
+    }
+}
+
+compositor invertColor
+{
+
+    technique
+    {
+        texture scene target_width target_height PF_A8R8G8B8
+
+        target scene
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_invertColor
+                input 0 scene 0
+            }
+        }
+    }
+}
+
+compositor colorFactor
+{
+
+    technique
+    {
+        texture scene target_width target_height PF_A8R8G8B8
+
+        target scene
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_colorFactor
+                input 0 scene 0
+            }
+        }
+    }
+}
+
+compositor radialBlur
+{
+
+    technique
+    {
+        texture scene target_width target_height PF_A8R8G8B8
+
+        target scene
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_RadialBlur
+                input 0 scene 0
+            }
+        }
+    }
+}
+
+compositor tiling
+{
+
+    technique
+    {
+        texture rt0 target_width target_height PF_A8R8G8B8
+
+        target rt0
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_Tiling
+                input 0 rt0 0
+            }
+        }
+    }
+}
+
+compositor sharpenEdges
+{
+
+    technique
+    {
+        texture rt0 target_width target_height PF_A8R8G8B8
+
+        target rt0
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_SharpenEdges
+                input 0 rt0 0
+            }
+        }
+    }
+}
+
+compositor mrt2Cycle
+{
+
+    technique
+    {
+        texture rt0 target_width target_height PF_A8R8G8B8
+        texture rt1 target_width target_height PF_A8R8G8B8
+        texture scene target_width target_height PF_A8R8G8B8
+
+        target scene
+        {
+            input previous
+        }
+
+        target rt1
+        {
+
+            pass render_quad
+            {
+                material comp_RadialBlur
+                input 0 scene 0
+            }
+        }
+
+        target rt0
+        {
+
+            pass render_quad
+            {
+                material comp_Tiling
+                input 0 scene 0
+            }
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_mrt2Cycle
+                input 0 rt0 0
+                input 1 rt1 0
+            }
+        }
+    }
+}
+
+compositor refTest
+{
+
+    technique
+    {
+        texture_ref refTex grayScale scene
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_Tiling
+                input 0 refTex 0
+            }
+        }
+    }
+}
+
+compositor glass
+{
+
+    technique
+    {
+        texture rt0 target_width target_height PF_A8R8G8B8
+
+        target rt0
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_GlassPass
+                input 0 rt0 0
+            }
+        }
+    }
+}
+
+compositor nightVision
+{
+
+    technique
+    {
+        texture rt0 target_width target_height PF_A8R8G8B8
+
+        target rt0
+        {
+            input previous
+        }
+
+        target_output
+        {
+
+            pass render_quad
+            {
+                material comp_nightVision
+                input 0 rt0 0
+            }
+        }
+    }
+}

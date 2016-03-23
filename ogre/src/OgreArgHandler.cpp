@@ -24,9 +24,9 @@ void MovableAH::populatePromptBuffer(const std::string& s) {
     auto oi = mSceneNode->getAttachedObjectIterator();
     while (oi.hasMoreElements()) {
       auto mo = oi.getNext();
-      if (StringUtil::startsWith(mo->getName(), s) &&
+      if ((s.empty() || StringUtil::startsWith(mo->getName(), s)) &&
           mo->getMovableType() == mMoType)
-        appendPromptBuffer(s);
+        appendPromptBuffer(mo->getName());
     }
   } else if (mEntity) {
     // entity [bone] moType movable
@@ -35,9 +35,9 @@ void MovableAH::populatePromptBuffer(const std::string& s) {
       auto mo = oi.getNext();
       if (mBone.empty() ||
           mBone == mo->getParentNode()->getParent()->getName()) {
-        if (StringUtil::startsWith(mo->getName(), s) &&
+        if ((s.empty() || StringUtil::startsWith(mo->getName(), s)) &&
             mo->getMovableType() == mMoType)
-          appendPromptBuffer(s);
+          appendPromptBuffer(mo->getName());
       }
     }
   } else {
@@ -45,9 +45,9 @@ void MovableAH::populatePromptBuffer(const std::string& s) {
     auto oi = sm->getMovableObjectIterator(mMoType);
     while (oi.hasMoreElements()) {
       auto mo = oi.getNext();
-      if (StringUtil::startsWith(mo->getName(), s) &&
+      if ((s.empty() || StringUtil::startsWith(mo->getName(), s)) &&
           mo->getMovableType() == mMoType)
-        appendPromptBuffer(s);
+        appendPromptBuffer(mo->getName());
     }
   }
 }
@@ -102,7 +102,7 @@ void MovableAH::runtimeInit() {
   if (mSnNode) {
     mSceneNode = sm->getSceneNode(mSnNode->getValue());
   } else if (mEntityNode) {
-    mEntity = sm->getEntity(mEntityNode->getName());
+    mEntity = sm->getEntity(mEntityNode->getValue());
     if (mBoneNode) mBone = mBoneNode->getValue();
   }
 }
@@ -144,7 +144,8 @@ void BoneAH::populatePromptBuffer(const std::string& s) {
     auto oi = sk->getBoneIterator();
     while (oi.hasMoreElements()) {
       const std::string& name = oi.getNext()->getName();
-      if (StringUtil::startsWith(name, s)) appendPromptBuffer(name);
+      if (s.empty() || StringUtil::startsWith(name, s))
+        appendPromptBuffer(name);
     }
   }
 }
@@ -182,7 +183,7 @@ void MovableBaseAH::populatePromptBuffer(const std::string& s) {
   auto oi = sm->getMovableObjectIterator(mMoType);
   while (oi.hasMoreElements()) {
     auto mo = oi.getNext();
-    if (StringUtil::startsWith(mo->getName(), s) &&
+    if ((s.empty() || StringUtil::startsWith(mo->getName(), s)) &&
         mo->getMovableType() == mMoType)
       appendPromptBuffer(s);
   }
@@ -205,23 +206,20 @@ SceneNodeAH::SceneNodeAH() : ArgHandler("sceneNode") {}
 //------------------------------------------------------------------------------
 void SceneNodeAH::populatePromptBuffer(const std::string& s) {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  loopNode(sm->getRootSceneNode(), s);
+  //don't output root node 
+  auto oi = sm->getRootSceneNode()->getChildIterator();
+  while (oi.hasMoreElements()) loopNode(oi.getNext(), s);
 }
 
 //------------------------------------------------------------------------------
 bool SceneNodeAH::doValidate(const std::string& s) {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  try {
-    sm->getSceneNode(s);
-    return true;
-  } catch (Ogre::ItemIdentityException e) {
-    return false;
-  }
+  return sm->hasSceneNode(s);
 }
 
 //------------------------------------------------------------------------------
 void SceneNodeAH::loopNode(Ogre::Node* node, const std::string& s) {
-  if (StringUtil::startsWith(node->getName(), s))
+  if (s.empty() || StringUtil::startsWith(node->getName(), s))
     appendPromptBuffer(node->getName());
   auto oi = node->getChildIterator();
   while (oi.hasMoreElements()) loopNode(oi.getNext(), s);
@@ -236,7 +234,7 @@ void ResourceAH::populatePromptBuffer(const std::string& s) {
   auto oi = mResourceMgr->getResourceIterator();
   while (oi.hasMoreElements()) {
     Ogre::ResourcePtr ptr = oi.getNext();
-    if (StringUtil::startsWith(ptr->getName(), s)) {
+    if (s.empty() || StringUtil::startsWith(ptr->getName(), s)) {
       appendPromptBuffer(ptr->getName());
     }
   }
@@ -245,7 +243,71 @@ void ResourceAH::populatePromptBuffer(const std::string& s) {
 //------------------------------------------------------------------------------
 bool ResourceAH::doValidate(const std::string& s) {
   Ogre::ResourcePtr ptr = mResourceMgr->getResourceByName(s);
-  return ptr.isNull();
+  return !ptr.isNull();
+}
+
+//------------------------------------------------------------------------------
+PassiveResourceAH::PassiveResourceAH(const std::string& name,
+    Ogre::ResourceManager* rm, std::initializer_list<std::string> exts)
+    : ArgHandler(name), mResourceMgr(rm) {
+  // loop every archive of every resource group
+  auto grps = Ogre::ResourceGroupManager::getSingleton().getResourceGroups();
+  std::for_each(grps.begin(), grps.end(), [&](const std::string& grp) -> void {
+    const Ogre::ResourceGroupManager::LocationList& resList =
+        Ogre::ResourceGroupManager::getSingleton().getResourceLocationList(grp);
+    std::for_each(resList.begin(), resList.end(),
+        [&](const Ogre::ResourceGroupManager::ResourceLocation* rv) -> void {
+          Ogre::StringVectorPtr reses = rv->archive->list(false);
+          std::for_each(
+              reses->begin(), reses->end(), [&](const std::string& r) -> void {
+                // check extension
+                size_t index = r.find_last_of(".");
+                if (index != std::string::npos) {
+                  const std::string&& ext = r.substr(index + 1);
+                  if (std::find(exts.begin(), exts.end(), ext) != exts.end()) {
+                    mResources.insert(r);
+                  }
+                }
+              });
+        });
+  });
+}
+
+//------------------------------------------------------------------------------
+StringSet::const_iterator PassiveResourceAH::beginResourceIter() const {
+  return mResources.begin();
+}
+
+//------------------------------------------------------------------------------
+StringSet::const_iterator PassiveResourceAH::endResourceIter() const {
+  return mResources.end();
+}
+
+//------------------------------------------------------------------------------
+void PassiveResourceAH::populatePromptBuffer(const std::string& s) {
+  auto oi = mResourceMgr->getResourceIterator();
+  // check items in resource manager
+  while (oi.hasMoreElements()) {
+    Ogre::ResourcePtr ptr = oi.getNext();
+    if (s.empty() || StringUtil::startsWith(ptr->getName(), s)) {
+      if (mResources.find(ptr->getName()) == mResources.end()) {
+        appendPromptBuffer(ptr->getName());
+      }
+    }
+  }
+  // check items in steady resources
+  std::for_each(
+      mResources.begin(), mResources.end(), [&](const std::string& v) -> void {
+        if (s.empty() || StringUtil::startsWith(v, s)) {
+          appendPromptBuffer(v);
+        }
+      });
+}
+
+//------------------------------------------------------------------------------
+bool PassiveResourceAH::doValidate(const std::string& s) {
+  Ogre::ResourcePtr ptr = mResourceMgr->getResourceByName(s);
+  return !ptr.isNull() || mResources.find(s) != mResources.end();
 }
 
 //------------------------------------------------------------------------------
@@ -259,7 +321,7 @@ void ParticleSystemTemplateAH::populatePromptBuffer(const std::string& s) {
   while (oi.hasMoreElements()) {
     auto* ps = oi.getNext();
 
-    if (StringUtil::startsWith(ps->getName(), s)) {
+    if (s.empty() || StringUtil::startsWith(ps->getName(), s)) {
       appendPromptBuffer(ps->getName());
     }
   }

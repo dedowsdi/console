@@ -103,6 +103,9 @@ public:
 
   virtual void populatePromptBuffer(const std::string& s);
 
+  StringSet::const_iterator beginStringIter() const { return mStrings.begin(); }
+  StringSet::const_iterator endStringIter() const { return mStrings.end(); }
+
 protected:
   virtual bool doValidate(const std::string& s);
 
@@ -189,11 +192,14 @@ private:
 /**
  * cmd
  */
-class _PacExport CmdArgHandler : public StringArgHandler {
+class _PacExport CmdArgHandler : public ArgHandler {
 public:
-  virtual ArgHandler* clone() { return new CmdArgHandler(*this); }
-
   CmdArgHandler();
+  virtual ArgHandler* clone() { return new CmdArgHandler(*this); }
+  virtual void populatePromptBuffer(const std::string& s);
+
+protected:
+  virtual bool doValidate(const std::string& s);
 };
 
 /**
@@ -239,35 +245,19 @@ private:
 };
 
 /**
- * parameter value handler. Must follow param or pparam
+ * parameter value handler. Must follow param or pparam, this is just a bridge
+ * to hook value node to the real value arg handler retrieved froms string
+ * interface, this handler will be deleted after the 1st call of runtimeInit()
  */
 class _PacExport ValueArgHandler : public ArgHandler {
 public:
   virtual ArgHandler* clone() { return new ValueArgHandler(*this); }
   ValueArgHandler();
-  ValueArgHandler(const ValueArgHandler& rhs);
-
-  void runtimeInit();
-
-  AbsDir* getDir() const { return mDir; }
-  void setDir(AbsDir* v) { mDir = v; }
-
-  ArgHandler* getHandler() const { return mHandler; }
-  void setHandler(ArgHandler* v) { mHandler = v; }
-
+  virtual void runtimeInit();
   /**
    * Get param handler from previous node.
    */
   ParamArgHandler* getParamHandler();
-
-  virtual void populatePromptBuffer(const std::string& s);
-
-protected:
-  virtual bool doValidate(const std::string& s);
-
-private:
-  ArgHandler* mHandler;
-  AbsDir* mDir;
 };
 
 /**
@@ -277,6 +267,7 @@ class _PacExport IdArgHandler : public ArgHandler {
 public:
   IdArgHandler();
   virtual ArgHandler* clone() { return new IdArgHandler(*this); }
+  virtual void populatePromptBuffer(const std::string& s);
 
 protected:
   virtual bool doValidate(const std::string& s);
@@ -287,7 +278,7 @@ protected:
  */
 class _PacExport RegexArgHandler : public ArgHandler {
 public:
-  RegexArgHandler() : ArgHandler("regex") {}
+  RegexArgHandler() : ArgHandler("regex") { setPromptType(PT_PROMPTONLY); }
   virtual ArgHandler* clone() { return new RegexArgHandler(*this); }
 
   virtual void populatePromptBuffer(const std::string& s);

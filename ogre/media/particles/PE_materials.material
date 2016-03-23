@@ -1,0 +1,294 @@
+
+
+material PE/Lensflare
+{
+
+    technique
+    {
+
+        pass
+        {
+            diffuse vertexcolour
+            scene_blend one one
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture flare.png
+            }
+        }
+    }
+}
+
+material PE/FlarePointSprite
+{
+
+    technique
+    {
+
+        pass
+        {
+            diffuse vertexcolour
+            scene_blend one one
+            depth_write no
+            lighting no
+            point_size 2
+            point_sprites yes
+            point_size_attenuation true 0 1 0
+
+            texture_unit
+            {
+                texture flare.png
+            }
+        }
+    }
+}
+
+material PE/AlphaFlare
+{
+
+    technique
+    {
+
+        pass
+        {
+            diffuse vertexcolour
+            scene_blend src_alpha one_minus_src_alpha
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture flare_alpha.dds
+            }
+        }
+    }
+}
+
+material PE/FlareTrail
+{
+
+    technique
+    {
+
+        pass
+        {
+            scene_blend one one
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture flaretrail.png
+            }
+        }
+    }
+}
+
+material PE/FlareTrail2
+{
+
+    technique
+    {
+
+        pass
+        {
+            diffuse vertexcolour
+            scene_blend one one
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture flaretrail2.png
+            }
+        }
+    }
+}
+
+material PE/BigFlame
+{
+
+    technique
+    {
+
+        pass
+        {
+            scene_blend one one
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture bigflame.png
+            }
+        }
+    }
+}
+
+material PE/Smoke
+{
+
+    technique
+    {
+
+        pass
+        {
+            scene_blend src_alpha one_minus_src_alpha
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture smoke2.png
+            }
+        }
+    }
+}
+
+material PE/Smoke2
+{
+
+    technique
+    {
+
+        pass
+        {
+            diffuse vertexcolour
+            scene_blend src_alpha one_minus_src_alpha
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture smoke.png
+                tex_address_mode  clamp
+            }
+        }
+    }
+}
+
+material PE/Explosion
+{
+
+    technique
+    {
+
+        pass
+        {
+            scene_blend one one
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture explosion.png
+            }
+        }
+    }
+}
+
+material PE/Ringflare
+{
+
+    technique
+    {
+
+        pass
+        {
+            scene_blend one one
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture ring_flare.png
+            }
+        }
+    }
+}
+
+material PE/Ringflare2
+{
+
+    technique
+    {
+
+        pass
+        {
+            scene_blend one one
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture ring_flare2.png
+            }
+        }
+    }
+}
+
+material PE/Streak
+{
+
+    technique
+    {
+
+        pass
+        {
+            scene_blend one one
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture streak.png
+            }
+        }
+    }
+}
+
+material PE/Aureola
+{
+
+    technique
+    {
+
+        pass
+        {
+            scene_blend src_alpha one_minus_src_alpha
+            depth_write no
+            cull_hardware none
+            lighting no
+
+            texture_unit
+            {
+                texture aureola.png  PF_BYTE_LA
+                tex_address_mode  clamp
+            }
+        }
+    }
+}
+
+material PE/Droplet
+{
+
+    technique
+    {
+
+        pass
+        {
+            diffuse vertexcolour
+            emissive 0.3 0.3 0.3 1
+            scene_blend src_colour one_minus_src_colour
+            depth_write no
+            lighting no
+
+            texture_unit
+            {
+                texture basic_droplet.png
+            }
+        }
+    }
+}

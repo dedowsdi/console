@@ -4,20 +4,10 @@
 
 namespace pac {
 
-class UiConsole : public StringInterface {
+class ConsoleUI : public StringInterface {
 public:
-  UiConsole();
-  ~UiConsole(){};
-
-  void init();
-
-  /**
-   * By default every line ows 80 characters + 1 \n . Override if you want to
-   * change it.
-   * @remark :
-   * @return :
-   */
-  virtual void setUpTextMetric();
+  ConsoleUI();
+  ~ConsoleUI(){};
 
   /**
    * Fake stdout and stderr. Wrap line automatically.
@@ -25,7 +15,7 @@ public:
    * @param type : 1 stdout, 2 stderr
    * @return : *this
    */
-  virtual UiConsole& output(const std::string& output, int type = 1);
+  virtual void output(const std::string& output, int type = 1){};
 
   /**
    * Fake stdout and stderr. Wrap line automatically.
@@ -33,21 +23,9 @@ public:
    * @param type : 1 stdout, 2 stderr
    * @return : *this
    */
-  virtual UiConsole& outputLine(const std::string& output, int type = 1);
+  virtual void outputLine(const std::string& output, int type = 1);
 
-  /**
-   * end current line
-   * @return : *this
-   */
-  virtual UiConsole& endl() = 0;
-  /**
-   * Fake stdout and stderr. No Wrap line.
-   * @param output : outout content
-   * @param type : 1 stdout, 2 stderr
-   * @return : *this
-   */
-  virtual UiConsole& outputNoAutoWrap(
-      const std::string& output, int type = 1) = 0;
+  virtual std::string getLineBreak() { return "\n"; }
 
   /**
    * Complete current typing.
@@ -55,18 +33,22 @@ public:
    */
   void complete(const std::string& s);
   virtual void setCwd(const std::string& cwd) = 0;
-  virtual std::string getCwd() { return ""; };
+  virtual std::string getCwd() { return ""; }
   virtual void setCmdLine(const std::string& cmdLine) = 0;
   virtual std::string getCmdLine() = 0;
   virtual Real getAlpha() const = 0;
   virtual void setAlpha(Real v) = 0;
+  virtual bool getVisible() const = 0;
+  virtual void setVisible(bool v) = 0;
+  virtual void setFocus(bool v) = 0;
+  virtual Real getOutputWidgetWidth() const = 0;
+  virtual Real getFontWidth() const = 0;
 
   /**
-   * line text width, default to 80. You can change it by overloading
-   * setupTextMetric()
+   * get line text width
    * @return : line text width
    */
-  int getTextWidth() const { return mTextWidth; }
+  int getTextWidth() const { return getOutputWidgetWidth() / getFontWidth(); }
 
   class Alpha : public ParamCmd {
   public:
@@ -78,11 +60,7 @@ public:
   static Alpha msAlpha;
 
 protected:
-  void setTextWidth(int v) { mTextWidth = v; }
   void initParams();
-
-private:
-  int mTextWidth;
 };
 }
 

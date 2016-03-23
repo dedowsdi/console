@@ -20,38 +20,37 @@ public:
   /** Removes any whitespace characters, be it standard space or
       TABs and so on.
       @remarks
-	  The user may specify whether they want to trim only the
-	  beginning or the end of the std::string ( the default action is
-	  to trim both).
+    The user may specify whether they want to trim only the
+    beginning or the end of the std::string ( the default action is
+    to trim both).
   */
   static void trim(std::string& str, bool left = true, bool right = true);
 
   /** Returns a StringVector that contains all the substrings delimited
       by the characters in the passed <code>delims</code> argument.
       @param
-	  delims A list of delimiter characters to split by
+    delims A list of delimiter characters to split by
       @param
-	  maxSplits The maximum number of splits to perform (0 for unlimited
+    maxSplits The maximum number of splits to perform (0 for unlimited
      splits). If this
-	  parameters is > 0, the splitting process will stop after this many
+    parameters is > 0, the splitting process will stop after this many
      splits, left to right.
       @param
-	  preserveDelims Flag to determine if delimiters should be saved as
+    preserveDelims Flag to determine if delimiters should be saved as
      substrings
   */
   static std::vector<std::string> split(const std::string& str,
-					const std::string& delims = "\t\n ",
-					unsigned int maxSplits = 0,
-					bool preserveDelims = false);
+      const std::string& delims = "\t\n ", unsigned int maxSplits = 0,
+      bool preserveDelims = false);
 
   /** Returns a StringVector that contains all the substrings delimited
 by the characters in the passed <code>delims</code> argument,
-	  or in the <code>doubleDelims</code> argument, which is used to include
+    or in the <code>doubleDelims</code> argument, which is used to include
 (normal)
-	  delimeters in the tokenised string. For example, "strings like this".
+    delimeters in the tokenised string. For example, "strings like this".
 @param
   delims A list of delimiter characters to split by
-	  @param
+    @param
   doubleDelims A list of double delimeters characters to tokenise by
 @param
   maxSplits The maximum number of splits to perform (0 for unlimited splits). If
@@ -59,8 +58,8 @@ this
   parameters is > 0, the splitting process will stop after this many splits,
 left to right.
 */
-  static std::vector<std::string> tokenise(
-      const std::string& str, const std::string& delims = "\t\n ",
+  static std::vector<std::string> tokenise(const std::string& str,
+      const std::string& delims = "\t\n ",
       const std::string& doubleDelims = "\"", unsigned int maxSplits = 0);
 
   /** Lower-cases all the characters in the string.
@@ -77,7 +76,7 @@ left to right.
       comparison, pattern should also be in lower case.
   */
   static bool startsWith(const std::string& str, const std::string& pattern,
-			 bool lowerCase = false);
+      bool lowerCase = false);
 
   /** Returns whether the string ends with the pattern passed in.
   @param pattern The pattern to compare with.
@@ -85,7 +84,7 @@ left to right.
       comparison, pattern should also be in lower case.
   */
   static bool endsWith(const std::string& str, const std::string& pattern,
-		       bool lowerCase = true);
+      bool lowerCase = true);
 
   /** Method for standardising paths - use forward slashes only, end with slash.
   */
@@ -103,8 +102,8 @@ left to right.
   @param makeLowerCase If true, transforms all characters in the string to
   lowercase.
   */
-  static std::string normalizeFilePath(const std::string& init,
-				       bool makeLowerCase = true);
+  static std::string normalizeFilePath(
+      const std::string& init, bool makeLowerCase = true);
 
   /** Method for splitting a fully qualified filename into the base name
       and path.
@@ -112,7 +111,7 @@ left to right.
       Path is standardised as in standardisePath
   */
   static void splitFilename(const std::string& qualifiedName,
-			    std::string& outBasename, std::string& outPath);
+      std::string& outBasename, std::string& outPath);
 
   /** Method for splitting a fully qualified filename into the base name,
   extension and path.
@@ -120,16 +119,14 @@ left to right.
   Path is standardised as in standardisePath
   */
   static void splitFullFilename(const std::string& qualifiedName,
-				std::string& outBasename,
-				std::string& outExtention,
-				std::string& outPath);
+      std::string& outBasename, std::string& outExtention,
+      std::string& outPath);
 
   /** Method for splitting a filename into the base name
   and extension.
   */
   static void splitBaseFilename(const std::string& fullName,
-				std::string& outBasename,
-				std::string& outExtention);
+      std::string& outBasename, std::string& outExtention);
 
   /**
    * Join string vection into a string by sep
@@ -139,8 +136,8 @@ left to right.
    */
   static std::string join(const StringVector& sv, const std::string& sep = " ");
 
-  static std::string join(SVCIter first, SVCIter last,
-			  const std::string& sep = " ");
+  static std::string join(
+      SVCIter first, SVCIter last, const std::string& sep = " ");
 
   /**
    * Extend string to fixed length
@@ -149,8 +146,8 @@ left to right.
    * @param c : char used to extend
    * @return : new string in fixed length
    */
-  static std::string toFixedLength(const std::string& s, size_t length,
-				   char c = ' ');
+  static std::string toFixedLength(
+      const std::string& s, size_t length, char c = ' ');
 
   /** Simple pattern-matching routine allowing a wildcard pattern.
   @param str std::string to test
@@ -158,7 +155,7 @@ left to right.
   @param caseSensitive Whether the match is case sensitive or not
   */
   static bool match(const std::string& str, const std::string& pattern,
-		    bool caseSensitive = true);
+      bool caseSensitive = true);
 
   /** replace all instances of a sub-string with a another sub-string.
   @param source Source string
@@ -167,60 +164,52 @@ left to right.
   @return An updated string with the sub-string replaced
   */
   static const std::string replaceAll(const std::string& source,
-				      const std::string& replaceWhat,
-				      const std::string& replaceWithWhat);
+      const std::string& replaceWhat, const std::string& replaceWithWhat);
 
   /** Converts a Real to a std::string. */
   static std::string toString(Real val, unsigned short precision = 6,
-			      unsigned short width = 0, char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
+      unsigned short width = 0, char fill = ' ',
+      std::ios::fmtflags flags = std::ios::fmtflags(0));
 #if PAC_DOUBLE_PRECISION == 1
   /** Converts a float to a std::string. */
   static std::string toString(float val, unsigned short precision = 6,
-			      unsigned short width = 0, char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
+      unsigned short width = 0, char fill = ' ',
+      std::ios::fmtflags flags = std::ios::fmtflags(0));
 #else
   /** Converts a double to a std::string. */
   static std::string toString(double val, unsigned short precision = 6,
-			      unsigned short width = 0, char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
+      unsigned short width = 0, char fill = ' ',
+      std::ios::fmtflags flags = std::ios::fmtflags(0));
 #endif
   /** Converts an int to a std::string. */
   static std::string toString(int val, unsigned short width = 0,
-			      char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
-#if PAC_PLATFORM != PAC_PLATFORM_NACL &&     \
-    (PAC_ARCH_TYPE == PAC_ARCHITECTURE_64 || \
-     PAC_PLATFORM == PAC_PLATFORM_APPLE ||   \
-     PAC_PLATFORM == PAC_PLATFORM_APPLE_IOS)
+      char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+#if PAC_PLATFORM != PAC_PLATFORM_NACL &&      \
+    (PAC_ARCH_TYPE == PAC_ARCHITECTURE_64 ||  \
+        PAC_PLATFORM == PAC_PLATFORM_APPLE || \
+        PAC_PLATFORM == PAC_PLATFORM_APPLE_IOS)
   /** Converts an unsigned int to a std::string. */
   static std::string toString(unsigned int val, unsigned short width = 0,
-			      char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
+      char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
   /** Converts a size_t to a std::string. */
   static std::string toString(size_t val, unsigned short width = 0,
-			      char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
+      char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 #if PAC_COMPILER == PAC_COMPILER_MSVC
   /** Converts an unsigned long to a std::string. */
   static std::string toString(unsigned long val, unsigned short width = 0,
-			      char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
+      char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 #endif
 #else
   /** Converts a size_t to a std::string. */
   static std::string toString(size_t val, unsigned short width = 0,
-			      char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
+      char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
   /** Converts an unsigned long to a std::string. */
   static std::string toString(unsigned long val, unsigned short width = 0,
-			      char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
+      char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 #endif
   /** Converts a long to a std::string. */
   static std::string toString(long val, unsigned short width = 0,
-			      char fill = ' ',
-			      std::ios::fmtflags flags = std::ios::fmtflags(0));
+      char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
   /** Converts a boolean to a std::string.
   @param yesNo If set to true, result is 'yes' or 'no' instead of 'true' or
   'false'
@@ -250,8 +239,8 @@ left to right.
       0.0 if the value could not be parsed, otherwise the numeric version of the
   std::string.
   */
-  static unsigned int parseUnsignedInt(const std::string& val,
-				       unsigned int defaultValue = 0);
+  static unsigned int parseUnsignedInt(
+      const std::string& val, unsigned int defaultValue = 0);
   /** Converts a std::string to a whole number.
   @return
       0.0 if the value could not be parsed, otherwise the numeric version of the
@@ -263,8 +252,8 @@ left to right.
       0.0 if the value could not be parsed, otherwise the numeric version of the
   std::string.
   */
-  static unsigned long parseUnsignedLong(const std::string& val,
-					 unsigned long defaultValue = 0);
+  static unsigned long parseUnsignedLong(
+      const std::string& val, unsigned long defaultValue = 0);
   /** Converts a std::string to size_t.
   @return
       defaultValue if the value could not be parsed, otherwise the numeric
@@ -317,13 +306,10 @@ left to right.
   static T parsePrimitiveDecimal(const std::string& val) {
     StringStream str(val);
     if (msUseLocale) str.imbue(msLocale);
-
     T t;
     str >> t;
-
     if (str.fail() || !str.eof())
       PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, val + " is not paseable");
-
     return t;
   }
 

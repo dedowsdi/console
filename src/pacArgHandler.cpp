@@ -17,8 +17,8 @@ void Branch::recordNodeValue(Node* node, SVCIter f, SVCIter l) {
   NodeValues::iterator iter =
       std::find_if(this->nodeValues.begin(), this->nodeValues.end(),
           [&](NodeValues::value_type& v) -> bool { return v.first == node; });
-  sgLogger.logMessage(
-      "record node value " + node->getName() + " : " + StringUtil::join(f, l),
+  sgLogger.logMessage("record node value : <" + node->getName() + "> : \"" +
+                          StringUtil::join(f, l) + "\" ",
       SL_TRIVIAL);
 
   if (iter == this->nodeValues.end()) {
@@ -36,8 +36,8 @@ void Branch::recordNodeValue(Node* node, SVCIter f, SVCIter l) {
 
 //------------------------------------------------------------------------------
 void Branch::recordTreeLeafPair(TreeArgHandler* tree, Node* leaf) {
-  sgLogger.logMessage("recored subtree " + tree->getName() +
-                          " with matched branch " + leaf->getName(),
+  sgLogger.logMessage("recored subtree [" + tree->getName() + "] branch : " +
+                          leaf->getArgPath(),
       SL_TRIVIAL);
   treeLeafPairs.push_back(std::make_pair(tree, leaf));
 }
@@ -66,7 +66,9 @@ void Branch::popTree(Node* leaf) {
     this->recordTreeLeafPair(tree, leaf);
   } else {
     // main tree, main tree has no parent node, and it's value is unique
-    sgLogger.logMessage("Set main branch " + leaf->getName(), SL_TRIVIAL);
+    sgLogger.logMessage("add main tree [" + tree->getName() + "] branch : " +
+                            leaf->getArgPath(),
+        SL_TRIVIAL);
     tlp.first->setValue(StringUtil::join(tlp.second, this->current));
     tlp.first->setMatchedLeaf(leaf);
   }
@@ -168,16 +170,21 @@ void ArgHandler::validateBranch(
   PacAssert(!branches.empty(), "empty branch");
   Branches::iterator iter =
       std::remove_if(branches.begin(), branches.end(), [&](Branch& v) -> bool {
-
-        if (v.current == v.last) promptHandlers.push_back(this);
-
-        if (v.current == v.last || !validate(*v.current))
+        if (v.current == v.last) {
+          promptHandlers.push_back(this);
           return true;
-        else {
-          v.recordNodeValue(this->getTreeNode(), v.current, v.current + 1);
-          ++v.current;
-          return false;
         }
+        if (!validate(*v.current)) {
+          sgLogger.logMessage(getTreeNode()->getArgPath() +
+                                  " faile to validate \"" + *v.current + "\"",
+              SL_TRIVIAL);
+          return true;
+        }
+
+        v.recordNodeValue(this->getTreeNode(), v.current, v.current + 1);
+        ++v.current;
+        return false;
+
       });
 
   branches.erase(iter, branches.end());
@@ -187,6 +194,9 @@ void ArgHandler::validateBranch(
 void ArgHandler::outputErrMessage(const std::string& s) {
   sgConsole.outputLine(s + " is not a valid " + getName());
 }
+
+//------------------------------------------------------------------------------
+std::string ArgHandler::getArgPath() const { return mName; }
 
 //------------------------------------------------------------------------------
 StringVector::iterator ArgHandler::beginPromptBuffer() {
@@ -256,7 +266,7 @@ Node::Node(const Node& rhs)
     mArgHandler = rhs.getArgHandler()->clone();
     mArgHandler->setTreeNode(this);
   }
-  // deep copy children, take care of loop type.
+  // deep copy children
   std::for_each(rhs.beginChildIter(), rhs.endChildIter(),
       [&](Node* v) -> void { this->addChildNode(new Node(*v)); });
 }
@@ -273,11 +283,8 @@ size_t Node::getDepth() {
 //------------------------------------------------------------------------------
 Node* Node::addChildNode(Node* child) {
   mChildren.push_back(child);
-  if (child != this)  // loop type can add it self to child
-  {
-    child->setParent(this);
-    child->setTree(mTree);
-  }
+  child->setParent(this);
+  child->setTree(mTree);
   return child;
 }
 
@@ -286,8 +293,6 @@ Node* Node::addChildNode(const std::string& name,
     const std::string& ahName /*= ""*/, NodeType nt /*= NT_NORMAL*/) {
   Node* node = new Node(name, ahName.empty() ? name : ahName, nt);
   this->addChildNode(node);
-  if (nt != NT_LEAF) node->getArgHandler()->onLinked(this);
-
   return node;
 }
 
@@ -331,17 +336,23 @@ Node* Node::endBranch(const std::string& branchName) {
 }
 
 //------------------------------------------------------------------------------
+void Node::onLinked() {
+  if (mArgHandler) mArgHandler->onLinked(mParent);
+  std::for_each(mChildren.begin(), mChildren.end(),
+      [&](Node* n) -> void { n->onLinked(); });
+}
+
+//------------------------------------------------------------------------------
 void Node::validateBranch(Branches& branches, ArgHandlerVec& promptHandlers) {
   PacAssert(!branches.empty(), "empty branch");
-  sgLogger.logMessage("node " + this->mName + " validateBranch with " +
-                          StringUtil::toString(branches.size()) + " branches",
-      SL_TRIVIAL);
+  // sgLogger.logMessage(getArgPath() + " starts with " +
+  // StringUtil::toString(branches.size()) + " branches",
+  // SL_TRIVIAL);
 
   if (isLeaf()) {
     // recored tree values
-    sgLogger.logMessage("meet leaf of " + this->getTree()->getName() +
-                            " with " + StringUtil::toString(branches.size()) +
-                            " branches",
+    sgLogger.logMessage("leaf  " + getArgPath() + " meets with " +
+                            StringUtil::toString(branches.size()) + " branches",
         SL_TRIVIAL);
     std::for_each(branches.begin(), branches.end(),
         [&](Branch& branch) -> void { branch.popTree(this); });
@@ -358,6 +369,7 @@ void Node::validateBranch(Branches& branches, ArgHandlerVec& promptHandlers) {
     if (mArgHandler->getTreeNode() != this)
       PAC_EXCEPT(Exception::ERR_INVALID_STATE, "wrong handler!!");
 
+    this->mArgHandler->runtimeInit();
     this->mArgHandler->validateBranch(branches, promptHandlers);
     if (branches.empty()) return;
   }
@@ -404,55 +416,20 @@ void Node::restoreValue(SVCIter first, SVCIter last) {
 }
 
 //------------------------------------------------------------------------------
-NodeVector Node::getLeaves() {
-  NodeVector nv;
+void Node::getLeaves(NodeVector& nv) {
   if (isLeaf()) {
     nv.push_back(this);
-    return nv;
+    return;
   }
 
-  std::for_each(mChildren.begin(), mChildren.end(), [&](Node* v) -> void {
-    NodeVector&& childLeaves = v->getLeaves();
-    nv.insert(nv.end(), childLeaves.begin(), childLeaves.end());
-  });
-  return nv;
+  std::for_each(mChildren.begin(), mChildren.end(),
+      [&](Node* v) -> void { v->getLeaves(nv); });
 }
 
 //------------------------------------------------------------------------------
 std::string Node::getArgPath() const {
-  // PacAssertS(isLeaf(), "You can not call getArgPath with type :" +
-  // StringUtil::toString(static_cast<int>(mNodeType)));
-
-  // get reverse path
-  std::stringstream ss;
-  ss << "[";
-  const Node* node = this;
-  while (node) {
-    if (node->isRoot()) {
-      // output tree name
-      std::string treeName = node->getTree()->getName();
-      std::reverse(treeName.begin(), treeName.end());
-      ss << "]" << treeName;
-      // output [ of tree node if it exists
-      node = node->getTree()->getTreeNode();
-      if (node) ss << "[";
-    } else {
-      std::string nodeName = node->getName();
-      std::reverse(nodeName.begin(), nodeName.end());
-      ss << nodeName << "<-";
-      node = node->getParent();
-    }
-  }
-  // reverse again
-  std::string&& path = ss.str();
-  std::reverse(path.begin(), path.end());
-  return path;
-}
-
-//------------------------------------------------------------------------------
-ArgHandler* Node::getArgHandler() const {
-  PacAssert(mArgHandler, "0 arghandler");
-  return mArgHandler;
+  if (isRoot()) return mTree->getName();
+  return mParent->getArgPath() + "->" + mName;
 }
 
 //------------------------------------------------------------------------------
@@ -536,12 +513,7 @@ TreeArgHandler::TreeArgHandler(const TreeArgHandler& rhs)
     : ArgHandler(rhs), mMatchedLeaf(0) {
   mRoot = new Node(*rhs.getRoot());
   mRoot->setTree(this);
-  // make sure no duplicate branch exists
-  NodeVector&& leaves = mRoot->getLeaves();
-  std::sort(leaves.begin(), leaves.end());
-  NodeVector::iterator iter = std::unique(leaves.begin(), leaves.end());
-  if (iter != leaves.end())
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "duplicate tree branches");
+  mRoot->onLinked();
 }
 
 //------------------------------------------------------------------------------
@@ -559,7 +531,7 @@ void TreeArgHandler::prompt(const std::string& s) {
   branches.push_back(Branch(sv.begin(), sv.end() - 1, sv.begin()));
   this->validateBranch(branches, ahv);
 
-  // mutiple candidates
+  // mutiple candidates, filter those failed to generate prompt buffer
   ArgHandlerVec candidates;
   std::for_each(ahv.begin(), ahv.end(), [&](ArgHandler* handler) -> void {
     handler->runtimeInit();
@@ -572,6 +544,8 @@ void TreeArgHandler::prompt(const std::string& s) {
   if (candidates.size() == 1)
     candidates[0]->applyPromptBuffer(*sv.rbegin(), true);
   else if (candidates.size() > 1) {
+    sgConsole.outputLine(
+        "found " + StringUtil::toString(candidates.size()) + " branches:");
     std::for_each(
         candidates.begin(), candidates.end(), [&](ArgHandler* v) -> void {
           // output head
@@ -583,11 +557,12 @@ void TreeArgHandler::prompt(const std::string& s) {
 
 //------------------------------------------------------------------------------
 bool TreeArgHandler::validate(const std::string& s) {
-  sgLogger.logMessage("Tree " + mName + " start validate " + s, SL_TRIVIAL);
-  this->checkWholeness();
+  sgLogger.logMessage(
+      "--------------------------------------------------", SL_TRIVIAL);
+  sgLogger.logMessage("[ " + mName + " ] : \"" + s + "\"", SL_TRIVIAL);
   this->setMatchedLeaf(0);
-
   this->runtimeInit();
+
   // split by space
   StringVector sv;
   if (!s.empty()) sv = StringUtil::split(s);
@@ -608,8 +583,9 @@ bool TreeArgHandler::validate(const std::string& s) {
       });
   branches.erase(iter, branches.end());
 
-  sgLogger.logMessage(
-      "found " + StringUtil::toString(branches.size()) + " branches",
+  sgLogger.logMessage("[ " + mName + "] found " +
+                          StringUtil::toString(branches.size()) +
+                          " branches agains \"" + s + "\"",
       SL_TRIVIAL);
 
   // make sure only 1 matched branch exists
@@ -640,8 +616,6 @@ void TreeArgHandler::getPromptArgHandlers(ArgHandlerVec& ahv) {
 //------------------------------------------------------------------------------
 void TreeArgHandler::validateBranch(
     Branches& branches, ArgHandlerVec& promptHandlers) {
-  this->checkWholeness();
-  this->runtimeInit();
   getRoot()->validateBranch(branches, promptHandlers);
 }
 
@@ -649,9 +623,17 @@ void TreeArgHandler::validateBranch(
 void TreeArgHandler::outputErrMessage(const std::string& s) {
   sgConsole.outputLine(
       s + " is not a valid " + getName() + " which takes following formats:");
-  NodeVector&& nv = getLeaves();
+  NodeVector nv;
+  getLeaves(nv);
   std::for_each(nv.begin(), nv.end(),
       [&](Node* v) -> void { sgConsole.outputLine(v->getArgPath()); });
+}
+
+//------------------------------------------------------------------------------
+std::string TreeArgHandler::getArgPath() const {
+  if (!mMatchedLeaf)
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 matched breanch");
+  return "[" + getMatchedLeaf()->getArgPath() + "]";
 }
 
 //------------------------------------------------------------------------------
@@ -673,12 +655,13 @@ const std::string& TreeArgHandler::getMatchedNodeValue(
 const std::string& TreeArgHandler::getMatchedNodeValue(const std::string& name,
     std::initializer_list<const char*> branches) const {
   static std::string blank;
-  auto iter = std::find(branches.begin(), branches.end(), name);
-  return iter == branches.end() ? blank : getMatchedNodeValue("name");
+  auto iter =
+      std::find(branches.begin(), branches.end(), mMatchedLeaf->getName());
+  return iter == branches.end() ? blank : getMatchedNodeValue(name);
 }
 
 //------------------------------------------------------------------------------
-NodeVector TreeArgHandler::getLeaves() { return mRoot->getLeaves(); }
+void TreeArgHandler::getLeaves(NodeVector& nv) { return mRoot->getLeaves(nv); }
 
 //------------------------------------------------------------------------------
 const std::string& TreeArgHandler::getMatchedBranch() const {
@@ -688,7 +671,16 @@ const std::string& TreeArgHandler::getMatchedBranch() const {
 
 //------------------------------------------------------------------------------
 Node* TreeArgHandler::getMatchedNode(const std::string& name) const {
-  return getMatchedLeaf()->getAncestorNode(name);
+  if (!mMatchedLeaf) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 matched leaf");
+  Node* node = mMatchedLeaf->getAncestorNode(name);
+  if (!node) PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, name + " not found");
+  return node;
+}
+
+//------------------------------------------------------------------------------
+bool TreeArgHandler::hasMatchedNode(const std::string& name) const {
+  if (!mMatchedLeaf) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 matched leaf");
+  return mMatchedLeaf->getAncestorNode(name);
 }
 
 //------------------------------------------------------------------------------
@@ -739,11 +731,33 @@ void ArgHandlerLib::registerArgHandler(ArgHandler* handler) {
         return v.first == handler->getName();
       });
 
-  if (iter == mArgHandlerMap.end())
+  if (iter == mArgHandlerMap.end()) {
+    if (handler->getArgHandlerType() == ArgHandler::AHT_TREE) {
+      // check wholeness, duplicate leaves
+      TreeArgHandler* tree = static_cast<TreeArgHandler*>(handler);
+      tree->checkWholeness();
+      NodeVector leaves;
+      tree->getLeaves(leaves);
+      StringSet s;
+      std::for_each(leaves.begin(), leaves.end(), [&](Node* leaf) -> void {
+        if (s.find(leaf->getName()) != s.end())
+          PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, "duplicate leaves in tree " +
+                                                       handler->getName() +
+                                                       " : " + leaf->getName());
+        s.insert(leaf->getName());
+      });
+    }
     mArgHandlerMap[handler->getName()] = handler;
-  else
+
+  } else
     PAC_EXCEPT(Exception::ERR_DUPLICATE_ITEM,
         handler->getName() + " already registed!");
+}
+
+//------------------------------------------------------------------------------
+void ArgHandlerLib::registerStringAH(StringArgHandler* proto) {
+  //@TODO implement
+  throw new std::runtime_error("unimplemented function called");
 }
 
 //------------------------------------------------------------------------------
@@ -799,6 +813,7 @@ void ArgHandlerLib::init() {
   // this->registerArgHandler(new CmdArgHandler());
   this->registerArgHandler(new ParamArgHandler());
   this->registerArgHandler(new ValueArgHandler());
+  this->registerArgHandler(new CmdArgHandler());
 }
 
 //------------------------------------------------------------------------------

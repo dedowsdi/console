@@ -9,13 +9,12 @@
 #include "testCmdHistory.hpp"
 #include "testStdUtil.hpp"
 #include "testStringUtil.hpp"
-#include "testUiConsole.hpp"
-
+using namespace pac;
 
 int main(int argc, char **argv) 
 {
 	//init console
-	ImplUiConsole ui;
+	ImplConsoleUI ui;
 	Console console(&ui);
 	console.init();
 	

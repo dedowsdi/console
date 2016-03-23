@@ -61,4 +61,30 @@ TEST_F(TestCmdHistory, next) {
   }
 }
 
+/**
+ * CmdHistory fixture, push 0 - size/2 items into it
+ */
+class TestCmdHistory2 : public ::testing::Test {
+protected:
+  TestCmdHistory2() {
+    mHistory = new CmdHistory();
+    for (size_t i = 0; i < mHistory->size() / 2; ++i) {
+      mHistory->push(StringUtil::toString(i));
+    }
+  }
+
+  ~TestCmdHistory2() { delete mHistory; }
+
+  CmdHistory* mHistory;
+};
+
+TEST_F(TestCmdHistory2, previous) {
+  for (int i = mHistory->size() / 2 - 1; i >= 0; --i) {
+    ASSERT_EQ(StringUtil::toString(i), mHistory->previous());
+  }
+  //previous should not return empty item
+  ASSERT_EQ(StringUtil::toString(0), mHistory->previous());
+
+}
+
 #endif /* TESTCMDHISTORY_H */

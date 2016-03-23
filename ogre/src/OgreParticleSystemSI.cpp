@@ -33,9 +33,9 @@ void ParticleSystemSI::onCreateDir(AbsDir* dir) {
 
   // add renderer
   if (ps->getRenderer()) {
-    Ogre::ParticleSystemRenderer* renderer = ps->getRenderer(i);
+    Ogre::ParticleSystemRenderer* renderer = ps->getRenderer();
     dir->addChild(
-        new AbsDir(affector->getType(), new ParticleRendererSI(affector)));
+        new AbsDir(renderer->getType(), new ParticleRendererSI(renderer)));
   }
 
   // sort by name
@@ -45,7 +45,8 @@ void ParticleSystemSI::onCreateDir(AbsDir* dir) {
 }
 
 //------------------------------------------------------------------------------
-Ogre::ParticleSystem* ParticleSystemSI::getparticleSystem() const {
+Ogre::ParticleSystem* ParticleSystemSI::getParticleSystem() const
+{
   return static_cast<Ogre::ParticleSystem*>(mOgreSI);
 }
 

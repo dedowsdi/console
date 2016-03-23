@@ -34,7 +34,7 @@ protected:
 class _PacExport LightSI : public MovableSI {
 public:
   struct _PacExport LightType : public ParamCmd {
-    LightType() : ParamCmd("lightType") {}
+    LightType() : ParamCmd("en_lightType") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
@@ -94,7 +94,7 @@ public:
   };
 
   struct _PacExport Attenuation : public ParamCmd {
-    Attenuation() : ParamCmd("real3") {}
+    Attenuation() : ParamCmd("real4") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
@@ -142,7 +142,7 @@ public:
   };
 
   struct _PacExport PolygonMode : public ParamCmd {
-    PolygonMode() : ParamCmd("polytonMode") {}
+    PolygonMode() : ParamCmd("en_polygonMode") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
@@ -206,7 +206,23 @@ public:
     virtual std::string doGet(const void* target) const;
   };
 
-  NodeSI(Ogre::Node* sceneNode);
+  struct _PacExport Yaw : public ParamCmd {
+    Yaw() : ParamCmd("ypr") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+  struct _PacExport Pitch : public ParamCmd {
+    Pitch() : ParamCmd("ypr") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+  struct _PacExport Roll : public ParamCmd {
+    Roll() : ParamCmd("ypr") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  NodeSI(Ogre::Node* node);
 
   Ogre::Node* getNode() const { return mNode; }
 
@@ -219,9 +235,12 @@ protected:
   static Scale msScale;
   static Orientation msOrientation;
   static Parent msParent;
+  static Yaw msYaw;
+  static Pitch msPitch;
+  static Roll msRoll;
 };
 
-class _PacExport SceneNodeSI : public StringInterface {
+class _PacExport SceneNodeSI : public NodeSI {
 public:
   SceneNodeSI(Ogre::SceneNode* sceneNode);
 
@@ -230,8 +249,6 @@ public:
 protected:
   void initParams();
 
-protected:
-  Ogre::SceneNode* mSceneNode;
 };
 
 class _PacExport SceneManagerSI : public StringInterface {

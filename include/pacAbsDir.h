@@ -59,6 +59,15 @@ public:
   void addChild(AbsDir* dir, bool temp = true);
 
   /**
+   * create child dir or change child dir string interface 
+   * @param name : child dir name
+   * @param si : new string interface, it might be the same as the old one.
+   * @param temp : add dir as temp dir which will be removed at cleanTempDir
+   */
+  AbsDir* addUniqueChild(
+      const std::string& name, StringInterface* si, bool temp = true);
+
+  /**
    * Get full path until root
    * @return : full path
    */
@@ -78,7 +87,9 @@ public:
    */
   AbsDir* getChildByName(const std::string& name);
 
-  size_t getNumChildren(){return mChildren.size();}
+  bool hasChild(const std::string& name);
+
+  size_t getNumChildren() { return mChildren.size(); }
 
   /**
    * remove child by child index

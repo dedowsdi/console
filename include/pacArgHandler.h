@@ -175,6 +175,8 @@ public:
    */
   virtual void outputErrMessage(const std::string& s);
 
+  virtual std::string getArgPath() const;
+
   Node* getTreeNode() const { return mNode; }
   void setTreeNode(Node* v) { mNode = v; }
 
@@ -195,7 +197,6 @@ public:
   void getPromptArgHandlers(ArgHandlerVec& ahv);
 
 protected:
-
   /**
    * check if s is valid. Derived primitive handler class must override this
    */
@@ -300,20 +301,20 @@ public:
    * want to search in direct child.
    * @return : child node with specified name
    */
-  Node* getChildNode(const std::string& name, bool recursive = true)const;
+  Node* getChildNode(const std::string& name, bool recursive = true) const;
 
   /**
    * Get parent node by name. This is always a recursive operation.
    * @param name : parent node name
    * @return : ancestor node with specified name or 0
    */
-  Node* getAncestorNode(const std::string& name)const;
+  Node* getAncestorNode(const std::string& name) const;
 
   /**
    * Get tree handler attached to this node.
    * @return : tree handler or 0
    */
-  TreeArgHandler* getSubTree()const;
+  TreeArgHandler* getSubTree() const;
 
   /**
    * Add leaf node, end current branch.
@@ -326,8 +327,10 @@ public:
    */
   Node* eb(const std::string& branchName) { return endBranch(branchName); }
 
-  Node* getParent()const { return mParent; }
+  Node* getParent() const { return mParent; }
   void setParent(Node* v) { mParent = v; }
+
+  void onLinked();
 
   bool isRoot() const { return mNodeType == NT_ROOT; }
   bool isNormal() const { return mNodeType == NT_NORMAL; }
@@ -353,20 +356,20 @@ public:
    */
   void restoreValue(SVCIter first, SVCIter last);
 
-  const std::string& getValue()const { return mArgHandler->getValue(); }
+  const std::string& getValue() const { return mArgHandler->getValue(); }
 
   /**
    * Recursively descendent leaves
    * @return : node vector of leaves
    */
-  NodeVector getLeaves();
+  void getLeaves(NodeVector& nv);
 
   /**
-   * Join argument handler type until root. The caller must be a leaf node.
+   * If it's not attached to a true node, just return it's name, otherwise Join
+   * argument handler type until root, it looks like:
+   * [tree->ah0->ah1->[subtree->ah0->ah1]->ah2->ah3 ]
    */
-  std::string getArgPath()const;
-
-  ArgHandler* getArgHandler() const;
+  std::string getArgPath() const;
 
   const std::string& getAhName() const;
 
@@ -382,6 +385,12 @@ public:
    * @return : pointer of 1st loop type ancestor or 0
    */
   Node* getLoopNode();
+
+  ArgHandler* getArgHandler() const { return mArgHandler; }
+  void setArgHandler(ArgHandler* v) {
+    mArgHandler = v;
+    mArgHandler->setTreeNode(this);
+  }
 
   NodeType getNodeType() const { return mNodeType; }
   void setNodeType(NodeType v) { mNodeType = v; }
@@ -424,6 +433,9 @@ private:
  */
 class TreeArgHandler : public ArgHandler {
 public:
+
+  friend class ArgHandlerLib;
+
   virtual ArgHandler* clone() { return new TreeArgHandler(*this); }
 
   TreeArgHandler(const std::string& name);
@@ -446,6 +458,8 @@ public:
 
   virtual void outputErrMessage(const std::string& s);
 
+  virtual std::string getArgPath() const;
+
   Node* getRoot() { return mRoot; }
   const Node* getRoot() const { return mRoot; }
 
@@ -461,24 +475,24 @@ public:
    * @param name : node name
    * @return : catched value
    */
-  const std::string& getMatchedNodeValue(const std::string& name)const;
+  const std::string& getMatchedNodeValue(const std::string& name) const;
   /**
    * get matcheed node value if matched branch is in branches
    * @param name : node name
    */
-  const std::string& getMatchedNodeValue(
-      const std::string& name, std::initializer_list<const char*> branches)const;
+  const std::string& getMatchedNodeValue(const std::string& name,
+      std::initializer_list<const char*> branches) const;
 
   /**
    * get all leaves
    * @return : leaves vector
    */
-  NodeVector getLeaves();
+  void getLeaves(NodeVector& nv);
 
   /**
    * Get id of matched branch.
    */
-  const std::string& getMatchedBranch()const;
+  const std::string& getMatchedBranch() const;
 
   Node* getMatchedLeaf() const { return mMatchedLeaf; }
   void setMatchedLeaf(Node* v) { mMatchedLeaf = v; }
@@ -488,22 +502,23 @@ public:
    * @param name : node name
    * @return : node in matched branch with specified name
    */
-  Node* getMatchedNode(const std::string& name)const;
+  Node* getMatchedNode(const std::string& name) const;
+
+  bool hasMatchedNode(const std::string& name) const;
 
   /**
    * Get arg handler of matched node
    * @param nodeName : node name
    * @return : arg handler of matched node
    */
-  ArgHandler* getMatchedNodeHandler(const std::string& nodeName)const;
+  ArgHandler* getMatchedNodeHandler(const std::string& nodeName) const;
 
   /**
    * Get sub tree under specified node
    * @param nodeName : node name, not sub tree name!.
    * @return :
    */
-  TreeArgHandler* getSubTree(const std::string& nodeName)const;
-
+  TreeArgHandler* getSubTree(const std::string& nodeName) const;
 
 private:
   /**

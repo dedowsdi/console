@@ -6,7 +6,7 @@
 #include "pacArgHandler.h"
 
 namespace pac {
-LightSI::Visible MovableSI::msVisible;
+MovableSI::Visible MovableSI::msVisible;
 LightSI::LightType LightSI::msLightType;
 LightSI::Position LightSI::msPosition;
 LightSI::Diffuse LightSI::msDiffuse;
@@ -28,6 +28,9 @@ NodeSI::Position NodeSI::msPosition;
 NodeSI::Scale NodeSI::msScale;
 NodeSI::Orientation NodeSI::msOrientation;
 NodeSI::Parent NodeSI::msParent;
+NodeSI::Yaw NodeSI::msYaw;
+NodeSI::Pitch NodeSI::msPitch;
+NodeSI::Roll NodeSI::msRoll;
 SceneManagerSI::ShadowTechnique SceneManagerSI::msShadowTechnique;
 SceneManagerSI::ShadowColour SceneManagerSI::msShadowColour;
 SceneManagerSI::AmbientLight SceneManagerSI::msAmbientLight;
@@ -53,21 +56,19 @@ StringInterface* OgreSiUtil::createMovableSI(Ogre::MovableObject* mo) {
 
 //------------------------------------------------------------------------------
 std::string MovableSI::Visible::doGet(const void* target) const {
-  Ogre::MovableObject* mo =
-      static_cast<const MovableSI*>(target)->getMovable();
+  Ogre::MovableObject* mo = static_cast<const MovableSI*>(target)->getMovable();
   return Ogre::StringConverter::toString(mo->getVisible());
 }
 
 //------------------------------------------------------------------------------
 void MovableSI::Visible::doSet(void* target, ArgHandler* handler) {
-  Ogre::MovableObject* mo =
-      static_cast<const MovableSI*>(target)->getMovable();
+  Ogre::MovableObject* mo = static_cast<const MovableSI*>(target)->getMovable();
   mo->setVisible(Ogre::StringConverter::parseBool(handler->getValue()));
 }
 
 //------------------------------------------------------------------------------
 MovableSI::MovableSI(Ogre::MovableObject* obj)
-    : StringInterface(obj->getMovableType(), true), mMovable(obj) {
+    : StringInterface("movable", true), mMovable(obj) {
   if (createParamDict()) initParams();
 }
 
@@ -145,28 +146,28 @@ void LightSI::Direction::doSet(void* target, ArgHandler* handler) {
 std::string LightSI::SpotOuter::doGet(const void* target) const {
   Ogre::Light* light = static_cast<const LightSI*>(target)->getLight();
   return Ogre::StringConverter::toString(
-      light->getSpotlightOuterAngle().valueRadians());
+      light->getSpotlightOuterAngle().valueDegrees());
 }
 
 //------------------------------------------------------------------------------
 void LightSI::SpotOuter::doSet(void* target, ArgHandler* handler) {
   Ogre::Light* light = static_cast<const LightSI*>(target)->getLight();
-  light->setSpotlightOuterAngle(Ogre::Radian(
-      Ogre::StringConverter::parseReal(handler->getValue())));
+  light->setSpotlightOuterAngle(
+      Ogre::Degree(Ogre::StringConverter::parseReal(handler->getValue())));
 }
 
 //------------------------------------------------------------------------------
 std::string LightSI::SpotInner::doGet(const void* target) const {
   Ogre::Light* light = static_cast<const LightSI*>(target)->getLight();
   return Ogre::StringConverter::toString(
-      light->getSpotlightInnerAngle().valueRadians());
+      light->getSpotlightInnerAngle().valueDegrees());
 }
 
 //------------------------------------------------------------------------------
 void LightSI::SpotInner::doSet(void* target, ArgHandler* handler) {
   Ogre::Light* light = static_cast<const LightSI*>(target)->getLight();
-  light->setSpotlightInnerAngle(Ogre::Radian(
-      Ogre::StringConverter::parseReal(handler->getValue())));
+  light->setSpotlightInnerAngle(
+      Ogre::Degree(Ogre::StringConverter::parseReal(handler->getValue())));
 }
 
 //------------------------------------------------------------------------------
@@ -199,8 +200,8 @@ void LightSI::SpotNearClip::doSet(void* target, ArgHandler* handler) {
 std::string LightSI::SpotRange::doGet(const void* target) const {
   Ogre::Light* light = static_cast<const LightSI*>(target)->getLight();
   std::stringstream ss;
-  ss << light->getSpotlightInnerAngle().valueRadians() << " "
-     << light->getSpotlightOuterAngle().valueRadians() << " "
+  ss << light->getSpotlightInnerAngle().valueDegrees() << " "
+     << light->getSpotlightOuterAngle().valueDegrees() << " "
      << light->getSpotlightFalloff();
   return ss.str();
 }
@@ -209,7 +210,7 @@ std::string LightSI::SpotRange::doGet(const void* target) const {
 void LightSI::SpotRange::doSet(void* target, ArgHandler* handler) {
   Ogre::Light* light = static_cast<const LightSI*>(target)->getLight();
   Ogre::Vector3&& v = Ogre::StringConverter::parseVector3(handler->getValue());
-  light->setSpotlightRange(Ogre::Radian(v[0]), Ogre::Radian(v[1]), v[2]);
+  light->setSpotlightRange(Ogre::Degree(v[0]), Ogre::Degree(v[1]), v[2]);
 }
 
 //------------------------------------------------------------------------------
@@ -256,27 +257,31 @@ void LightSI::ShadowFarDist::doSet(void* target, ArgHandler* handler) {
 
 //------------------------------------------------------------------------------
 LightSI::LightSI(Ogre::Light* light) : MovableSI(light) {
+  setName(light->getMovableType());
   if (createParamDict()) initParams();
 }
 
 //------------------------------------------------------------------------------
-Ogre::Light* LightSI::getLight() const { return static_cast<Ogre::Light*>(mMovable); }
+Ogre::Light* LightSI::getLight() const {
+  return static_cast<Ogre::Light*>(mMovable);
+}
 
 //------------------------------------------------------------------------------
 void LightSI::initParams() {
-  mParamDict->addParameter("LightType", &msLightType);
-  mParamDict->addParameter("Position", &msPosition);
-  mParamDict->addParameter("Diffuse", &msDiffuse);
-  mParamDict->addParameter("Specular", &msSpecular);
-  mParamDict->addParameter("Direction", &msDirection);
-  mParamDict->addParameter("SpotOuter", &msSpotOuter);
-  mParamDict->addParameter("SpotInner", &msSpotInner);
-  mParamDict->addParameter("SpotFalloff", &msSpotFalloff);
-  mParamDict->addParameter("SpotNearClip", &msSpotNearClip);
-  mParamDict->addParameter("SpotRange", &msSpotRange);
-  mParamDict->addParameter("Attenuation", &msAttenuation);
-  mParamDict->addParameter("PowerScale", &msPowerScale);
-  mParamDict->addParameter("ShadowFarDist", &msShadowFarDist);
+  MovableSI::initParams();
+  mParamDict->addParameter("lightType", &msLightType);
+  mParamDict->addParameter("position", &msPosition);
+  mParamDict->addParameter("diffuse", &msDiffuse);
+  mParamDict->addParameter("specular", &msSpecular);
+  mParamDict->addParameter("direction", &msDirection);
+  mParamDict->addParameter("spotOuter", &msSpotOuter);
+  mParamDict->addParameter("spotInner", &msSpotInner);
+  mParamDict->addParameter("spotFalloff", &msSpotFalloff);
+  mParamDict->addParameter("spotNearClip", &msSpotNearClip);
+  mParamDict->addParameter("spotRange", &msSpotRange);
+  mParamDict->addParameter("attenuation", &msAttenuation);
+  mParamDict->addParameter("powerScale", &msPowerScale);
+  mParamDict->addParameter("shadowFarDist", &msShadowFarDist);
 }
 
 //------------------------------------------------------------------------------
@@ -332,6 +337,7 @@ void CameraSI::Orientation::doSet(void* target, ArgHandler* handler) {
 
 //------------------------------------------------------------------------------
 CameraSI::CameraSI(Ogre::Camera* camera) : MovableSI(camera) {
+  setName(camera->getMovableType());
   if (createParamDict()) initParams();
 }
 
@@ -342,6 +348,7 @@ Ogre::Camera* CameraSI::getCamera() const {
 
 //------------------------------------------------------------------------------
 void CameraSI::initParams() {
+  MovableSI::initParams();
   mParamDict->addParameter("position", &msPosition);
   mParamDict->addParameter("orientation", &msOrientation);
   mParamDict->addParameter("polygonMode", &msPolygonMode);
@@ -350,6 +357,7 @@ void CameraSI::initParams() {
 
 //------------------------------------------------------------------------------
 EntitySI::EntitySI(Ogre::Entity* ent) : MovableSI(ent) {
+  setName(ent->getMovableType());
   if (createParamDict()) initParams();
 }
 
@@ -359,7 +367,7 @@ Ogre::Entity* EntitySI::getEntity() const {
 }
 
 //------------------------------------------------------------------------------
-void EntitySI::initParams() {}
+void EntitySI::initParams() { MovableSI::initParams(); }
 
 //------------------------------------------------------------------------------
 std::string NodeSI::Position::doGet(const void* target) const {
@@ -406,32 +414,88 @@ std::string NodeSI::Parent::doGet(const void* target) const {
 }
 
 //------------------------------------------------------------------------------
-NodeSI::NodeSI(Ogre::Node* sceneNode) : StringInterface("Node", true) {
+std::string NodeSI::Yaw::doGet(const void* target) const {
+  Ogre::Node* node = static_cast<const NodeSI*>(target)->getNode();
+  const Ogre::Quaternion& q = node->getOrientation();
+  return Ogre::StringConverter::toString(q.getYaw().valueDegrees());
+}
+
+//------------------------------------------------------------------------------
+void NodeSI::Yaw::doSet(void* target, ArgHandler* handler) {
+  Ogre::Node* node = static_cast<const NodeSI*>(target)->getNode();
+  TreeArgHandler* tree = static_cast<TreeArgHandler*>(handler);
+  auto ts = enumFromString<Ogre::Node::TransformSpace>(
+      tree->getMatchedNodeValue("en_transformSpace"));
+  Real degree =
+      Ogre::StringConverter::parseReal(tree->getMatchedNodeValue("real"));
+  node->yaw(Ogre::Degree(degree), ts);
+}
+
+//------------------------------------------------------------------------------
+std::string NodeSI::Pitch::doGet(const void* target) const {
+  Ogre::Node* node = static_cast<const NodeSI*>(target)->getNode();
+  const Ogre::Quaternion& q = node->getOrientation();
+  return Ogre::StringConverter::toString(q.getPitch().valueDegrees());
+}
+
+//------------------------------------------------------------------------------
+void NodeSI::Pitch::doSet(void* target, ArgHandler* handler) {
+  Ogre::Node* node = static_cast<const NodeSI*>(target)->getNode();
+  TreeArgHandler* tree = static_cast<TreeArgHandler*>(handler);
+  auto ts = enumFromString<Ogre::Node::TransformSpace>(
+      tree->getMatchedNodeValue("en_transformSpace"));
+  Real degree =
+      Ogre::StringConverter::parseReal(tree->getMatchedNodeValue("real"));
+  node->pitch(Ogre::Degree(degree), ts);
+}
+
+//------------------------------------------------------------------------------
+std::string NodeSI::Roll::doGet(const void* target) const {
+  Ogre::Node* node = static_cast<const NodeSI*>(target)->getNode();
+  const Ogre::Quaternion& q = node->getOrientation();
+  return Ogre::StringConverter::toString(q.getRoll().valueDegrees());
+}
+
+//------------------------------------------------------------------------------
+void NodeSI::Roll::doSet(void* target, ArgHandler* handler) {
+  Ogre::Node* node = static_cast<const NodeSI*>(target)->getNode();
+  TreeArgHandler* tree = static_cast<TreeArgHandler*>(handler);
+  auto ts = enumFromString<Ogre::Node::TransformSpace>(
+      tree->getMatchedNodeValue("en_transformSpace"));
+  Real degree =
+      Ogre::StringConverter::parseReal(tree->getMatchedNodeValue("real"));
+  node->roll(Ogre::Degree(degree), ts);
+}
+
+//------------------------------------------------------------------------------
+NodeSI::NodeSI(Ogre::Node* node) : StringInterface("Node", true), mNode(node) {
   if (createParamDict()) initParams();
 }
 
 //------------------------------------------------------------------------------
 void NodeSI::initParams() {
-  mParamDict->addParameter("Position", &msPosition);
-  mParamDict->addParameter("Scale", &msScale);
-  mParamDict->addParameter("Orientation", &msOrientation);
-  mParamDict->addParameter("Parent", &msParent);
+  mParamDict->addParameter("position", &msPosition);
+  mParamDict->addParameter("scale", &msScale);
+  mParamDict->addParameter("orientation", &msOrientation);
+  mParamDict->addParameter("parent", &msParent);
+  mParamDict->addParameter("yaw", &msYaw);
+  mParamDict->addParameter("pitch", &msPitch);
+  mParamDict->addParameter("roll", &msRoll);
 }
 
 //------------------------------------------------------------------------------
-SceneNodeSI::SceneNodeSI(Ogre::SceneNode* sceneNode)
-    : StringInterface("SceneNode", true),
-mSceneNode(sceneNode){
+SceneNodeSI::SceneNodeSI(Ogre::SceneNode* sceneNode) : NodeSI(sceneNode) {
+  setName("SceneNode");
   if (createParamDict()) initParams();
 }
 
 //------------------------------------------------------------------------------
 Ogre::SceneNode* SceneNodeSI::getSceneNode() const {
-  return static_cast<Ogre::SceneNode*>(mSceneNode);
+  return static_cast<Ogre::SceneNode*>(mNode);
 }
 
 //------------------------------------------------------------------------------
-void SceneNodeSI::initParams() {}
+void SceneNodeSI::initParams() { NodeSI::initParams(); }
 
 //------------------------------------------------------------------------------
 std::string SceneManagerSI::ShadowTechnique::doGet(const void* target) const {
@@ -444,7 +508,8 @@ std::string SceneManagerSI::ShadowTechnique::doGet(const void* target) const {
 void SceneManagerSI::ShadowTechnique::doSet(void* target, ArgHandler* handler) {
   Ogre::SceneManager* sm =
       static_cast<const SceneManagerSI*>(target)->getSceneMgr();
-  sm->setShadowTechnique(enumFromString<Ogre::ShadowTechnique>(handler->getValue()));
+  sm->setShadowTechnique(
+      enumFromString<Ogre::ShadowTechnique>(handler->getValue()));
 }
 
 //------------------------------------------------------------------------------
@@ -485,6 +550,7 @@ std::string SceneManagerSI::Fog::doGet(const void* target) const {
      << Ogre::StringConverter::toString(sm->getFogColour()) << " "
      << sm->getFogDensity() << " " << sm->getFogStart() << " "
      << sm->getFogEnd();
+  return ss.str();
 }
 
 //------------------------------------------------------------------------------
@@ -493,13 +559,16 @@ void SceneManagerSI::Fog::doSet(void* target, ArgHandler* handler) {
       static_cast<const SceneManagerSI*>(target)->getSceneMgr();
   TreeArgHandler* tree = static_cast<TreeArgHandler*>(handler);
   Ogre::FogMode fogMode =
-      enumFromString<Ogre::FogMode>(tree->getMatchedNodeValue("fogMode"));
-  const Ogre::ColourValue& colour = Ogre::StringConverter::parseColourValue(tree->getMatchedNodeValue("colour"));
-  Real expDensity = Ogre::StringConverter::parseReal(tree->getMatchedNodeValue("expDensity"));
-  Real linearStart = Ogre::StringConverter::parseReal(tree->getMatchedNodeValue("linearStart"));
-  Real linearEnd = Ogre::StringConverter::parseReal(tree->getMatchedNodeValue("linearEnd"));
-  sm->setFog(
-      fogMode, colour, expDensity, linearStart, linearEnd);
+      enumFromString<Ogre::FogMode>(tree->getMatchedNodeValue("en_fogMode"));
+  const Ogre::ColourValue& colour = Ogre::StringConverter::parseColourValue(
+      tree->getMatchedNodeValue("colour"));
+  Real expDensity =
+      Ogre::StringConverter::parseReal(tree->getMatchedNodeValue("expDensity"));
+  Real linearStart = Ogre::StringConverter::parseReal(
+      tree->getMatchedNodeValue("linearStart"));
+  Real linearEnd =
+      Ogre::StringConverter::parseReal(tree->getMatchedNodeValue("linearEnd"));
+  sm->setFog(fogMode, colour, expDensity, linearStart, linearEnd);
 }
 
 //------------------------------------------------------------------------------
@@ -510,9 +579,9 @@ SceneManagerSI::SceneManagerSI(Ogre::SceneManager* sceneMgr)
 
 //------------------------------------------------------------------------------
 void SceneManagerSI::initParams() {
-  mParamDict->addParameter("ShadowTechnique", &msShadowTechnique);
-  mParamDict->addParameter("ShadowColour", &msShadowColour);
-  mParamDict->addParameter("AmbientLight", &msAmbientLight);
-  mParamDict->addParameter("Fog", &msFog);
+  mParamDict->addParameter("shadowTechnique", &msShadowTechnique);
+  mParamDict->addParameter("shadowColour", &msShadowColour);
+  mParamDict->addParameter("ambientLight", &msAmbientLight);
+  mParamDict->addParameter("fog", &msFog);
 }
 }

@@ -8,7 +8,7 @@ namespace pac {
 
 class _PacExport OgreConsole : public Console {
 public:
-  OgreConsole(UiConsole* ui, Ogre::SceneManager* sceneMgr);
+  OgreConsole(ConsoleUI* ui, Ogre::SceneManager* sceneMgr);
 
   /**
    * The scene need better be freezed when you want to change properties of some
@@ -27,6 +27,7 @@ public:
 
   AbsDir* getMovableDir() const { return mMovableDir; }
   AbsDir* getNodeDir() const { return mNodeDir; }
+  AbsDir* getSceneDir() const { return mSceneDir; }
 
 protected:
   /**
@@ -80,6 +81,7 @@ protected:
   Ogre::SceneManager* mSceneMgr;
   AbsDir* mMovableDir;
   AbsDir* mNodeDir;
+  AbsDir* mSceneDir;
 };
 }
 

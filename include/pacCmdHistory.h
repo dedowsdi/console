@@ -19,7 +19,8 @@ public:
 	CmdHistory(size_t size = 100, bool rollOver = false);
 
 	/**
-	 * push cmdLine into history, it will be trimmed first.
+	 * push cmdLine into history, it will be trimmed first. If cmdLine is the
+   * same as last one, nothing will happen
 	 * @param cmdLine : cmdLine
 	 * @return : 
 	 */

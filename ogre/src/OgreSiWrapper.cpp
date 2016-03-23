@@ -56,7 +56,8 @@ bool OgreSiWrapper::createaAhDict() {
 }
 
 //------------------------------------------------------------------------------
-void OgreSiWrapper::bindArghanderByType() {
+void OgreSiWrapper::bindArgHandlerByType()
+{
   const Ogre::ParameterList& paramList = mOgreSI->getParameters();
   std::for_each(paramList.begin(), paramList.end(),
       [&](const Ogre::ParameterList::value_type& v) -> void {

@@ -1,6 +1,7 @@
 #include "pacStable.h"
 #include "pacConsolePattern.h"
 #include <iostream>
+#include "pacLogger.h"
 
 namespace pac {
 
@@ -9,7 +10,10 @@ ConsolePattern::ConsolePattern(size_t textWidth) : mTextWidth(textWidth) {}
 
 //------------------------------------------------------------------------------
 DefaultPattern::DefaultPattern(size_t textWidth, size_t spacing)
-    : ConsolePattern(textWidth), mSpacing(spacing) {}
+    : ConsolePattern(textWidth), mSpacing(spacing) {
+  sgLogger.logMessage(
+      "init console pattern text width to " + StringUtil::toString(textWidth));
+}
 
 //------------------------------------------------------------------------------
 std::string DefaultPattern::applyPattern(SVIter beg, SVIter end) {
@@ -25,7 +29,7 @@ std::string DefaultPattern::applyPattern(SVIter beg, SVIter end) {
   {
     std::stringstream ss;
     std::for_each(beg, end, [&](const std::string& v) -> void {
-      ss << "\n" << StringUtil::toFixedLength(v, maxItemLen + mSpacing);
+      ss << StringUtil::toFixedLength(v, maxItemLen + mSpacing) << "\n";
     });
     return ss.str();
   } else  // find max column number
@@ -52,11 +56,14 @@ std::string DefaultPattern::applyPattern(SVIter beg, SVIter end) {
       size_t col = i % numCol;
       size_t row = i / numCol;
       size_t itemIndex = col * numRow + row;
-      if (itemIndex >= numItem)  // meet empty grid in last col
+      if (itemIndex >= numItem) {
+        // meet empty grid in last col
+        ss << "\n";
         continue;
-      // line break at 1st column
-      if (col == 0) ss << "\n";
+      }
       ss << StringUtil::toFixedLength(*(beg + itemIndex), colWidthes[col]);
+      // line break at last column
+      if (col == numCol - 1) ss << "\n";
     }
 
     return ss.str();

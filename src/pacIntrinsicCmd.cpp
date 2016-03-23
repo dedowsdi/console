@@ -101,9 +101,9 @@ bool SetCmd::doExecute() {
   }
 
   const std::string& param = handler->getMatchedNodeValue("param");
-  ValueArgHandler* valueHandler =
-      static_cast<ValueArgHandler*>(handler->getMatchedNodeHandler("value"));
-  dir->setParameter(param, valueHandler->getHandler());
+  ArgHandler* valueHandler =
+      handler->getMatchedNodeHandler("value");
+  dir->setParameter(param, valueHandler);
 
   return true;
 }
