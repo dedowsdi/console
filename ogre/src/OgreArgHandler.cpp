@@ -87,6 +87,12 @@ bool MovableAH::doValidate(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
+std::string MovableAH::getUniformValue() const {
+  //@TODO implement
+  throw new std::runtime_error("unimplemented function called");
+}
+
+//------------------------------------------------------------------------------
 void MovableAH::runtimeInit() {
   mMoType.clear();
   mBone.clear();
@@ -201,26 +207,135 @@ bool MovableBaseAH::doValidate(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-SceneNodeAH::SceneNodeAH() : ArgHandler("sceneNode") {}
+SceneNodeAH::SceneNodeAH()
+    : ArgHandler("sceneNode"),
+      mParentSnNode(0),
+      mAncestorSnNode(0),
+      mSmmtNode(0),
+      mParentSceneNode(0),
+      mAncestorSceneNode(0),
+      mSmmt(-1) {}
+
+//------------------------------------------------------------------------------
+std::string SceneNodeAH::getUniformValue() const {
+  return Ogre::StringConverter::toString(getIdFromNameid(mValue));
+}
+
+//------------------------------------------------------------------------------
+Ogre::SceneNode* SceneNodeAH::getSceneNode() {
+  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
+  Ogre::IdType id = getIdFromNameid(mValue);
+  if (id != nid) {
+    // normal node
+    Ogre::SceneNode* node = sm->getSceneNode(id);
+    if (node) return node;
+    // try dynamic root and static root node
+    Ogre::SceneNode* dynRoot = sm->getRootSceneNode(Ogre::SCENE_DYNAMIC);
+    if (id == dynRoot->getId()) return dynRoot;
+    Ogre::SceneNode* staticRoot = sm->getRootSceneNode(Ogre::SCENE_STATIC);
+    if (id == staticRoot->getId()) return staticRoot;
+  }
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+void SceneNodeAH::onLinked(Node* grandNode) {
+  mSmmtNode = mNode->getAncestorNode("en_smmt", 2);
+  mParentSnNode = mNode->getAncestorNode("parentSceneNode", 2);
+  mAncestorSnNode = mNode->getAncestorNode("ancestorSceneNode", 2);
+}
+
+//------------------------------------------------------------------------------
+void SceneNodeAH::runtimeInit() {
+  mSmmt = -1;
+  mParentSceneNode = mAncestorSceneNode = 0;
+  if (mParentSnNode)
+    mParentSceneNode = static_cast<SceneNodeAH*>(mParentSnNode->getArgHandler())
+                           ->getSceneNode();
+  if (mAncestorSnNode)
+    mAncestorSnNode = static_cast<SceneNodeAH*>(
+                          mAncestorSnNode->getArgHandler())->getSceneNode();
+  if (mSmmtNode)
+    mSmmt = enumFromString<Ogre::SceneMemoryMgrTypes>(mSmmtNode->getValue());
+}
+
+//------------------------------------------------------------------------------
+SceneNodeTH::SceneNodeTH() : TreeArgHandler("t_sceneNode") {
+  //  sceneNode ("0")
+  mRoot->acn("sceneNode")->eb("0");
+  //  en_smmt sceneNode ("1")
+  mRoot->acn("en_smmt")->acn("sceneNode")->eb("1");
+  //  ltl_parent parentSceneNode sceneNode ("2")
+  Node* parentSnNode =
+      mRoot->acn("ltl_parent")->("parentSceneNode", "sceneNode");
+  parentSnNode->acn("sceneNode")->en("2");
+  //  ltl_parent parentSceneNode en_smmt sceneNode ("3")
+  parentSnNode->acn("en_smmt")->acn("sceneNode")->eb("3");
+  //  ltl_ancestor ancestorSceneNode sceneNode ("4")
+  Node* ancestorSnNode =
+      mRoot->acn("ltl_ancestor")->("ancestorSceneNode", "sceneNode");
+  ancestorSnNode->acn("sceneNode")->en("4");
+  //  ltl_ancestor ancestorSceneNode en_smmt sceneNode ("5")
+  ancestorSnNode->acn("en_smmt")->acn("sceneNode")->eb("5");
+}
+
+//------------------------------------------------------------------------------
+Ogre::SceneNode* SceneNodeTH::getSceneNode() {
+  return static_cast<SceneNodeAH*>(getMatchedNodeHandler("sceneNode"))
+      ->getSceneNode();
+}
+
+//------------------------------------------------------------------------------
+std::string SceneNodeTH::getUniformValue() const {
+  return static_cast<SceneNodeAH*>(getMatchedNodeHandler("sceneNode"))
+      ->getUniformValue();
+}
 
 //------------------------------------------------------------------------------
 void SceneNodeAH::populatePromptBuffer(const std::string& s) {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  //don't output root node 
-  auto oi = sm->getRootSceneNode()->getChildIterator();
-  while (oi.hasMoreElements()) loopNode(oi.getNext(), s);
+  if (mParentSceneNode) {
+    // output direct child only
+    RaiiConsoleBuffer b;
+    auto oi = mParentSceneNode->getChildIterator();
+    while (oi.hasMoreElements()) {
+      Ogre::Node* child = oi->getNext();
+      if ((mSmmt < 0 || mSmmt == child->getMemoryManagerType()) &&
+          (s.empty() || StringUtil::startsWith(child->getName(), s)))
+        appendPromptBuffer(s);
+    }
+  } else if (mAncestorSceneNode) {
+    // output all children
+    auto oi = mParentSceneNode->getChildIterator();
+    while (oi.hasMoreElements()) loopNode(oi->getNext(), s);
+  } else {
+    loopNode(sm->getRootSceneNode(Ogre::SCENE_DYNAMIC), s);
+    loopNode(sm->getRootSceneNode(Ogre::SCENE_STATIC), s);
+  }
+}
 }
 
 //------------------------------------------------------------------------------
 bool SceneNodeAH::doValidate(const std::string& s) {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  return sm->hasSceneNode(s);
+  Ogre::IdType id = getIdFromNameid(s);
+  if (id != nid) {
+    Ogre::SceneNode* node = sm->getSceneNode(id);
+    if (!node) {
+      // try root
+      if (id == sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)->getId() ||
+          id == sm->getRootSceneNode(Ogre::SCENE_STATIC)->getId())
+        return true;
+    }
+  }
+  return false;
 }
 
 //------------------------------------------------------------------------------
 void SceneNodeAH::loopNode(Ogre::Node* node, const std::string& s) {
-  if (s.empty() || StringUtil::startsWith(node->getName(), s))
-    appendPromptBuffer(node->getName());
+  if ((mSmmt < 0 || mSmmt == child->getMemoryManagerType()) &&
+      (s.empty() || StringUtil::startsWith(child->getName(), s)))
+    appendPromptBuffer(createNameid(node->getName(), node->getId()));
   auto oi = node->getChildIterator();
   while (oi.hasMoreElements()) loopNode(oi.getNext(), s);
 }

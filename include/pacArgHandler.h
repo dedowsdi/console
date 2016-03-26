@@ -306,9 +306,14 @@ public:
   /**
    * Get parent node by name. This is always a recursive operation.
    * @param name : parent node name
+   * @param maxLvl : max level , 1 for direct parent
    * @return : ancestor node with specified name or 0
    */
-  Node* getAncestorNode(const std::string& name) const;
+  Node* getAncestorNode(const std::string& name, size_t maxLvl = 9999) const;
+
+  Node* getAncestorNode(int lvl);
+
+  Node* getAncestorNodeAhName(int lvl);
 
   /**
    * Get tree handler attached to this node.
@@ -433,7 +438,6 @@ private:
  */
 class TreeArgHandler : public ArgHandler {
 public:
-
   friend class ArgHandlerLib;
 
   virtual ArgHandler* clone() { return new TreeArgHandler(*this); }
@@ -512,6 +516,12 @@ public:
    * @return : arg handler of matched node
    */
   ArgHandler* getMatchedNodeHandler(const std::string& nodeName) const;
+
+  // cast return type
+  template <typename T>
+  T* getMatchedNodeHandler(const std::string& nodeName) const {
+    return static_cast<T*>(getMatchedNodeHandler(nodeName));
+  }
 
   /**
    * Get sub tree under specified node

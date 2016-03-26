@@ -19,20 +19,22 @@ namespace pac {
 DEFINE_ENUM_CONVERSION(
     Ogre::Light::, LightTypes, (LT_POINT)(LT_DIRECTIONAL)(LT_SPOTLIGHT))
 DEFINE_ENUM_CONVERSION(Ogre::, PolygonMode, (PM_POINTS)(PM_WIREFRAME)(PM_SOLID))
-DEFINE_ENUM_CONVERSION(
-    Ogre::, ShadowTechnique,
-    (SHADOWDETAILTYPE_ADDITIVE)(SHADOWDETAILTYPE_MODULATIVE)(
-        SHADOWDETAILTYPE_INTEGRATED)(SHADOWDETAILTYPE_STENCIL)(
-        SHADOWDETAILTYPE_TEXTURE)(SHADOWTYPE_STENCIL_MODULATIVE)(
-        SHADOWTYPE_STENCIL_ADDITIVE)(SHADOWTYPE_TEXTURE_MODULATIVE)(
-        SHADOWTYPE_TEXTURE_ADDITIVE)(SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED)(
-        SHADOWTYPE_TEXTURE_MODULATIVE_INTEGRATED));
+// DEFINE_ENUM_CONVERSION(
+// Ogre::, ShadowTechnique,
+//(SHADOWDETAILTYPE_ADDITIVE)(SHADOWDETAILTYPE_MODULATIVE)(
+// SHADOWDETAILTYPE_INTEGRATED)(SHADOWDETAILTYPE_STENCIL)(
+// SHADOWDETAILTYPE_TEXTURE)(SHADOWTYPE_STENCIL_MODULATIVE)(
+// SHADOWTYPE_STENCIL_ADDITIVE)(SHADOWTYPE_TEXTURE_MODULATIVE)(
+// SHADOWTYPE_TEXTURE_ADDITIVE)(SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED)(
+// SHADOWTYPE_TEXTURE_MODULATIVE_INTEGRATED));
 DEFINE_ENUM_CONVERSION(
     Ogre::, FogMode, (FOG_NONE)(FOG_EXP)(FOG_EXP2)(FOG_LINEAR))
 DEFINE_ENUM_CONVERSION(
     Ogre::, CullingMode, (CULL_NONE)(CULL_CLOCKWISE)(CULL_ANTICLOCKWISE))
 DEFINE_ENUM_CONVERSION(
     Ogre::Node::, TransformSpace, (TS_LOCAL)(TS_PARENT)(TS_WORLD))
+DEFINE_ENUM_CONVERSION(Ogre::, SceneMemoryMgrTypes,
+    (SCENE_DYNAMIC)(SCENE_STATIC)(NUM_SCENE_MEMORY_MANAGER_TYPES))
 
 //------------------------------------------------------------------------------
 OgreConsole::OgreConsole(ConsoleUI* ui, Ogre::SceneManager* sceneMgr)
@@ -85,13 +87,15 @@ void OgreConsole::initEnumArgHandler() {
       new EnumArgHandler<Ogre::Light::LightTypes>("en_lightType"));
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::PolygonMode>("en_polygonMode"));
-  sgArgLib.registerArgHandler(
-      new EnumArgHandler<Ogre::ShadowTechnique>("en_shadowTenique"));
+  //sgArgLib.registerArgHandler(
+      //new EnumArgHandler<Ogre::ShadowTechnique>("en_shadowTenique"));
   sgArgLib.registerArgHandler(new EnumArgHandler<Ogre::FogMode>("en_fogMode"));
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::FogMode>("en_cullingMode"));
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::Node::TransformSpace>("en_transformSpace"));
+  sgArgLib.registerArgHandler(
+      new EnumArgHandler<Ogre::SceneMemoryMgrTypes>("en_smmt"));
 }
 
 //------------------------------------------------------------------------------
@@ -105,8 +109,8 @@ void OgreConsole::initResourceArghandler() {
       Ogre::TextureManager::getSingletonPtr(), {"png", "jpg", "jpeg", "dds"}));
   sgArgLib.registerArgHandler(new ParticleSystemTemplateAH(
       Ogre::ParticleSystemManager::getSingletonPtr()));
-  sgArgLib.registerArgHandler(
-      new ResourceAH("compositor", Ogre::CompositorManager::getSingletonPtr()));
+  //sgArgLib.registerArgHandler(
+      //new ResourceAH("compositor", Ogre::CompositorManager::getSingletonPtr()));
 }
 
 //------------------------------------------------------------------------------
@@ -151,6 +155,7 @@ void OgreConsole::initLiteralArgHandler() {
   sgArgLib.registerArgHandler(new LiteralArgHandler("camera"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("direct"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("all"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("parent"));
 }
 
 //------------------------------------------------------------------------------

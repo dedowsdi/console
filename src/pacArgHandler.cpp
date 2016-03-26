@@ -312,13 +312,23 @@ Node* Node::getChildNode(
 }
 
 //------------------------------------------------------------------------------
-Node* Node::getAncestorNode(const std::string& name) const {
-  if (!mParent) return 0;
+Node* Node::getAncestorNode(
+    const std::string& name, size_t maxLvl /*=9999*/) const {
+  if (!mParent || maxLvl <= 0) return 0;
 
   if (mParent->getName() == name)
     return mParent;
   else
-    return mParent->getAncestorNode(name);
+    return mParent->getAncestorNode(name, maxLvl - 1);
+}
+
+//------------------------------------------------------------------------------
+Node* Node::getAncestorNode(int lvl) {
+  if (lvl == 0) return this;
+
+  if (!mParent) return 0;
+
+  return mParent->getAncestorNode(lvl - 1);
 }
 
 //------------------------------------------------------------------------------

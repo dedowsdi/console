@@ -7,6 +7,9 @@
 
 namespace pac {
 
+static Ogre::IdType nid;
+Ogre::IdType getIdFromNameid(const std::string& nameid);
+std::string createNameid(const std::string& name, Ogre::IdType id);
 
 /**
  * movable, must follow moType. It will search back sceneNode and entity bone to
@@ -73,11 +76,14 @@ protected:
 };
 
 /**
+ * Tree handler used to locate scenenode
  * name is only name, not identity in ogre2.0, so i combine namd and id with
- * '@', name@id
- * might follow en_smmt, parentNode 
+ * '@', name@id.
+ *
+ * name@id   ("0")
+ * en_sceneMemoryMgrTypes
  */
-class _PacExport SceneNodeAH : public ArgHandler {
+class _PacExport SceneNodeAH : public TreeArgHandler {
 public:
   SceneNodeAH();
   virtual ArgHandler* clone() { return new SceneNodeAH(*this); }
@@ -92,31 +98,6 @@ protected:
    * manually
    */
   void loopNode(Ogre::Node* sceneNode, const std::string& s);
-
-  virtual void onLinked(Node* grandNode);
-  virtual void runtimeInit();
-private:
-  Node* mParentSnNode, *mAncestorSnNode, *mSmmtNode;
-  Ogre::SceneNode* mParentSceneNode, *mAncestorSceneNode;
-  int mSmmt;
-};
-
-/**
- *  sceneNode ("0")
- *  en_smmt sceneNode ("1")
- *  ltl_parent parentSceneNode sceneNode ("2")
- *  ltl_parent parentSceneNode en_smmt sceneNode ("3")
- *  ltl_ancestor ancestorSceneNode sceneNode ("4")
- *  ltl_ancestor ancestorSceneNode en_smmt sceneNode ("5")
- *
- *  all the way to locate a scene node
- */
-class _PacExport SceneNodeTH : public TreeArgHandler
-{
-public:
-	SceneNodeTH();
-  Ogre::SceneNode* getSceneNode();
-  virtual std::string getUniformValue() const;
 };
 
 /**

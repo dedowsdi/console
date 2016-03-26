@@ -27,10 +27,12 @@ protected:
 };
 
 /**
- * lsnd ("0")
- * lsnd sceneNode ("1")
- * lsnd ltl_direct sceneNode ("2")
- * lsnd ltl_regex regex ("3")
+ * lsnd ("g0")
+ * lsnd en_smmt ("g1")
+ * lsnd [-r] t_sceneNode ("s0")      [-r] recursively list children
+ * lsnd [-r] t_sceneNode en_smmt("s1") 
+ * lsnd ltl_regex regex ("r0")
+ * lsnd ltl_regex regex en_smmt("r1")
  */
 class _PacExport LsndCmd : public Command {
 public:
@@ -46,20 +48,20 @@ private:
    * recursively output node name
    * @node : target node
    */
-  void outputNode(const Ogre::Node* node);
+  void outputNode(const Ogre::Node* node, int smmt);
   /**
    * recursive output node name if it matches regex
    * @param node : target node
    * @param regex : regex expression
    */
-  void outputNode(const Ogre::Node* node, boost::regex& regex);
+  void outputNode(const Ogre::Node* node, int smmt, boost::regex& regex);
 };
 
 /**
- * ath ltl_sceneNode sceneNode ltl_light id ("sn0")
- * ath ltl_sceneNode sceneNode ltl_entity id mesh ("sn1")
- * ath ltl_sceneNode sceneNode ltl_particle id pst ("sn2")
- * ath ltl_sceneNode sceneNode ltl_camera id("sn3")
+ * ath ltl_sceneNode t_sceneNode ltl_light id ("sn0")
+ * ath ltl_sceneNode t_sceneNode ltl_entity id mesh ("sn1")
+ * ath ltl_sceneNode t_sceneNode ltl_particle id pst ("sn2")
+ * ath ltl_sceneNode t_sceneNode ltl_camera id("sn3")
  * ath ltl_tagPoint entity bone ltl_light id ("tag0")
  * ath ltl_tagPoint entity bone ltl_entity id mesh ("tag1")
  * ath ltl_tagPoint entity bone ltl_particle id pst ("tag2")
@@ -80,8 +82,8 @@ protected:
 /**
  * lsmo moType ("g0")
  * lsmo moType ltl_regex regex ("g1")
- * lsmo ltl_sceneNode sceneNode ("sn0")
- * lsmo ltl_sceneNode sceneNode moType ("sn1")
+ * lsmo ltl_sceneNode t_sceneNode ("sn0")
+ * lsmo ltl_sceneNode t_sceneNode moType ("sn1")
  * lsmo ltl_tagPoint entity ("tag0")
  * lsmo ltl_tagPoint entity moType ("tag1")
  * lsmo ltl_tagPoint entity bone ("tag2")
@@ -143,7 +145,7 @@ protected:
 };
 
 /**
- * ednd sceneNode ("0")
+ * ednd t_sceneNode ("0")
  *
  * Edit scenenode
  */
@@ -154,13 +156,10 @@ public:
 
 protected:
   virtual bool doExecute();
-  virtual bool buildArgHandler();
 };
 
 /**
- * and id ("0")
- * and sncneNode id ("1")
- *
+ * adnd t_sncneNode en_smmt id ("1")
  * add scenenode 
  */
 class _PacExport AdndCmd : public Command {
@@ -174,9 +173,10 @@ protected:
 };
 
 /**
- * and sncneNode id ("0")
+ * rmnd t_sncneNode ("0")
+ * rmnd t_sncneNode ltl_childonly ("1")
  *
- * add scenenode 
+ * destroy scenenode , all it's children and all the movable attached to them
  */
 class _PacExport RmndCmd : public Command {
 public:
@@ -185,6 +185,7 @@ public:
 
 protected:
   virtual bool doExecute();
+  virtual bool buildArgHandler();
 };
 }
 
