@@ -1,38 +1,24 @@
-set (OGRECONSOLE_SRCS
-	src/OgreArgHandler.cpp
-	src/OgreCommand.cpp
-	src/OgreConsole.cpp
-	src/OgreSI.cpp
-	src/OgreSiWrapper.cpp
-	src/OgreParticleSystemSI.cpp
-	)
+include( ${CMAKE_SOURCE_DIR}/CMake/Dependencies/OGRE.cmake  )
+set(OGRE_PLUGIN_DIR_REL /usr/local/lib/OGRE CACHE PATH "where ogre plugin lib resides")
 
-set (OGRECONSOLE_HEADS
-	include/OgreArgHandler.h
-	include/OgreCommand.h
-	include/OgreConsole.h
-	include/OgreConsolePreRequisite.h
-	include/OgreSI.h
-	include/OgreSiWrapper.h
-	include/OgreParticleSystemSI.h
-	)
+setupOgre( OGRE_SOURCE, OGRE_BINARIES, OGRE_LIBRARIES, OGRE_INCLUDE_DIRS )
+add_recursive(./src OGRECONSOLE_SRCS)
+add_recursive(./include OGRECONSOLE_HEADS)
+
 
 option(BUILD_DEMO_MYGUI "build mygui demo" on)
 
 IF (APPLE)
-	FIND_LIBRARY(OGRE OGRE REQUIRED)
 	FIND_LIBRARY(MYGUI MYGUI REQUIRED)
 	FIND_LIBRARY(OIS OIS REQUIRED)
 ELSE (APPLE) 
 	IF (UNIX)
 		MESSAGE(STATUS "UNIX system")
 		FIND_PACKAGE(PkgConfig REQUIRED)
-		PKG_CHECK_MODULES(OGRE REQUIRED OGRE)
 		IF(BUILD_DEMO_MYGUI)
 			PKG_CHECK_MODULES(MYGUI REQUIRED MYGUI)
 			PKG_CHECK_MODULES(OIS REQUIRED OIS)
 		ENDIF()
-		MESSAGE(STATUS "OGRE:${OGRE_LIBRARIES}")
 	ENDIF()
 ENDIF (APPLE)
 
@@ -51,7 +37,6 @@ target_LINK_LIBRARIES(ogreconsole console ${OGRE_LIBRARIES})
 include_directories(include ${OGRE_INCLUDE_DIRS})
 
 set(OGRE_MEDIA_DIR_REL ${CMAKE_CURRENT_SOURCE_DIR}/media)
-set(OGRE_PLUGIN_DIR_REL /usr/local/lib/OGRE CACHE PATH "where ogre plugin lib resides")
 
 #test
 if(BUILD_TEST)

@@ -1,0 +1,48 @@
+ogre/include/OgreArgHandler.h:100:20: * might follow en_smmt, parentNode
+ogre/include/OgreArgHandler.h:129:8: *  en_smmt sceneNode ("1")
+ogre/include/OgreArgHandler.h:131:35: *  ltl_parent parentSceneNode en_smmt sceneNode ("3")
+ogre/include/OgreArgHandler.h:133:39: *  ltl_ancestor ancestorSceneNode en_smmt sceneNode ("5")
+ogre/include/OgreCommand.h:31:12: * lsnd en_smmt ("g1")
+ogre/include/OgreCommand.h:33:29: * lsnd [-r] t_sceneNode en_smmt("s1") 
+ogre/include/OgreCommand.h:35:28: * lsnd ltl_regex regex en_smmt("r1")
+ogre/include/OgreCommand.h:51:47:  void outputNode(const Ogre::Node* node, int smmt);
+ogre/include/OgreCommand.h:57:47:  void outputNode(const Ogre::Node* node, int smmt, boost::regex& regex);
+ogre/include/OgreCommand.h:153:24: * adnd t_sncneNode en_smmt id ("1")
+ogre/src/OgreArgHandler.cpp:249:42:  mSmmtNode = mNode->getAncestorNode("en_smmt", 2);
+ogre/src/OgreArgHandler.cpp:276:10:  //  en_smmt sceneNode ("1")
+ogre/src/OgreArgHandler.cpp:277:18:  mRoot->acn("en_smmt")->acn("sceneNode")->eb("1");
+ogre/src/OgreArgHandler.cpp:282:37:  //  ltl_parent parentSceneNode en_smmt sceneNode ("3")
+ogre/src/OgreArgHandler.cpp:283:25:  parentSnNode->acn("en_smmt")->acn("sceneNode")->eb("3");
+ogre/src/OgreArgHandler.cpp:288:41:  //  ltl_ancestor ancestorSceneNode en_smmt sceneNode ("5")
+ogre/src/OgreArgHandler.cpp:289:27:  ancestorSnNode->acn("en_smmt")->acn("sceneNode")->eb("5");
+ogre/src/OgreCommand.cpp:115:22:  const std::string& smmtStr =
+ogre/src/OgreCommand.cpp:116:40:      handler->getMatchedNodeValue("en_smmt", {"g1", "s1", "r1"});
+ogre/src/OgreCommand.cpp:117:7:  int smmt =
+ogre/src/OgreCommand.cpp:118:7:      smmtStr.empty() ? -1 : enumFromString<Ogre::SceneMemoryMgrTypes>(smmtStr);
+ogre/src/OgreCommand.cpp:123:16:    // lsnd en_smmt ("g1")
+ogre/src/OgreCommand.cpp:124:29:    outputNode(dynamicRoot, smmt);
+ogre/src/OgreCommand.cpp:125:28:    outputNode(staticRoot, smmt);
+ogre/src/OgreCommand.cpp:128:33:    // lsnd [-r] t_sceneNode en_smmt("s1")
+ogre/src/OgreCommand.cpp:135:23:        outputNode(n, smmt);
+ogre/src/OgreCommand.cpp:136:16:      else if (smmt <  0 || smmt == OgreUtil::getSceneType(n))
+ogre/src/OgreCommand.cpp:142:32:    // lsnd ltl_regex regex en_smmt("r1")
+ogre/src/OgreCommand.cpp:144:29:    outputNode(dynamicRoot, smmt, regex);
+ogre/src/OgreCommand.cpp:145:28:    outputNode(staticRoot, smmt, regex);
+ogre/src/OgreCommand.cpp:158:14:  // lsnd en_smmt ("g1")
+ogre/src/OgreCommand.cpp:159:17:  root->acn("en_smmt")->eb("g1");
+ogre/src/OgreCommand.cpp:163:31:  // lsnd [-r] t_sceneNode en_smmt("s1")
+ogre/src/OgreCommand.cpp:164:17:  node->acn("en_smmt")->eb("s1");
+ogre/src/OgreCommand.cpp:168:30:  // lsnd ltl_regex regex en_smmt("r1")
+ogre/src/OgreCommand.cpp:169:17:  node->acn("en_smmt")->eb("r1");
+ogre/src/OgreCommand.cpp:176:54:void LsndCmd::outputNode(const Ogre::Node* node, int smmt) {
+ogre/src/OgreCommand.cpp:177:7:  if (smmt < 0 || OgreUtil::getSceneType(node) == smmt)
+ogre/src/OgreCommand.cpp:180:57:  while (oi.hasMoreElements()) outputNode(oi.getNext(), smmt);
+ogre/src/OgreCommand.cpp:185:33:    const Ogre::Node* node, int smmt, boost::regex& regex) {
+ogre/src/OgreCommand.cpp:187:8:  if ((smmt < 0 || OgreUtil::getSceneType(node) == smmt) &&
+ogre/src/OgreCommand.cpp:192:57:  while (oi.hasMoreElements()) outputNode(oi.getNext(), smmt, regex);
+ogre/src/OgreCommand.cpp:552:8:  auto smmt = enumFromString<Ogre::SceneMemoryMgrTypes>(
+ogre/src/OgreCommand.cpp:553:40:      handler->getMatchedNodeValue("en_smmt"));
+ogre/src/OgreCommand.cpp:555:60:  Ogre::SceneNode* node = parentNode->createChildSceneNode(smmt);
+ogre/src/OgreCommand.cpp:565:26:  // adnd t_sceneNode en_smmt id
+ogre/src/OgreCommand.cpp:566:37:  root->acn("t_sceneNode")->acn("en_smmt")->acn("id")->eb("0");
+ogre/src/OgreConsole.cpp:98:57:      new EnumArgHandler<Ogre::SceneMemoryMgrTypes>("en_smmt"));

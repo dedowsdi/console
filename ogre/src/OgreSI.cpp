@@ -31,7 +31,7 @@ NodeSI::Parent NodeSI::msParent;
 NodeSI::Yaw NodeSI::msYaw;
 NodeSI::Pitch NodeSI::msPitch;
 NodeSI::Roll NodeSI::msRoll;
-SceneManagerSI::ShadowTechnique SceneManagerSI::msShadowTechnique;
+//SceneManagerSI::ShadowTechnique SceneManagerSI::msShadowTechnique;
 SceneManagerSI::ShadowColour SceneManagerSI::msShadowColour;
 SceneManagerSI::AmbientLight SceneManagerSI::msAmbientLight;
 SceneManagerSI::Fog SceneManagerSI::msFog;
@@ -95,13 +95,15 @@ void LightSI::LightType::doSet(void* target, ArgHandler* handler) {
 //------------------------------------------------------------------------------
 std::string LightSI::Position::doGet(const void* target) const {
   Ogre::Light* light = static_cast<const LightSI*>(target)->getLight();
-  return Ogre::StringConverter::toString(light->getPosition());
+  return Ogre::StringConverter::toString(
+      light->getParentSceneNode()->getPosition());
 }
 
 //------------------------------------------------------------------------------
 void LightSI::Position::doSet(void* target, ArgHandler* handler) {
   Ogre::Light* light = static_cast<const LightSI*>(target)->getLight();
-  light->setPosition(Ogre::StringConverter::parseVector3(handler->getValue()));
+  light->getParentSceneNode()->setPosition(
+      Ogre::StringConverter::parseVector3(handler->getValue()));
 }
 
 //------------------------------------------------------------------------------
@@ -498,19 +500,19 @@ Ogre::SceneNode* SceneNodeSI::getSceneNode() const {
 void SceneNodeSI::initParams() { NodeSI::initParams(); }
 
 //------------------------------------------------------------------------------
-std::string SceneManagerSI::ShadowTechnique::doGet(const void* target) const {
-  Ogre::SceneManager* sm =
-      static_cast<const SceneManagerSI*>(target)->getSceneMgr();
-  return enumToString(sm->getShadowTechnique());
-}
+//std::string SceneManagerSI::ShadowTechnique::doGet(const void* target) const {
+  //Ogre::SceneManager* sm =
+      //static_cast<const SceneManagerSI*>(target)->getSceneMgr();
+  //return enumToString(sm->getShadowTechnique());
+//}
 
 //------------------------------------------------------------------------------
-void SceneManagerSI::ShadowTechnique::doSet(void* target, ArgHandler* handler) {
-  Ogre::SceneManager* sm =
-      static_cast<const SceneManagerSI*>(target)->getSceneMgr();
-  sm->setShadowTechnique(
-      enumFromString<Ogre::ShadowTechnique>(handler->getValue()));
-}
+//void SceneManagerSI::ShadowTechnique::doSet(void* target, ArgHandler* handler) {
+  //Ogre::SceneManager* sm =
+      //static_cast<const SceneManagerSI*>(target)->getSceneMgr();
+  //sm->setShadowTechnique(
+      //enumFromString<Ogre::ShadowTechnique>(handler->getValue()));
+//}
 
 //------------------------------------------------------------------------------
 std::string SceneManagerSI::ShadowColour::doGet(const void* target) const {
@@ -579,7 +581,7 @@ SceneManagerSI::SceneManagerSI(Ogre::SceneManager* sceneMgr)
 
 //------------------------------------------------------------------------------
 void SceneManagerSI::initParams() {
-  mParamDict->addParameter("shadowTechnique", &msShadowTechnique);
+  //mParamDict->addParameter("shadowTechnique", &msShadowTechnique);
   mParamDict->addParameter("shadowColour", &msShadowColour);
   mParamDict->addParameter("ambientLight", &msAmbientLight);
   mParamDict->addParameter("fog", &msFog);

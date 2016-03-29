@@ -63,19 +63,6 @@ namespace pac {
 
 #endif
 
-/* See if we can use __forceinline or if we need to use __inline instead */
-#if PAC_COMPILER == PAC_COMPILER_MSVC
-#   if PAC_COMP_VER >= 1200
-#       define FORCEINLINE __forceinline
-#   endif
-#elif defined(__MINGW32__)
-#   if !defined(FORCEINLINE)
-#       define FORCEINLINE __inline
-#   endif
-#else
-#   define FORCEINLINE __inline
-#endif
-
 /* define PAC_NORETURN macro */
 #if PAC_COMPILER == PAC_COMPILER_MSVC
 #	define PAC_NORETURN __declspec(noreturn)

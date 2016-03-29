@@ -56,13 +56,16 @@ protected:
    *   moType   (movable type)
    *   affector_force_application
    * literal:
-   *   ltl_sceneNode
-   *   ltl_tagPoint
-   *   ltl_light
-   *   ltl_entity
-   *   ltl_particle
-   *   ltl_direct
-   *   ltl_all
+   *   all
+   *   ancestor
+   *   camera
+   *   direct
+   *   entity
+   *   light
+   *   parent
+   *   particle
+   *   sceneNode
+   *   tagPoint
    */
   virtual void initArghandler();
 

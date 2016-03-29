@@ -1,6 +1,8 @@
 #ifndef TESTPACUICONSOLE_H
 #define TESTPACUICONSOLE_H
 #include "pacConsoleUI.h"
+#include "pacStringUtil.h"
+#include <gtest/gtest.h>
 
 namespace pac {
 
@@ -28,6 +30,23 @@ public:
 
   const std::string& getLastOutput() const { return mLastOutput; }
   void setLastOutput(const std::string& v) { mLastOutput = v; }
+
+  /**
+   * test last output items. don't use this, use getItems instead
+   */
+  void equalItems(std::initializer_list<std::string> items) {
+    StringVector&& sv = StringUtil::split(mLastOutput);
+    std::sort(sv.begin(), sv.end());
+    StringVector sv1(items.begin(), items.end());
+    std::sort(sv1.begin(), sv1.end());
+    EXPECT_EQ(sv1, sv);
+  }
+
+  StringVector getItems(){
+    StringVector&& sv = StringUtil::split(mLastOutput);
+    std::sort(sv.begin(), sv.end());
+    return sv;
+  }
 
   std::string mCmdLine;
   std::string mCwd;

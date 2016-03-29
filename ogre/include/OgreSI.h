@@ -253,11 +253,11 @@ protected:
 
 class _PacExport SceneManagerSI : public StringInterface {
 public:
-  struct _PacExport ShadowTechnique : public ParamCmd {
-    ShadowTechnique() : ParamCmd("en_shadowTechnique") {}
-    virtual std::string doGet(const void* target) const;
-    virtual void doSet(void* target, ArgHandler* handler);
-  };
+  //struct _PacExport ShadowTechnique : public ParamCmd {
+    //ShadowTechnique() : ParamCmd("en_shadowTechnique") {}
+    //virtual std::string doGet(const void* target) const;
+    //virtual void doSet(void* target, ArgHandler* handler);
+  //};
 
   struct _PacExport ShadowColour : public ParamCmd {
     ShadowColour() : ParamCmd("nreal4") {}
@@ -285,7 +285,7 @@ protected:
 
 protected:
   Ogre::SceneManager* mSceneMgr;
-  static ShadowTechnique msShadowTechnique;
+  //static ShadowTechnique msShadowTechnique;
   static ShadowColour msShadowColour;
   static AmbientLight msAmbientLight;
   static Fog msFog;

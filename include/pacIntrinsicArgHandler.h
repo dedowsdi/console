@@ -49,7 +49,9 @@ public:
    */
   PriDeciRangeArgHandler(
       const std::string& name, T min, T max, bool equal = true)
-      : ArgHandler(name), mMin(min), mMax(max), mEqual(equal) {}
+    : ArgHandler(name), mMin(min), mMax(max), mEqual(equal) {
+      setPromptType(PT_PROMPTONLY);
+    }
 
   virtual void populatePromptBuffer(const std::string& s) {
     (void)s;

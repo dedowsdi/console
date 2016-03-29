@@ -85,12 +85,23 @@ bool Command::hasOption(char c) {
 
 //------------------------------------------------------------------------------
 Command* Command::init() {
-  if (buildArgHandler()) sgArgLib.registerArgHandler(mArgHandler->clone());
+  bool isHandlerCreated = mArgHandler;
+  if (buildArgHandler()) {
+    if (isHandlerCreated) {
+      // safety check
+      PAC_EXCEPT(Exception::ERR_INVALID_STATE,
+          "you should not specify ah name in ctor if you want to build "
+          "specific arghandler for command " +
+              mName);
+      sgArgLib.registerArgHandler(mArgHandler->clone());
+    }
+  }
 
   if (!mArgHandler)
     PAC_EXCEPT(Exception::ERR_INVALID_STATE,
-        "0 handler, you need to pass ahName to Command::Command() or override "
-        "Command::buildArgHandler()");
+        "found 0 handler in " + mName +
+            ", you need to pass ahName to Command::Command() or override "
+            "Command::buildArgHandler()");
 
   return this;
 }
@@ -116,7 +127,7 @@ Command* CommandLib::createCommand(const std::string& cmdName) {
 //------------------------------------------------------------------------------
 void CommandLib::registerCommand(Command* cmdProto) {
   sgLogger.logMessage("register command " + cmdProto->getName());
-  //init it, let it build it's own arg handler
+  // init it, let it build it's own arg handler
   cmdProto->init();
   // check if it's already registerd
   CmdMap::iterator iter = std::find_if(mCmdMap.begin(), mCmdMap.end(),

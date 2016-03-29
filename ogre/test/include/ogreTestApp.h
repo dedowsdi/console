@@ -26,7 +26,9 @@ This source file is part of the
 #include <OgreRenderWindow.h>
 #include <OgreConfigFile.h>
 #include <OgreRenderWindow.h>
+#include <OgreFrameListener.h>
 #include <OgreWindowEventUtilities.h>
+#include <OgreTextureManager.h>
 
 class OgreTestApp : public Ogre::FrameListener,
                         public Ogre::WindowEventListener {
@@ -46,9 +48,8 @@ protected:
   virtual void chooseSceneManager(void);
   virtual void createCamera(void);
   virtual void createFrameListener(void);
-  virtual void createScene(void){}
+  virtual void createScene(void);
   virtual void destroyScene(void);
-  virtual void createViewports(void);
   virtual void setupResources(void);
   virtual void createResourceListener(void);
   virtual void loadResources(void);

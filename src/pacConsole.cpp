@@ -79,6 +79,10 @@ bool Console::execute(const std::string& cmdLine /*= ""*/) {
   StringUtil::trim(line);
   if (line.empty()) return false;
 
+  sgLogger.logMessage(
+      "************************************************************");
+  sgLogger.logMessage("executing command \"" + cmdLine + "\"");
+
   fakeOutputDirAndCmd(line);
   mCmdHistory->push(line);
 
@@ -90,13 +94,21 @@ bool Console::execute(const std::string& cmdLine /*= ""*/) {
     Command* cmd = sgCmdLib.createCommand(m[1]);
     if (cmd) {
       cmd->setArgsAndOptions(m[2]);
-      return cmd->execute();
+      if (cmd->execute()) {
+        sgLogger.logMessage("finished executing command \"" + cmdLine + "\"");
+        sgLogger.logMessage(
+            "************************************************************");
+        return true;
+      }
     }
 
     outputLine("unknown command : " + m[1]);
   } else {
     outputLine("unknown input");
   }
+  sgLogger.logMessage("failed executing command \"" + cmdLine + "\"");
+  sgLogger.logMessage(
+      "************************************************************");
   return false;
 }
 
@@ -165,6 +177,7 @@ void Console::setCwd(AbsDir* dir) {
     cwd.append(" ");
   }
   mUi->setCwd(cwd);
+  sgLogger.logMessage("set cwd to \"" + dir->getName() + "\"");
 }
 
 //------------------------------------------------------------------------------

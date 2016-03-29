@@ -59,6 +59,11 @@ void Branch::popTree(Node* leaf) {
         "tree of leaf(" + leaf->getTree()->getName() +
             ") is different from top tree:" + tree->getName());
 
+  //validate branch use depth first algorithm, so it's ok to set value and
+  //matched leaf here temporary
+  tree->setValue(StringUtil::join(tlp.second, this->current));
+  tree->setMatchedLeaf(leaf);
+
   Node* treeNode = tree->getTreeNode();
   if (treeNode) {
     // record it's value and matched leaf if it's a sub tree
@@ -69,8 +74,6 @@ void Branch::popTree(Node* leaf) {
     sgLogger.logMessage("add main tree [" + tree->getName() + "] branch : " +
                             leaf->getArgPath(),
         SL_TRIVIAL);
-    tlp.first->setValue(StringUtil::join(tlp.second, this->current));
-    tlp.first->setMatchedLeaf(leaf);
   }
 
   treeStartPairs.pop();
@@ -595,7 +598,7 @@ bool TreeArgHandler::validate(const std::string& s) {
 
   sgLogger.logMessage("[ " + mName + "] found " +
                           StringUtil::toString(branches.size()) +
-                          " branches agains \"" + s + "\"",
+                          " branches against \"" + s + "\"",
       SL_TRIVIAL);
 
   // make sure only 1 matched branch exists
@@ -659,6 +662,12 @@ Node* TreeArgHandler::getNode(const std::string& name) {
 const std::string& TreeArgHandler::getMatchedNodeValue(
     const std::string& name) const {
   return getMatchedNode(name)->getValue();
+}
+
+//------------------------------------------------------------------------------
+const std::string TreeArgHandler::getMatchedNodeUniformValue(
+    const std::string& name) const {
+  return getMatchedNode(name)->getArgHandler()->getUniformValue();
 }
 
 //------------------------------------------------------------------------------

@@ -10,7 +10,7 @@
 #include <OgreMeshManager.h>
 #include <OgreTextureManager.h>
 #include <OgreParticleSystemManager.h>
-#include <OgreCompositorManager.h>
+//#include <OgreCompositorManager.h>
 #include <OgreNode.h>
 
 namespace pac {
@@ -33,8 +33,8 @@ DEFINE_ENUM_CONVERSION(
     Ogre::, CullingMode, (CULL_NONE)(CULL_CLOCKWISE)(CULL_ANTICLOCKWISE))
 DEFINE_ENUM_CONVERSION(
     Ogre::Node::, TransformSpace, (TS_LOCAL)(TS_PARENT)(TS_WORLD))
-DEFINE_ENUM_CONVERSION(Ogre::, SceneMemoryMgrTypes,
-    (SCENE_DYNAMIC)(SCENE_STATIC)(NUM_SCENE_MEMORY_MANAGER_TYPES))
+DEFINE_ENUM_CONVERSION(
+    Ogre::, SceneMemoryMgrTypes, (SCENE_DYNAMIC)(SCENE_STATIC))
 
 //------------------------------------------------------------------------------
 OgreConsole::OgreConsole(ConsoleUI* ui, Ogre::SceneManager* sceneMgr)
@@ -45,11 +45,11 @@ void OgreConsole::initArghandler() {
   Console::initArghandler();
   initEnumArgHandler();
   initResourceArghandler();
-  initMovableArgHandler();
-  initNodeArgHandler();
   initStringArgHandler();
   initLiteralArgHandler();
   initTreeArgHandler();
+  initNodeArgHandler();
+  initMovableArgHandler();
 }
 
 //------------------------------------------------------------------------------
@@ -87,8 +87,8 @@ void OgreConsole::initEnumArgHandler() {
       new EnumArgHandler<Ogre::Light::LightTypes>("en_lightType"));
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::PolygonMode>("en_polygonMode"));
-  //sgArgLib.registerArgHandler(
-      //new EnumArgHandler<Ogre::ShadowTechnique>("en_shadowTenique"));
+  // sgArgLib.registerArgHandler(
+  // new EnumArgHandler<Ogre::ShadowTechnique>("en_shadowTenique"));
   sgArgLib.registerArgHandler(new EnumArgHandler<Ogre::FogMode>("en_fogMode"));
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::FogMode>("en_cullingMode"));
@@ -109,23 +109,29 @@ void OgreConsole::initResourceArghandler() {
       Ogre::TextureManager::getSingletonPtr(), {"png", "jpg", "jpeg", "dds"}));
   sgArgLib.registerArgHandler(new ParticleSystemTemplateAH(
       Ogre::ParticleSystemManager::getSingletonPtr()));
-  //sgArgLib.registerArgHandler(
-      //new ResourceAH("compositor", Ogre::CompositorManager::getSingletonPtr()));
+  // sgArgLib.registerArgHandler(
+  // new ResourceAH("compositor", Ogre::CompositorManager::getSingletonPtr()));
 }
 
 //------------------------------------------------------------------------------
 void OgreConsole::initMovableArgHandler() {
   // movable
   sgArgLib.registerArgHandler(new MovableAH());
-  sgArgLib.registerArgHandler(new MovableBaseAH("particle", "ParticleSystem"));
-  sgArgLib.registerArgHandler(new MovableBaseAH("light", "Light"));
-  sgArgLib.registerArgHandler(new MovableBaseAH("camera", "Camera"));
-  sgArgLib.registerArgHandler(new MovableBaseAH("entity", "Entity"));
+  sgArgLib.registerArgHandler(new MovableAH("particle", "ParticleSystem"));
+  sgArgLib.registerArgHandler(new MovableAH("light", "Light"));
+  sgArgLib.registerArgHandler(new MovableAH("camera", "Camera"));
+  sgArgLib.registerArgHandler(new MovableAH("entity", "Entity"));
+  sgArgLib.registerArgHandler(new MovableTH("t_movable", "movable"));
+  sgArgLib.registerArgHandler(new MovableTH("t_light", "light"));
+  sgArgLib.registerArgHandler(new MovableTH("t_camera", "camera"));
+  sgArgLib.registerArgHandler(new MovableTH("t_entity", "entity"));
+  sgArgLib.registerArgHandler(new MovableTH("t_particle", "particle"));
 }
 
 //------------------------------------------------------------------------------
 void OgreConsole::initNodeArgHandler() {
   sgArgLib.registerArgHandler(new SceneNodeAH());
+  sgArgLib.registerArgHandler(new SceneNodeTH());
   sgArgLib.registerArgHandler(new BoneAH());
 }
 
@@ -147,15 +153,17 @@ void OgreConsole::initStringArgHandler() {
 //------------------------------------------------------------------------------
 void OgreConsole::initLiteralArgHandler() {
   // literal
+  sgArgLib.registerArgHandler(new LiteralArgHandler("all"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("ancestor"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("camera"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("childOnly"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("direct"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("entity"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("light"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("parent"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("particle"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("sceneNode"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("tagPoint"));
-  sgArgLib.registerArgHandler(new LiteralArgHandler("light"));
-  sgArgLib.registerArgHandler(new LiteralArgHandler("entity"));
-  sgArgLib.registerArgHandler(new LiteralArgHandler("particle"));
-  sgArgLib.registerArgHandler(new LiteralArgHandler("camera"));
-  sgArgLib.registerArgHandler(new LiteralArgHandler("direct"));
-  sgArgLib.registerArgHandler(new LiteralArgHandler("all"));
-  sgArgLib.registerArgHandler(new LiteralArgHandler("parent"));
 }
 
 //------------------------------------------------------------------------------

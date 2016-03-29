@@ -4,32 +4,75 @@
 #include "OgreConsolePreRequisite.h"
 #include "pacIntrinsicArgHandler.h"
 #include "OgreId.h"
+#include "OgreUtil.h"
 
 namespace pac {
 
-
 /**
- * movable, must follow moType. It will search back sceneNode and entity bone to
- * filter result.
+ * movable, must follow moType. It will search back parentSceneNode and
+ * parentEntity, parentBone to filter result.
  */
 class _PacExport MovableAH : public ArgHandler {
 public:
-  MovableAH();
+  /**
+   * movable arg handler
+   * @param name : ah name
+   * @param moType : movable type, if you set this, this handler will ignore
+   * previous motype node 
+   * @return : 
+   */
+  MovableAH(
+      const std::string& name = "movable", const std::string& moType = "");
   virtual ArgHandler* clone() { return new MovableAH(*this); }
 
 protected:
   virtual void populatePromptBuffer(const std::string& s);
   virtual bool doValidate(const std::string& s);
+  /**
+   * get id@moType
+   */
   virtual std::string getUniformValue() const;
 
   void runtimeInit();
   virtual void onLinked(Node* grandNode);
 
 private:
+  template <typename T>
+  void populateFromOgreIterator(T oi, const std::string& s) {
+    while (oi.hasMoreElements()) {
+      auto mo = oi.getNext();
+      const std::string&& nameid = OgreUtil::createNameid(mo);
+      if ((s.empty() || StringUtil::startsWith(nameid, s)))
+        appendPromptBuffer(nameid);
+    }
+  }
+
+private:
+  bool mFixType;
   Ogre::Entity* mEntity;
   Ogre::SceneNode* mSceneNode;
-  std::string mMoType, mBone;
   Node* mEntityNode, *mBoneNode, *mSnNode, *mMoTypeNode;
+  std::string mMoType, mBone;
+};
+
+
+/**
+ *  moType movable
+ *  t_sceneNode moType movable
+ *  entity moType movable
+ *  entity bone moType movable
+ *
+ * all the way to locate a movable, moType only exists if moAhName is movable 
+ */
+class _PacExport MovableTH : public TreeArgHandler
+{
+public:
+	MovableTH(const std::string& name, const std::string& moAhName);
+  virtual ArgHandler* clone() { return new MovableTH(*this); }
+  Ogre::MovableObject* getMovableObject() const;
+  virtual std::string getUniformValue() const;
+protected:
+  std::string mMoAhName;
 };
 
 /**
@@ -52,30 +95,9 @@ protected:
 };
 
 /**
- * base clase of movable like particle, light, camera, entity
- */
-class _PacExport MovableBaseAH : public ArgHandler {
-public:
-  /**
-   * ctor of specific movable type
-   * @param name : name
-   * @param moType : movable object type
-   */
-  MovableBaseAH(const std::string& name, const std::string& moType);
-  virtual ArgHandler* clone() { return new MovableBaseAH(*this); }
-
-protected:
-  virtual void populatePromptBuffer(const std::string& s);
-  virtual bool doValidate(const std::string& s);
-
-protected:
-  std::string mMoType;
-};
-
-/**
  * name is only name, not identity in ogre2.0, so i combine namd and id with
  * '@', name@id
- * might follow en_smmt, parentNode 
+ * might follow en_smmt, parentNode
  */
 class _PacExport SceneNodeAH : public ArgHandler {
 public:
@@ -95,6 +117,7 @@ protected:
 
   virtual void onLinked(Node* grandNode);
   virtual void runtimeInit();
+
 private:
   Node* mParentSnNode, *mAncestorSnNode, *mSmmtNode;
   Ogre::SceneNode* mParentSceneNode, *mAncestorSceneNode;
@@ -111,10 +134,10 @@ private:
  *
  *  all the way to locate a scene node
  */
-class _PacExport SceneNodeTH : public TreeArgHandler
-{
+class _PacExport SceneNodeTH : public TreeArgHandler {
 public:
-	SceneNodeTH();
+  SceneNodeTH();
+  virtual ArgHandler* clone() { return new SceneNodeTH(*this); }
   Ogre::SceneNode* getSceneNode();
   virtual std::string getUniformValue() const;
 };

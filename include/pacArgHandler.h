@@ -163,7 +163,7 @@ public:
   /**
    * Test next item in each branches with this handler, remove it if it's
    * invalid or args already consumed. Increment the testing string iterator if
-   * it's valid.
+   * it's valid. 
    * @param branches : candidate branches
    */
   virtual void validateBranch(
@@ -343,7 +343,7 @@ public:
   bool isLoop() const { return mNodeType == NT_LOOP; }
 
   /**
-   * Recursively validate branches, accumulate result branches.
+   * Recursively validate branches, accumulate result branches, depth first
    * leaf:  pop current tree
    * root:  test each child node, accumulate result branches
    * normal: test underlying arg handler 1st, if passed, test each child node,
@@ -480,6 +480,7 @@ public:
    * @return : catched value
    */
   const std::string& getMatchedNodeValue(const std::string& name) const;
+  const std::string getMatchedNodeUniformValue(const std::string& name) const;
   /**
    * get matcheed node value if matched branch is in branches
    * @param name : node name

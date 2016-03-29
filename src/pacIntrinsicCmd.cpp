@@ -207,7 +207,7 @@ void GetCmd::outputProperties(AbsDir* dir, const std::string& param /*= ""*/,
 }
 
 //------------------------------------------------------------------------------
-SzCmd::SzCmd() : Command("sz", "blank") {}
+SzCmd::SzCmd() : Command("sz") {}
 
 //------------------------------------------------------------------------------
 bool SzCmd::doExecute() {

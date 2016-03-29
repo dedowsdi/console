@@ -63,7 +63,7 @@ void AbsDir::addChild(AbsDir* dir, bool temp /*= true*/) {
   // name check. It's not checked at ctor for root dir name is equal to delim
   if (dir->getName().find_first_of(" " + pac::delim) != std::string::npos)
     PAC_EXCEPT(Exception::ERR_INVALIDPARAMS,
-        "Dir name can not contain space or delim");
+        "\"" + dir->getName() + "\" contains space or delim");
 
   // check if exists
   AbsDirs::iterator iter = std::find(mChildren.begin(), mChildren.end(), dir);

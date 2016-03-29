@@ -158,17 +158,17 @@ TEST_F(TestAbsDir, getsetParameter) {
 
 TEST_F(TestAbsDir, getFullPath) {
   EXPECT_EQ(d, sgRootDir.getFullPath());
-  EXPECT_EQ(d + "dir0/", dir0->getFullPath());
-  EXPECT_EQ(d + "dir0" + d + "dir0_0/", dir0_0->getFullPath());
-  EXPECT_EQ(d + "dir0" + d + "dir0_1/", dir0_1->getFullPath());
+  EXPECT_EQ(d + "dir0" + d, dir0->getFullPath());
+  EXPECT_EQ(d + "dir0" + d + "dir0_0" + d, dir0_0->getFullPath());
+  EXPECT_EQ(d + "dir0" + d + "dir0_1" + d, dir0_1->getFullPath());
   EXPECT_EQ(
-      d + "dir0" + d + "dir0_0" + d + "dir0_0_0/", dir0_0_0->getFullPath());
+      d + "dir0" + d + "dir0_0" + d + "dir0_0_0" + d, dir0_0_0->getFullPath());
   EXPECT_EQ(
-      d + "dir0" + d + "dir0_0" + d + "dir0_0_1/", dir0_0_1->getFullPath());
+      d + "dir0" + d + "dir0_0" + d + "dir0_0_1" + d, dir0_0_1->getFullPath());
   EXPECT_EQ(
-      d + "dir0" + d + "dir0_1" + d + "dir0_1_0/", dir0_1_0->getFullPath());
+      d + "dir0" + d + "dir0_1" + d + "dir0_1_0" + d, dir0_1_0->getFullPath());
   EXPECT_EQ(
-      d + "dir0" + d + "dir0_1" + d + "dir0_1_1/", dir0_1_1->getFullPath());
+      d + "dir0" + d + "dir0_1" + d + "dir0_1_1" + d, dir0_1_1->getFullPath());
 }
 
 TEST_F(TestAbsDir, findPathThrow) {

@@ -11,6 +11,7 @@ int main(int argc, char **argv)
   //init ogre
   OgreTestApp app;
   app.setup();
+  //app.go();
   
 	//init console
 	ImplConsoleUI ui;

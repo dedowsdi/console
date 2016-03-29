@@ -22,8 +22,8 @@ OgreTestApp::OgreTestApp(void)
       mCamera(0),
       mSceneMgr(0),
       mWindow(0),
-      mResourcesCfg(Ogre::StringUtil::BLANK),
-      mPluginsCfg(Ogre::StringUtil::BLANK),
+      mResourcesCfg(""),
+      mPluginsCfg(""),
       mCursorWasVisible(false),
       mShutDown(false) {}
 
@@ -55,7 +55,8 @@ bool OgreTestApp::configure(void) {
 //------------------------------------------------------------------------------
 void OgreTestApp::chooseSceneManager(void) {
   // Get the SceneManager, in this case a generic one
-  mSceneMgr = mRoot->createSceneManager(Ogre::ST_GENERIC);
+  mSceneMgr = mRoot->createSceneManager(
+      Ogre::ST_GENERIC, 1, Ogre::INSTANCING_CULLING_SINGLETHREAD);
 }
 //------------------------------------------------------------------------------
 void OgreTestApp::createCamera(void) {
@@ -77,17 +78,12 @@ void OgreTestApp::createFrameListener(void) {
   Ogre::WindowEventUtilities::addWindowEventListener(mWindow, this);
   mRoot->addFrameListener(this);
 }
+
+//------------------------------------------------------------------------------
+void OgreTestApp::createScene(void) {
+}
 //------------------------------------------------------------------------------
 void OgreTestApp::destroyScene(void) {}
-//------------------------------------------------------------------------------
-void OgreTestApp::createViewports(void) {
-  // Create one viewport, entire window
-  Ogre::Viewport* vp = mWindow->addViewport(mCamera);
-  vp->setBackgroundColour(Ogre::ColourValue(0, 0, 0));
-
-  mCamera->setAspectRatio(
-      Ogre::Real(vp->getActualWidth()) / Ogre::Real(vp->getActualHeight()));
-}
 //------------------------------------------------------------------------------
 void OgreTestApp::setupResources(void) {
   // Load resource paths from config file
@@ -144,7 +140,6 @@ bool OgreTestApp::setup(void) {
 
   chooseSceneManager();
   createCamera();
-  createViewports();
 
   // Set default mipmap level (NB some APIs ignore this)
   Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);

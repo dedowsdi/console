@@ -4,9 +4,10 @@
 #include "OgreSI.h"
 #include "OgreConsole.h"
 #include "pacAbsDir.h"
-#include <gtest/gtest.h>
 #include "Ogre.h"
 #include "pacEnumUtil.h"
+#include "OgreUtil.h"
+#include <gtest/gtest.h>
 
 namespace pac {
 
@@ -53,17 +54,48 @@ std::string randQuaternionStr(bool normalise = false) {
   return Ogre::StringConverter::toString(randQuaternion(normalise));
 }
 
+static const Real epsilon = 0.01;
+bool cmpReal(Real lhs, Real rhs) {
+  Real d = lhs - rhs;
+  return d >= -epsilon && d <= epsilon;
+}
+
+bool cmpRealStrings(const std::string& lhs, const std::string& rhs) {
+  if (lhs.empty() || rhs.empty())
+    PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, "empty arg");
+  auto l = StringUtil::split(lhs);
+  auto r = StringUtil::split(lhs);
+  if (l.size() != r.size())
+    PAC_EXCEPT(Exception::ERR_INVALIDPARAMS,
+        "wrong size, lhs:" + lhs + ", rhs:" + rhs);
+
+  for (size_t i = 0; i < l.size(); ++i) {
+    if (!cmpReal(StringUtil::parseReal(l[i]), StringUtil::parseReal(r[i])))
+      return false;
+  }
+
+  return true;
+}
+
 class TestOgreSI : public ::testing::Test {
 protected:
   void SetUp() {
     mSceneMgr = sgOgreConsole.getSceneMgr();
-    mSceneNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("root");
-    mLight = mSceneMgr->createLight("light");
-    mSinbad = mSceneMgr->createEntity("sinbad", "sinbad.mesh");
+    mSceneNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+    mSceneNode->setName("root");
+    mLight = mSceneMgr->createLight();
+    mLight->setName("light");
+    mSinbad = mSceneMgr->createEntity("sinbad.mesh");
+    mSinbad->setName("sinbad");
     mCamera = mSceneMgr->createCamera("camera");
+    mCamera->detachFromParent();
     mSceneNode->attachObject(mLight);
     mSceneNode->attachObject(mSinbad);
     mSceneNode->attachObject(mCamera);
+    mSceneNodeNameid = OgreUtil::createNameid(mSceneNode);
+    mLightNameid = OgreUtil::createNameid(mLight);
+    mCameraNameid = OgreUtil::createNameid(mCamera);
+    mSinbadNameid = OgreUtil::createNameid(mSinbad);
   }
   void TearDown() {
     mSceneMgr->destroyAllMovableObjects();
@@ -76,14 +108,15 @@ protected:
   Ogre::Light* mLight;
   Ogre::Camera* mCamera;
   Ogre::Entity* mSinbad;
+  std::string mSceneNodeNameid, mLightNameid, mCameraNameid, mSinbadNameid;
 };
 
 TEST_F(TestOgreSI, testSceneNodeSI) {
-  ASSERT_TRUE(sgOgreConsole.execute("ednd root"));
+  ASSERT_TRUE(sgOgreConsole.execute("ednd " + mSceneNodeNameid));
   AbsDir* dir = sgOgreConsole.getCwd();
-  ASSERT_STREQ("root", dir->getName().c_str());
+  ASSERT_EQ(mSceneNodeNameid, dir->getName());
   // set random position, quaternion, yaw, pitch, roll
-  for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < 20; ++i) {
     // yaw
     mSceneNode->setOrientation(Ogre::Quaternion::IDENTITY);
     std::string yaw = randRealStr(-180, 180);
@@ -110,14 +143,14 @@ TEST_F(TestOgreSI, testSceneNodeSI) {
     // orientation
     std::string orientation = randQuaternionStr(true);
     EXPECT_TRUE(sgOgreConsole.execute("set orientation " + orientation));
-    EXPECT_EQ(orientation, dir->getParameter("orientation"));
+    EXPECT_TRUE(cmpRealStrings(orientation, dir->getParameter("orientation")));
   }
 }
 TEST_F(TestOgreSI, testMovableSI) {
-  ASSERT_TRUE(sgOgreConsole.execute("edmo Light light"));
+  ASSERT_TRUE(sgOgreConsole.execute("edmo Light " + mLightNameid));
   AbsDir* dir = sgOgreConsole.getCwd();
-  ASSERT_STREQ("light", dir->getName().c_str());
-  for (int i = 0; i < 10; ++i) {
+  ASSERT_EQ(mLightNameid, dir->getName().c_str());
+  for (int i = 0; i < 20; ++i) {
     // visible
     std::string visible = randBoolStr();
     EXPECT_TRUE(sgOgreConsole.execute("set visible " + visible));
@@ -126,10 +159,10 @@ TEST_F(TestOgreSI, testMovableSI) {
 }
 
 TEST_F(TestOgreSI, testLightSI) {
-  ASSERT_TRUE(sgOgreConsole.execute("edmo Light light"));
+  ASSERT_TRUE(sgOgreConsole.execute("edmo Light " + mLightNameid));
   AbsDir* dir = sgOgreConsole.getCwd();
-  ASSERT_STREQ("light", dir->getName().c_str());
-  for (int i = 0; i < 10; ++i) {
+  ASSERT_EQ(mLightNameid, dir->getName().c_str());
+  for (int i = 0; i < 20; ++i) {
     // lightType
     const std::string& lightType =
         EnumData<Ogre::Light::LightTypes>::randomEnumStr();
@@ -148,9 +181,9 @@ TEST_F(TestOgreSI, testLightSI) {
     EXPECT_TRUE(sgOgreConsole.execute("set specular " + specular));
     EXPECT_EQ(specular + " 1", dir->getParameter("specular"));
     // direction
-    std::string direction = randVector3Str();
+    std::string direction = randVector3Str(true);
     EXPECT_TRUE(sgOgreConsole.execute("set direction " + direction));
-    EXPECT_EQ(direction, dir->getParameter("direction"));
+    EXPECT_TRUE(cmpRealStrings(direction, dir->getParameter("direction")));
     // spotOuter
     std::string spotOuter = randRealStr();
     EXPECT_TRUE(sgOgreConsole.execute("set spotOuter " + spotOuter));
@@ -187,10 +220,10 @@ TEST_F(TestOgreSI, testLightSI) {
   EXPECT_TRUE(sgOgreConsole.execute("set lightType LT_DIRECTIONAL"));
 }
 TEST_F(TestOgreSI, testCameraSI) {
-  ASSERT_TRUE(sgOgreConsole.execute("edmo Camera camera"));
+  ASSERT_TRUE(sgOgreConsole.execute("edmo Camera " + mCameraNameid));
   AbsDir* dir = sgOgreConsole.getCwd();
-  ASSERT_STREQ("camera", dir->getName().c_str());
-  for (int i = 0; i < 10; ++i) {
+  ASSERT_EQ(mCameraNameid, dir->getName());
+  for (int i = 0; i < 20; ++i) {
     // position
     std::string position = randVector3Str();
     EXPECT_TRUE(sgOgreConsole.execute("set position " + position));
@@ -198,7 +231,7 @@ TEST_F(TestOgreSI, testCameraSI) {
     // orientation
     std::string orientation = randQuaternionStr(true);
     EXPECT_TRUE(sgOgreConsole.execute("set orientation " + orientation));
-    EXPECT_EQ(orientation, dir->getParameter("orientation"));
+    EXPECT_TRUE(cmpRealStrings(orientation, dir->getParameter("orientation")));
     // polygonMode
     std::string polygonMode = EnumData<Ogre::PolygonMode>::randomEnumStr();
     EXPECT_TRUE(sgOgreConsole.execute("set polygonMode " + polygonMode));
@@ -206,7 +239,7 @@ TEST_F(TestOgreSI, testCameraSI) {
     // direction
     std::string direction = randVector3Str(true);
     EXPECT_TRUE(sgOgreConsole.execute("set direction " + direction));
-    EXPECT_EQ(direction, dir->getParameter("direction"));
+    EXPECT_TRUE(cmpRealStrings(direction, dir->getParameter("direction")));
   }
 }
 }

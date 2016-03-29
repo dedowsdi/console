@@ -3,6 +3,7 @@
 #include "OgreConsole.h"
 #include <OgreSI.h>
 #include "pacEnumUtil.h"
+#include "pacLogger.h"
 #include "pacStringUtil.h"
 #include "pacAbsDir.h"
 #include "OgreArgHandler.h"
@@ -12,11 +13,10 @@
 #include <OgreMeshManager.h>
 #include <OgreTextureManager.h>
 #include <OgreParticleSystemManager.h>
-#include <OgreCompositorManager.h>
+//#include <OgreCompositorManager.h>
 
 typedef Ogre::ResourceManager::ResourceMapIterator ResMgrIter;
 typedef Ogre::SceneManager::MovableObjectIterator SceneMgrMoIter;
-typedef Ogre::Node::ChildNodeIterator NodeIter;
 
 namespace pac {
 
@@ -25,8 +25,8 @@ Ogre::ResourceManager* getResourceManager(const std::string& resType) {
   if (resType == "material") return Ogre::MaterialManager::getSingletonPtr();
   if (resType == "mesh") return Ogre::MeshManager::getSingletonPtr();
   if (resType == "texture") return Ogre::TextureManager::getSingletonPtr();
-  if (resType == "compositor")
-    return Ogre::CompositorManager::getSingletonPtr();
+  // if (resType == "compositor")
+  // return Ogre::CompositorManager::getSingletonPtr();
   PAC_EXCEPT(Exception::ERR_INVALIDPARAMS, resType + " is not defined ");
 }
 
@@ -118,18 +118,26 @@ bool LsndCmd::doExecute() {
       smmtStr.empty() ? -1 : enumFromString<Ogre::SceneMemoryMgrTypes>(smmtStr);
 
   RaiiConsoleBuffer rcb;
-  if (branch[0] == "g") {
+  if (branch[0] == 'g') {
     // lsnd ("g0")
     // lsnd en_smmt ("g1")
-    outputNode(dynamicRoot);
-    outputNode(staticRoot);
-  } else if (branch[0] == "s") {
+    outputNode(dynamicRoot, smmt);
+    outputNode(staticRoot, smmt);
+  } else if (branch[0] == 's') {
     // lsnd [-r] t_sceneNode ("s0")      [-r] recursively list children
     // lsnd [-r] t_sceneNode en_smmt("s1")
-    Ogre::SceneNode* node = handler->getMatchedNodeHandler<SceneNodeAH>(
+    Ogre::SceneNode* node = handler->getMatchedNodeHandler<SceneNodeTH>(
                                          "t_sceneNode")->getSceneNode();
-    outputNode(node, smmt);
-  } else if (branch[0] == "r") {
+    auto oi = node->getChildIterator();
+    while (oi.hasMoreElements()) {
+      auto n = static_cast<Ogre::SceneNode*>(oi.getNext());
+      if (hasOption('r'))
+        outputNode(n, smmt);
+      else if (smmt <  0 || smmt == OgreUtil::getSceneType(n))
+        sgConsole.output(OgreUtil::createNameid(n));
+    }
+
+  } else if (branch[0] == 'r') {
     // lsnd ltl_regex regex ("r0")
     // lsnd ltl_regex regex en_smmt("r1")
     boost::regex regex(reExp);
@@ -166,21 +174,22 @@ bool LsndCmd::buildArgHandler() {
 
 //------------------------------------------------------------------------------
 void LsndCmd::outputNode(const Ogre::Node* node, int smmt) {
-  if (smmt < 0 || node->getMemoryManagerType() == smmt)
-    sgConsole.output(node->getName());
+  if (smmt < 0 || OgreUtil::getSceneType(node) == smmt)
+    sgConsole.output(OgreUtil::createNameid(node));
   auto oi = node->getChildIterator();
-  while (oi.hasMoreElements()) outputNode(oi.getNext());
+  while (oi.hasMoreElements()) outputNode(oi.getNext(), smmt);
 }
 
 //------------------------------------------------------------------------------
 void LsndCmd::outputNode(
     const Ogre::Node* node, int smmt, boost::regex& regex) {
-  if ((smmt < 0 || node->getMemoryManagerType() == smmt) &&
-      boost::regex_match(node->getName(), regex))
-    sgConsole.output(node->getName());
+  const std::string&& nameid = OgreUtil::createNameid(node);
+  if ((smmt < 0 || OgreUtil::getSceneType(node) == smmt) &&
+      boost::regex_match(nameid, regex))
+    sgConsole.output(nameid);
 
   auto oi = node->getChildIterator();
-  while (oi.hasMoreElements()) outputNode(oi.getNext(), regex);
+  while (oi.hasMoreElements()) outputNode(oi.getNext(), smmt, regex);
 }
 
 //------------------------------------------------------------------------------
@@ -207,25 +216,28 @@ bool AthCmd::doExecute() {
     PAC_EXCEPT(Exception::ERR_INVALID_STATE, "blank motype");
 
   if (branch == "sn0" || branch == "tag0") {
-    // ath ltl_sceneNode sceneNode ltl_light id ("sn0")
+    // ath ltl_sceneNode t_sceneNode ltl_light id ("sn0")
     // ath ltl_tagPoint entity bone ltl_light id ("tag0")
     mo = sceneMgr->createLight();
   } else if (branch == "sn1" || branch == "tag1") {
-    // ath ltl_sceneNode sceneNode ltl_entity id mesh ("sn1")
+    // ath ltl_sceneNode t_sceneNode ltl_entity id mesh ("sn1")
     // ath ltl_tagPoint entity bone ltl_entity id mesh ("tag1")
     mo = sceneMgr->createEntity(handler->getMatchedNodeValue("mesh"));
   } else if (branch == "sn2" || branch == "tag2") {
-    // ath ltl_sceneNode sceneNode ltl_particle id pst ("sn2")
+    // ath ltl_sceneNode t_sceneNode ltl_particle id pst ("sn2")
     // ath ltl_tagPoint entity bone ltl_particle id pst ("tag2")
     mo = sceneMgr->createParticleSystem(handler->getMatchedNodeValue("pst"));
   } else if (branch == "sn3" || branch == "tag3") {
-    // ath ltl_sceneNode sceneNode ltl_camera id("sn3")
+    // ath ltl_sceneNode t_sceneNode ltl_camera id("sn3")
     // ath ltl_tagPoint entity bone ltl_camera id ("tag3")
     if (sceneMgr->findCameraNoThrow(id)) {
-      sgConsole.outputLine(id + " is already for another camera");
+      sgConsole.outputLine(id + " is already used for another camera");
       return false;
     }
     mo = sceneMgr->createCamera(id);
+    mo->detachFromParent();
+  } else {
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "unknown branch:" + branch);
   }
 
   mo->setName(id);
@@ -249,15 +261,15 @@ bool AthCmd::doExecute() {
 bool AthCmd::buildArgHandler() {
   TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
   Node* root = handler->getRoot();
-  Node* idNode = root->acn("ltl_sceneNode")->acn("t_sceneNode");
-  // ath ltl_sceneNode sceneNode ltl_light id ("sn0")
-  idNode->acn("ltl_light")->acn("id")->eb("sn0");
-  // ath ltl_sceneNode sceneNode ltl_entity id mesh ("sn1")
-  idNode->acn("ltl_entity")->acn("id")->acn("mesh")->eb("sn1");
-  // ath ltl_sceneNode sceneNode ltl_particle id pst ("sn2")
-  idNode->acn("ltl_particle")->acn("id")->acn("pst")->eb("sn2");
-  // ath ltl_sceneNode sceneNode ltl_camera id("sn3")
-  idNode->acn("ltl_camera")->acn("id")->eb("sn3");
+  Node* snNode = root->acn("ltl_sceneNode")->acn("t_sceneNode");
+  // ath ltl_sceneNode t_sceneNode ltl_light id ("sn0")
+  snNode->acn("ltl_light")->acn("id")->eb("sn0");
+  // ath ltl_sceneNode t_sceneNode ltl_entity id mesh ("sn1")
+  snNode->acn("ltl_entity")->acn("id")->acn("mesh")->eb("sn1");
+  // ath ltl_sceneNode t_sceneNode ltl_particle id pst ("sn2")
+  snNode->acn("ltl_particle")->acn("id")->acn("pst")->eb("sn2");
+  // ath ltl_sceneNode t_sceneNode ltl_camera id("sn3")
+  snNode->acn("ltl_camera")->acn("id")->eb("sn3");
 
   // Node* entNode = root->acn("ltl_tagPoint")->acn("entity")->acn("bone");
   //// ath ltl_tagPoint entity bone ltl_light id ("tag0")
@@ -282,6 +294,8 @@ bool LsmoCmd::doExecute() {
   Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
   const std::string& branch = handler->getMatchedBranch();
 
+  RaiiConsoleBuffer rcb;
+
   if (branch == "g0" || branch == "g1") {
     // lsmo moType ("g0")
     // lsmo moType ltl_regex regex ("g1")
@@ -292,21 +306,21 @@ bool LsmoCmd::doExecute() {
     SceneMgrMoIter oi = sceneMgr->getMovableObjectIterator(moType);
     while (oi.hasMoreElements()) {
       Ogre::MovableObject* mo = oi.getNext();
-      if (reExp.empty() || boost::regex_match(mo->getName(), regex))
-        sgConsole.output(mo->getName());
+      const std::string&& nameid = OgreUtil::createNameid(mo);
+      if (reExp.empty() || boost::regex_match(nameid, regex))
+        sgConsole.output(nameid);
     }
   } else if (branch == "sn0" || branch == "sn1") {
-    // lsmo ltl_sceneNode sceneNode ("sn0")
-    // lsmo ltl_sceneNode sceneNode moType ("sn1")
-    Ogre::SceneNode* sceneNode =
-        sceneMgr->getSceneNode(handler->getMatchedNodeValue("sceneNode"));
+    // lsmo ltl_sceneNode t_sceneNode ("sn0")
+    // lsmo ltl_sceneNode t_sceneNode moType ("sn1")
+    Ogre::SceneNode* sceneNode = OgreUtil::getSceneNodeById(
+        sceneMgr, handler->getMatchedNodeUniformValue("t_sceneNode"));
     const std::string& moType = handler->getMatchedNodeValue("moType", {"sn1"});
     auto oi = sceneNode->getAttachedObjectIterator();
-    RaiiConsoleBuffer rcb;
     while (oi.hasMoreElements()) {
       Ogre::MovableObject* mo = oi.getNext();
       if (moType.empty() || mo->getMovableType() == moType)
-        sgConsole.output(mo->getName());
+        sgConsole.output(OgreUtil::createNameid(mo));
     }
   } else if (branch == "tag0" || branch == "tag1" || branch == "tag2" ||
              branch == "tag3") {
@@ -314,22 +328,22 @@ bool LsmoCmd::doExecute() {
     // lsmo ltl_tagPoint entity moType ("tag1")
     // lsmo ltl_tagPoint entity bone ("tag2")
     // lsmo ltl_tagPoint entity bone moType ("tag3")
-    Ogre::Entity* ent =
-        sceneMgr->getEntity(handler->getMatchedNodeValue("entity"));
-    const std::string& bone =
-        handler->getMatchedNodeValue("bone", {"tag2", "tag3"});
-    const std::string& moType =
-        handler->getMatchedNodeValue("moType", {"tag1", "tag3"});
-    auto oi = ent->getAttachedObjectIterator();
-    RaiiConsoleBuffer rcb;
-    while (oi.hasMoreElements()) {
-      Ogre::MovableObject* mo = oi.getNext();
-      Ogre::Node* athNode = mo->getParentNode()->getParent();
+    // Ogre::Entity* ent =
+    // sceneMgr->getEntity(handler->getMatchedNodeValue("entity"));
+    // const std::string& bone =
+    // handler->getMatchedNodeValue("bone", {"tag2", "tag3"});
+    // const std::string& moType =
+    // handler->getMatchedNodeValue("moType", {"tag1", "tag3"});
+    // auto oi = ent->getAttachedObjectIterator();
+    // RaiiConsoleBuffer rcb;
+    // while (oi.hasMoreElements()) {
+    // Ogre::MovableObject* mo = oi.getNext();
+    // Ogre::Node* athNode = mo->getParentNode()->getParent();
 
-      if ((moType.empty() || moType == mo->getMovableType()) &&
-          (bone.empty() || athNode->getName() == bone))
-        sgConsole.output(mo->getName());
-    }
+    // if ((moType.empty() || moType == mo->getMovableType()) &&
+    //(bone.empty() || athNode->getName() == bone))
+    // sgConsole.output(mo->getName());
+    //}
   } else {
     PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalid branch" + branch);
   }
@@ -349,10 +363,10 @@ bool LsmoCmd::buildArgHandler() {
   // lsmo moType ltl_regex regex ("g1")
   motNode->acn("ltl_regex")->acn("regex")->eb("g1");
 
-  Node* snNode = root->acn("ltl_sceneNode")->acn("sceneNode");
-  // lsmo ltl_sceneNode sceneNode ("sn0")
+  Node* snNode = root->acn("ltl_sceneNode")->acn("t_sceneNode");
+  // lsmo ltl_sceneNode t_sceneNode ("sn0")
   snNode->eb("sn0");
-  // lsmo ltl_sceneNode sceneNode moType ("sn1")
+  // lsmo ltl_sceneNode t_sceneNode moType ("sn1")
   snNode->acn("moType")->eb("sn1");
 
   Node* entNode = root->acn("ltl_tagPoint")->acn("entity");
@@ -392,23 +406,23 @@ bool DthCmd::doExecute() {
     std::sort(nodes.begin(), nodes.end());
     auto iter = std::unique(nodes.begin(), nodes.end());
     nodes.erase(iter, nodes.end());
-    const std::string& moType = handler->getMatchedNodeValue("moType");
-
     std::for_each(
         nodes.begin(), nodes.end(), [&](const std::string& v) -> void {
-          Ogre::MovableObject* mo = sceneMgr->getMovableObject(v, moType);
+          Ogre::MovableObject* mo = OgreUtil::getMovableByIdtype(
+              sceneMgr, OgreUtil::getIdFromNameid(v), moType);
           sceneMgr->destroyMovableObject(mo);
         });
   } else if (branch == "sn2" || branch == "tag4") {
-    // dth ltl_sceneNode sceneNode moType movable("sn2")
+    // dth ltl_sceneNode t_sceneNode moType movable("sn2")
     // dth ltl_tagPoint entity bone moType moType("tag4")
-    sceneMgr->destroyMovableObject(movable, moType);
+    sceneMgr->destroyMovableObject(OgreUtil::getMovableByIdtype(
+        sceneMgr, OgreUtil::getIdFromNameid(movable), moType));
   } else if (branch == "sn0" || branch == "sn1") {
-    // dth ltl_sceneNode sceneNode ("sn0")
-    // dth ltl_sceneNode sceneNode moType ("sn1")
+    // dth ltl_sceneNode t_sceneNode ("sn0")
+    // dth ltl_sceneNode t_sceneNode moType ("sn1")
     std::vector<Ogre::MovableObject*> movables;
-    auto sceneNode =
-        sceneMgr->getSceneNode(handler->getMatchedNodeValue("sceneNode"));
+    auto sceneNode = OgreUtil::getSceneNodeById(
+        sceneMgr, handler->getMatchedNodeUniformValue("t_sceneNode"));
     auto oi = sceneNode->getAttachedObjectIterator();
     while (oi.hasMoreElements()) {
       Ogre::MovableObject* mo = oi.getNext();
@@ -423,20 +437,20 @@ bool DthCmd::doExecute() {
     // dth ltl_tagPoint entity moType  ("tag1")
     // dth ltl_tagPoint entity bone ("tag2")
     // dth ltl_tagPoint entity bone moType ("tag3")
-    std::vector<Ogre::MovableObject*> movables;
-    Ogre::Entity* ent =
-        sceneMgr->getEntity(handler->getMatchedNodeValue("entity"));
-    const std::string& bone =
-        handler->getMatchedNodeValue("bone", {"tag2", "tag3"});
+    // std::vector<Ogre::MovableObject*> movables;
+    // Ogre::Entity* ent =
+    // sceneMgr->getEntity(handler->getMatchedNodeValue("entity"));
+    // const std::string& bone =
+    // handler->getMatchedNodeValue("bone", {"tag2", "tag3"});
 
-    auto oi = ent->getAttachedObjectIterator();
-    while (oi.hasMoreElements()) {
-      Ogre::MovableObject* mo = oi.getNext();
-      if ((moType.empty() || moType == mo->getMovableType()) &&
-          (bone.empty() || mo->getParentNode()->getParent()->getName() == bone))
-        movables.push_back(mo);
-    }
-    destroyMovableObjects(movables);
+    // auto oi = ent->getAttachedObjectIterator();
+    // while (oi.hasMoreElements()) {
+    // Ogre::MovableObject* mo = oi.getNext();
+    // if ((moType.empty() || moType == mo->getMovableType()) &&
+    //(bone.empty() || mo->getParentNode()->getParent()->getName() == bone))
+    // movables.push_back(mo);
+    //}
+    // destroyMovableObjects(movables);
 
   } else {
     PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalid branch" + branch);
@@ -452,13 +466,13 @@ bool DthCmd::buildArgHandler() {
   Node* root = handler->getRoot();
   // dth moType movable... ("m0")
   root->acn("moType")->acn("movable", "movable", Node::NT_LOOP)->eb("m0");
-  Node* snNode = root->acn("ltl_sceneNode")->acn("sceneNode");
-  // dth ltl_sceneNode sceneNode ("sn0")
+  Node* snNode = root->acn("ltl_sceneNode")->acn("t_sceneNode");
+  // dth ltl_sceneNode t_sceneNode ("sn0")
   snNode->eb("sn0");
-  // dth ltl_sceneNode sceneNode moType ("sn1")
+  // dth ltl_sceneNode t_sceneNode moType ("sn1")
   Node* motNode = snNode->acn("moType");
   motNode->eb("sn1");
-  //  dth ltl_sceneNode sceneNode moType movable("sn2")
+  //  dth ltl_sceneNode t_sceneNode moType movable("sn2")
   motNode->acn("movable")->eb("sn2");
 
   Node* entNode = root->acn("ltl_tagPoint")->acn("entity");
@@ -490,81 +504,53 @@ void DthCmd::destroyMovableObjects(Movables& movables) {
 }
 
 //------------------------------------------------------------------------------
-EdmoCmd::EdmoCmd() : Command("edmo") {}
+EdmoCmd::EdmoCmd() : Command("edmo", "t_movable") {}
 
 //------------------------------------------------------------------------------
 bool EdmoCmd::doExecute() {
   TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
-  const std::string& branch = handler->getMatchedBranch();
-  if (branch != "0" && branch != "1" && branch != "2")
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalid branch:" + branch);
-
+  // const std::string& branch = handler->getMatchedBranch();
   Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
 
-  const std::string& moType = handler->getMatchedNodeValue("moType");
-  const std::string& movable = handler->getMatchedNodeValue("movable");
-  Ogre::MovableObject* mo = sceneMgr->getMovableObject(movable, moType);
+  Ogre::MovableObject* mo =
+      OgreUtil::getMovableByIdtype(sceneMgr, handler->getUniformValue());
   AbsDir* dir = sgOgreConsole.getMovableDir()->addUniqueChild(
-      mo->getName(), OgreSiUtil::createMovableSI(mo));
+      OgreUtil::createNameid(mo), OgreSiUtil::createMovableSI(mo));
   sgConsole.setCwd(dir);
   return true;
 }
 
 //------------------------------------------------------------------------------
-bool EdmoCmd::buildArgHandler() {
-  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
-  mArgHandler = handler;
-  Node* root = handler->getRoot();
-
-  // edmo moTyp movable ("0")
-  root->acn("moType")->acn("movable")->eb("0");
-  // edmo ltl_sceneNode sceneNode moType movable ("1")
-  root->acn("ltl_sceneNode")
-      ->acn("sceneNode")
-      ->acn("moType")
-      ->acn("movable")
-      ->eb("1");
-  // edmo ltl_tagPoint entity bone moType movable ("2")
-  root->acn("ltl_tagPoint")
-      ->acn("entity")
-      ->acn("bone")
-      ->acn("moType")
-      ->acn("movable")
-      ->eb("2");
-  return true;
-}
-
-//------------------------------------------------------------------------------
-EdndCmd::EdndCmd() : Command("t_sceneNode") {}
+EdndCmd::EdndCmd() : Command("ednd", "t_sceneNode") {}
 
 //------------------------------------------------------------------------------
 bool EdndCmd::doExecute() {
   TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
-  const std::string& branch = handler->getMatchedBranch();
-  if (branch != "0")
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalid branch:" + branch);
-
+  // const std::string& branch = handler->getMatchedBranch();
   Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
-  Ogre::SceneNode* sceneNode = handler->getMatchedNodeHandler<SceneNodeAH>(
-                                            "t_sceneNode")->getSceneNode();
+
+  Ogre::SceneNode* sceneNode =
+      OgreUtil::getSceneNodeById(sceneMgr, handler->getUniformValue());
   AbsDir* dir = sgOgreConsole.getNodeDir()->addUniqueChild(
-      sceneNode->getName(), new SceneNodeSI(sceneNode));
+      OgreUtil::createNameid(sceneNode), new SceneNodeSI(sceneNode));
   sgConsole.setCwd(dir);
   return true;
 }
 
 //------------------------------------------------------------------------------
-AdndCmd::AdndCmd() : Command("adnd", "id") {}
+AdndCmd::AdndCmd() : Command("adnd") {}
 
 //------------------------------------------------------------------------------
 bool AdndCmd::doExecute() {
   Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
   TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
-  const std::string& branch = handler->getMatchedBranch();
+  // const std::string& branch = handler->getMatchedBranch();
   const std::string& id = handler->getMatchedNodeValue("id");
-  Ogre::SceneNode* parentNode = handler->getMatchedNodeHandler<SceneNodeTH>(
-                                             "t_sceneNode")->getSceneNode();
-  auto smmt = enumFromString<Ogre::SceneManagerEnumerator>(
+  const std::string&& parentId =
+      handler->getMatchedNodeUniformValue("t_sceneNode");
+  Ogre::SceneNode* parentNode = OgreUtil::getSceneNodeById(sceneMgr, parentId);
+  if (!parentNode) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 parent node");
+  auto smmt = enumFromString<Ogre::SceneMemoryMgrTypes>(
       handler->getMatchedNodeValue("en_smmt"));
 
   Ogre::SceneNode* node = parentNode->createChildSceneNode(smmt);
@@ -577,8 +563,8 @@ bool AdndCmd::buildArgHandler() {
   TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
   mArgHandler = handler;
   Node* root = handler->getRoot();
-  // adnd t_sceneNode en_stmt id
-  root->acn("t_sceneNode")->acn("en_stmt")->acn("id")->eb("0");
+  // adnd t_sceneNode en_smmt id
+  root->acn("t_sceneNode")->acn("en_smmt")->acn("id")->eb("0");
   return true;
 }
 
@@ -590,16 +576,17 @@ bool RmndCmd::doExecute() {
   TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
   const std::string& branch = handler->getMatchedBranch();
   Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
-  Ogre::SceneNode* sceneNode = handler->getMatchedNodeHandler<SceneNodeAH>(
-                                            "t_sceneNode")->getSceneNode();
-  if (branch == 0) {
+  Ogre::SceneNode* sceneNode = OgreUtil::getSceneNodeById(
+      sceneMgr, handler->getMatchedNodeUniformValue("t_sceneNode"));
+  if (branch == "0") {
     // rmnd t_sncneNode ("0")
     OgreUtil::destroySceneNodeTotally(sceneNode);
-  } else if (branch == !) {
+  } else if (branch == "1") {
     // rmnd t_sncneNode ltl_childonly ("1")
     auto oi = sceneNode->getChildIterator();
-    while (oi->hasMoreElements()) {
-      OgreUtil::destroySceneNodeTotally(oi->getNext());
+    while (oi.hasMoreElements()) {
+      OgreUtil::destroySceneNodeTotally(
+          static_cast<Ogre::SceneNode*>(oi.getNext()));
     }
   } else {
     PAC_EXCEPT(Exception::ERR_INVALID_STATE, "unknown branch" + branch);
@@ -617,7 +604,7 @@ bool RmndCmd::buildArgHandler() {
   Node* node = root->acn("t_sceneNode");
   node->eb("0");
   // rmnd t_sncneNode ltl_childonly ("1")
-  node->acn("childOnly")->eb("1") return true;
+  node->acn("ltl_childOnly")->eb("1");
   return true;
 }
 }

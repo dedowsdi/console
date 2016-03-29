@@ -1,9 +1,16 @@
 cmake_minimum_required(VERSION 2.7)
 project(CONSOLE)
 
+set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG"  )
+
+if( CMAKE_BUILD_TYPE STREQUAL ""  )
+	set( CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "One of: Debug Release
+	RelWithDebInfo MinSizeRel." FORCE  )
+endif()
+
 #options
-set(BUILD_TYPE "SHARED" CACHE STRING "library build type")
-set_property(CACHE BUILD_TYPE PROPERTY STRINGS "STATIC" "SHARED")
+set(BUILD_LIB_TYPE "SHARED" CACHE STRING "library build type")
+set_property(CACHE BUILD_LIB_TYPE PROPERTY STRINGS "STATIC" "SHARED")
 option(BOOST_LOG_DYN_LINK "use shared boost log" on)
 option(BUILD_TEST "build unit test" on)
 option(BUILD_OGRE "build ogre module" on)
@@ -16,52 +23,18 @@ if(BOOST_LOG_DYN_LINK)
 endif()
 
 #heads and srcs
-set (CONSOLE_SRCS 
-	src/pacAbsDir.cpp
-	src/pacArgHandler.cpp
-	src/pacCmdHistory.cpp
-	src/pacCommand.cpp
-	src/pacConsole.cpp
-	src/pacConsolePattern.cpp
-	src/pacEnumUtil.cpp
-	src/pacException.cpp
-	src/pacIntrinsicArgHandler.cpp
-	src/pacIntrinsicCmd.cpp
-	src/pacLogger.cpp
-	src/pacPlatform.cpp
-	src/pacStdUtil.cpp
-	src/pacStringInterface.cpp
-	src/pacStringUtil.cpp
-	src/pacConsoleUI.cpp
-	)
-set (CONSOLE_HEADS
-	include/pacAbsDir.h
-	include/pacArgHandler.h
-	include/pacCmdHistory.h
-	include/pacCommand.h
-	include/pacConfig.h
-	include/pacConsole.h
-	include/pacConsolePattern.h
-	include/pacConsolePreRequisite.h
-	include/pacEnumUtil.h
-	include/pacException.h
-	include/pacIntrinsicArgHandler.h
-	include/pacIntrinsicCmd.h
-	include/pacLogger.h
-	include/pacPlatform.h
-	include/pacSingleton.h
-	include/pacStable.h
-	include/pacStdUtil.h
-	include/pacStringInterface.h
-	include/pacStringUtil.h
-	include/pacConsoleUI.h
-	)
+macro( add_recursive dir retVal  )
+	file( GLOB_RECURSE ${retVal} ${dir}/*.h ${dir}/*.cpp ${dir}/*.c  ${dir}/*.hpp )
+endmacro()
+
+add_recursive(./src  CONSOLE_SRCS)
+add_recursive(./include  CONSOLE_HEADS)
 
 #third lib
 find_package(Boost REQUIRED COMPONENTS regex log log_setup system thread)
 
 #target
-add_library(console ${BUILD_TYPE} ${CONSOLE_SRCS} ${CONSOLE_HEADS} )
+add_library(console ${BUILD_LIB_TYPE} ${CONSOLE_SRCS} ${CONSOLE_HEADS} )
 set_target_properties(console PROPERTIES VERSION 0.0)
 
 target_link_libraries(console ${Boost_LIBRARIES})

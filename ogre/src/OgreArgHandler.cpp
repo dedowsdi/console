@@ -6,14 +6,18 @@
 namespace pac {
 
 //------------------------------------------------------------------------------
-MovableAH::MovableAH()
-    : ArgHandler("movable"),
+MovableAH::MovableAH(
+    const std::string& name /*= "movable"*/, const std::string& moType /*= ""*/)
+    : ArgHandler(name),
       mEntity(0),
       mSceneNode(0),
       mEntityNode(0),
       mBoneNode(0),
       mSnNode(0),
-      mMoTypeNode(0) {}
+      mMoTypeNode(0),
+      mMoType(moType) {
+  mFixType = !mMoType.empty();
+}
 
 //------------------------------------------------------------------------------
 void MovableAH::populatePromptBuffer(const std::string& s) {
@@ -22,33 +26,26 @@ void MovableAH::populatePromptBuffer(const std::string& s) {
   if (mSceneNode) {
     // sceneNode moType movable
     auto oi = mSceneNode->getAttachedObjectIterator();
-    while (oi.hasMoreElements()) {
-      auto mo = oi.getNext();
-      if ((s.empty() || StringUtil::startsWith(mo->getName(), s)) &&
-          mo->getMovableType() == mMoType)
-        appendPromptBuffer(mo->getName());
-    }
+    populateFromOgreIterator(oi, s);
   } else if (mEntity) {
+    PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED, "no tagpoint in 2.0");
     // entity [bone] moType movable
-    auto oi = mEntity->getAttachedObjectIterator();
-    while (oi.hasMoreElements()) {
-      auto mo = oi.getNext();
-      if (mBone.empty() ||
-          mBone == mo->getParentNode()->getParent()->getName()) {
-        if ((s.empty() || StringUtil::startsWith(mo->getName(), s)) &&
-            mo->getMovableType() == mMoType)
-          appendPromptBuffer(mo->getName());
-      }
-    }
+    // auto oi = mEntity->getAttachedObjectIterator();
+    // while (oi.hasMoreElements()) {
+    // auto mo = oi.getNext();
+    // if (mBone.empty() ||
+    // mBone == mo->getParentNode()->getParent()->getName()) {
+    // if ((s.empty() || StringUtil::startsWith(mo->getName(), s)) &&
+    // mo->getMovableType() == mMoType)
+    // appendPromptBuffer(mo->getName());
+    //}
+    //}
   } else {
     // moType movable
-    auto oi = sm->getMovableObjectIterator(mMoType);
-    while (oi.hasMoreElements()) {
-      auto mo = oi.getNext();
-      if ((s.empty() || StringUtil::startsWith(mo->getName(), s)) &&
-          mo->getMovableType() == mMoType)
-        appendPromptBuffer(mo->getName());
-    }
+    if (mMoType != "Camera")
+      populateFromOgreIterator(sm->getMovableObjectIterator(mMoType), s);
+    else
+      populateFromOgreIterator(sm->getCameraIterator(), s);
   }
 }
 
@@ -57,87 +54,95 @@ bool MovableAH::doValidate(const std::string& s) {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
   if (mSceneNode) {
     // sceneNode moType movable
-    auto oi = mSceneNode->getAttachedObjectIterator();
-    while (oi.hasMoreElements()) {
-      auto mo = oi.getNext();
-      if (mo->getName() == s && mo->getMovableType() == mMoType) return true;
-    }
-    return false;
-
+    return OgreUtil::getMovableByIdtypeNoThrow(
+        sm, OgreUtil::getIdFromNameid(s), mMoType);
   } else if (mEntity) {
+    PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED, "no tagpoint in 2.0");
     // entity [bone] moType movable
-    auto oi = mEntity->getAttachedObjectIterator();
-    while (oi.hasMoreElements()) {
-      auto mo = oi.getNext();
-      if (mBone.empty() ||
-          mBone == mo->getParentNode()->getParent()->getName()) {
-        if (mo->getName() == s && mo->getMovableType() == mMoType) return true;
-      }
-    }
-    return false;
+    // auto oi = mEntity->getAttachedObjectIterator();
+    // while (oi.hasMoreElements()) {
+    // auto mo = oi.getNext();
+    // if (mBone.empty() ||
+    // mBone == mo->getParentNode()->getParent()->getName()) {
+    // if (mo->getName() == s && mo->getMovableType() == mMoType) return true;
+    //}
+    //}
+    // return false;
   } else {
-    // moType movable
-    try {
-      sm->getMovableObject(s, mMoType);
-      return true;
-    } catch (Ogre::ItemIdentityException e) {
-      return false;
-    }
+    return OgreUtil::getMovableByIdtypeNoThrow(
+        sm, OgreUtil::getIdFromNameid(s), mMoType);
   }
 }
 
 //------------------------------------------------------------------------------
 std::string MovableAH::getUniformValue() const {
-  //@TODO implement
-  throw new std::runtime_error("unimplemented function called");
+  return Ogre::StringConverter::toString(OgreUtil::getIdFromNameid(mValue)) +
+         "@" + mMoType;
 }
 
 //------------------------------------------------------------------------------
 void MovableAH::runtimeInit() {
-  mMoType.clear();
   mBone.clear();
   mEntity = 0;
   mSceneNode = 0;
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  mMoType = mMoTypeNode->getValue();
+  if (!mFixType) mMoType = mMoTypeNode->getValue();
 
   if (mMoType.empty()) {
     PAC_EXCEPT(Exception::ERR_INVALID_STATE,
         "empty movable type is not allowed at movable arg handler");
   }
   if (mSnNode) {
-    mSceneNode = sm->getSceneNode(mSnNode->getValue());
+    mSceneNode = OgreUtil::getSceneNodeById(
+        sm, mSnNode->getArgHandler()->getUniformValue());
   } else if (mEntityNode) {
-    mEntity = sm->getEntity(mEntityNode->getValue());
-    if (mBoneNode) mBone = mBoneNode->getValue();
+    // mEntity = sm->getEntity(mEntityNode->getValue());
+    // if (mBoneNode) mBone = mBoneNode->getValue();
   }
 }
 
 //------------------------------------------------------------------------------
 void MovableAH::onLinked(Node* grandNode) {
-  if (grandNode->isRoot() || grandNode->getAhName() != "moType")
-    PAC_EXCEPT(
-        Exception::ERR_INVALID_STATE, "plain movable must follow moType!!!");
-
-  mMoTypeNode = grandNode;
-  Node* node = mMoTypeNode->getParent();
-  if (!node->isRoot()) {
-    const std::string& ahName = node->getAhName();
-    if (ahName == "bone") {
-      // entity bone moType
-      mBoneNode = node;
-      mEntityNode = mBoneNode->getParent();
-      if (mEntityNode->isRoot() || mEntityNode->getAhName() != "entity") {
-        PAC_EXCEPT(Exception::ERR_INVALID_STATE, "bone must follow entity");
-      }
-    } else if (ahName == "entity") {
-      // entity moType
-      mEntityNode = node;
-    } else if (ahName == "sceneNode") {
-      // sceneNode moType
-      mSnNode = node;
-    }
+  mSnNode = mNode->getAncestorNode("parentSceneNode", 2);
+  mEntityNode = mNode->getAncestorNode("parentEntity", 3);
+  mBoneNode = mNode->getAncestorNode("parentBone", 2);
+  if (!mFixType) {
+    if (grandNode->isRoot() || grandNode->getAhName() != "moType")
+      PAC_EXCEPT(
+          Exception::ERR_INVALID_STATE, "plain movable must follow moType!!!");
+    mMoTypeNode = grandNode;
   }
+}
+
+//------------------------------------------------------------------------------
+MovableTH::MovableTH(const std::string& name, const std::string& moAhName)
+    : TreeArgHandler(name), mMoAhName(moAhName) {
+  bool fixMoType = moAhName != "movable";
+  if (fixMoType) {
+    mRoot->acn(moAhName)->eb("0");
+    mRoot->acn("parentSceneNode", "t_sceneNode")->acn(moAhName)->eb("1");
+  } else {
+    // moType movable
+    mRoot->acn("moType")->acn(moAhName)->eb("0");
+    // t_sceneNode moType movable
+    mRoot->acn("parentSceneNode", "t_sceneNode")
+        ->acn("moType")
+        ->acn(moAhName)
+        ->eb("1");
+    // entity moType movable
+    // entity bone moType movable
+  }
+}
+
+//------------------------------------------------------------------------------
+Ogre::MovableObject* MovableTH::getMovableObject() const {
+  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
+  return OgreUtil::getMovableByIdtype(sm, getUniformValue());
+}
+
+//------------------------------------------------------------------------------
+std::string MovableTH::getUniformValue() const {
+  return getMatchedNodeHandler(mMoAhName)->getUniformValue();
 }
 
 //------------------------------------------------------------------------------
@@ -145,31 +150,31 @@ BoneAH::BoneAH() : ArgHandler("bone"), mEntity(0), mEntityNode(0) {}
 
 //------------------------------------------------------------------------------
 void BoneAH::populatePromptBuffer(const std::string& s) {
-  if (mEntity->hasSkeleton()) {
-    Ogre::SkeletonInstance* sk = mEntity->getSkeleton();
-    auto oi = sk->getBoneIterator();
-    while (oi.hasMoreElements()) {
-      const std::string& name = oi.getNext()->getName();
-      if (s.empty() || StringUtil::startsWith(name, s))
-        appendPromptBuffer(name);
-    }
-  }
+  // if (mEntity->hasSkeleton()) {
+  // Ogre::SkeletonInstance* sk = mEntity->getSkeleton();
+  // auto oi = sk->getBoneIterator();
+  // while (oi.hasMoreElements()) {
+  // const std::string& name = oi.getNext()->getName();
+  // if (s.empty() || StringUtil::startsWith(name, s))
+  // appendPromptBuffer(name);
+  //}
+  //}
 }
 
 //------------------------------------------------------------------------------
 bool BoneAH::doValidate(const std::string& s) {
-  if (mEntity->hasSkeleton()) {
-    Ogre::SkeletonInstance* sk = mEntity->getSkeleton();
-    return sk->hasBone(s);
-  }
+  // if (mEntity->hasSkeleton()) {
+  // Ogre::SkeletonInstance* sk = mEntity->getSkeleton();
+  // return sk->hasBone(s);
+  //}
 
   return false;
 }
 
 //------------------------------------------------------------------------------
 void BoneAH::runtimeInit() {
-  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  mEntity = sm->getEntity(mEntityNode->getValue());
+  // Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
+  // mEntity = sm->getEntity(mEntityNode->getValue());
 }
 
 //------------------------------------------------------------------------------
@@ -177,33 +182,6 @@ void BoneAH::onLinked(Node* grandNode) {
   if (grandNode->isRoot() || grandNode->getAhName() != "entity")
     PAC_EXCEPT(Exception::ERR_INVALID_STATE, "bone must follow entity");
   mEntityNode = grandNode;
-}
-
-//------------------------------------------------------------------------------
-MovableBaseAH::MovableBaseAH(const std::string& name, const std::string& moType)
-    : ArgHandler(name), mMoType(moType) {}
-
-//------------------------------------------------------------------------------
-void MovableBaseAH::populatePromptBuffer(const std::string& s) {
-  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  auto oi = sm->getMovableObjectIterator(mMoType);
-  while (oi.hasMoreElements()) {
-    auto mo = oi.getNext();
-    if ((s.empty() || StringUtil::startsWith(mo->getName(), s)) &&
-        mo->getMovableType() == mMoType)
-      appendPromptBuffer(s);
-  }
-}
-
-//------------------------------------------------------------------------------
-bool MovableBaseAH::doValidate(const std::string& s) {
-  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  try {
-    sm->getMovableObject(s, mMoType);
-    return true;
-  } catch (Ogre::ItemIdentityException e) {
-    return false;
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -218,24 +196,52 @@ SceneNodeAH::SceneNodeAH()
 
 //------------------------------------------------------------------------------
 std::string SceneNodeAH::getUniformValue() const {
-  return Ogre::StringConverter::toString(getIdFromNameid(mValue));
+  return Ogre::StringConverter::toString(OgreUtil::getIdFromNameid(mValue));
 }
 
 //------------------------------------------------------------------------------
 Ogre::SceneNode* SceneNodeAH::getSceneNode() {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  Ogre::IdType id = getIdFromNameid(mValue);
-  if (id != nid) {
-    // normal node
-    Ogre::SceneNode* node = sm->getSceneNode(id);
-    if (node) return node;
-    // try dynamic root and static root node
-    Ogre::SceneNode* dynRoot = sm->getRootSceneNode(Ogre::SCENE_DYNAMIC);
-    if (id == dynRoot->getId()) return dynRoot;
-    Ogre::SceneNode* staticRoot = sm->getRootSceneNode(Ogre::SCENE_STATIC);
-    if (id == staticRoot->getId()) return staticRoot;
+  return OgreUtil::getSceneNodeById(sm, getUniformValue());
+}
+
+//------------------------------------------------------------------------------
+void SceneNodeAH::populatePromptBuffer(const std::string& s) {
+  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
+  if (mParentSceneNode) {
+    // output direct child only
+    RaiiConsoleBuffer b;
+    auto oi = mParentSceneNode->getChildIterator();
+    while (oi.hasMoreElements()) {
+      Ogre::Node* child = oi.getNext();
+      if ((mSmmt < 0 || mSmmt == OgreUtil::getSceneType(child)) &&
+          (s.empty() || StringUtil::startsWith(child->getName(), s)))
+        appendPromptBuffer(s);
+    }
+  } else if (mAncestorSceneNode) {
+    // output all children
+    auto oi = mParentSceneNode->getChildIterator();
+    while (oi.hasMoreElements()) loopNode(oi.getNext(), s);
+  } else {
+    loopNode(sm->getRootSceneNode(Ogre::SCENE_DYNAMIC), s);
+    loopNode(sm->getRootSceneNode(Ogre::SCENE_STATIC), s);
   }
-  return 0;
+}
+
+//------------------------------------------------------------------------------
+bool SceneNodeAH::doValidate(const std::string& s) {
+  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
+  return OgreUtil::getSceneNodeByIdNoThrow(sm, OgreUtil::getIdFromNameid(s));
+}
+
+//------------------------------------------------------------------------------
+void SceneNodeAH::loopNode(Ogre::Node* node, const std::string& s) {
+  const std::string&& nameid = OgreUtil::createNameid(node);
+  if ((mSmmt < 0 || mSmmt == OgreUtil::getSceneType(node)) &&
+      (s.empty() || StringUtil::startsWith(nameid, s)))
+    appendPromptBuffer(nameid);
+  auto oi = node->getChildIterator();
+  while (oi.hasMoreElements()) loopNode(oi.getNext(), s);
 }
 
 //------------------------------------------------------------------------------
@@ -249,12 +255,16 @@ void SceneNodeAH::onLinked(Node* grandNode) {
 void SceneNodeAH::runtimeInit() {
   mSmmt = -1;
   mParentSceneNode = mAncestorSceneNode = 0;
+  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
+
   if (mParentSnNode)
-    mParentSceneNode = static_cast<SceneNodeAH*>(mParentSnNode->getArgHandler())
-                           ->getSceneNode();
+    mParentSceneNode = OgreUtil::getSceneNodeById(
+        sm, mParentSnNode->getArgHandler()->getUniformValue());
+
   if (mAncestorSnNode)
-    mAncestorSnNode = static_cast<SceneNodeAH*>(
-                          mAncestorSnNode->getArgHandler())->getSceneNode();
+    mAncestorSceneNode = OgreUtil::getSceneNodeById(
+        sm, mAncestorSnNode->getArgHandler()->getUniformValue());
+
   if (mSmmtNode)
     mSmmt = enumFromString<Ogre::SceneMemoryMgrTypes>(mSmmtNode->getValue());
 }
@@ -267,14 +277,14 @@ SceneNodeTH::SceneNodeTH() : TreeArgHandler("t_sceneNode") {
   mRoot->acn("en_smmt")->acn("sceneNode")->eb("1");
   //  ltl_parent parentSceneNode sceneNode ("2")
   Node* parentSnNode =
-      mRoot->acn("ltl_parent")->("parentSceneNode", "sceneNode");
-  parentSnNode->acn("sceneNode")->en("2");
+      mRoot->acn("ltl_parent")->acn("parentSceneNode", "sceneNode");
+  parentSnNode->acn("sceneNode")->eb("2");
   //  ltl_parent parentSceneNode en_smmt sceneNode ("3")
   parentSnNode->acn("en_smmt")->acn("sceneNode")->eb("3");
   //  ltl_ancestor ancestorSceneNode sceneNode ("4")
   Node* ancestorSnNode =
-      mRoot->acn("ltl_ancestor")->("ancestorSceneNode", "sceneNode");
-  ancestorSnNode->acn("sceneNode")->en("4");
+      mRoot->acn("ltl_ancestor")->acn("ancestorSceneNode", "sceneNode");
+  ancestorSnNode->acn("sceneNode")->eb("4");
   //  ltl_ancestor ancestorSceneNode en_smmt sceneNode ("5")
   ancestorSnNode->acn("en_smmt")->acn("sceneNode")->eb("5");
 }
@@ -287,57 +297,7 @@ Ogre::SceneNode* SceneNodeTH::getSceneNode() {
 
 //------------------------------------------------------------------------------
 std::string SceneNodeTH::getUniformValue() const {
-  return static_cast<SceneNodeAH*>(getMatchedNodeHandler("sceneNode"))
-      ->getUniformValue();
-}
-
-//------------------------------------------------------------------------------
-void SceneNodeAH::populatePromptBuffer(const std::string& s) {
-  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  if (mParentSceneNode) {
-    // output direct child only
-    RaiiConsoleBuffer b;
-    auto oi = mParentSceneNode->getChildIterator();
-    while (oi.hasMoreElements()) {
-      Ogre::Node* child = oi->getNext();
-      if ((mSmmt < 0 || mSmmt == child->getMemoryManagerType()) &&
-          (s.empty() || StringUtil::startsWith(child->getName(), s)))
-        appendPromptBuffer(s);
-    }
-  } else if (mAncestorSceneNode) {
-    // output all children
-    auto oi = mParentSceneNode->getChildIterator();
-    while (oi.hasMoreElements()) loopNode(oi->getNext(), s);
-  } else {
-    loopNode(sm->getRootSceneNode(Ogre::SCENE_DYNAMIC), s);
-    loopNode(sm->getRootSceneNode(Ogre::SCENE_STATIC), s);
-  }
-}
-}
-
-//------------------------------------------------------------------------------
-bool SceneNodeAH::doValidate(const std::string& s) {
-  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  Ogre::IdType id = getIdFromNameid(s);
-  if (id != nid) {
-    Ogre::SceneNode* node = sm->getSceneNode(id);
-    if (!node) {
-      // try root
-      if (id == sm->getRootSceneNode(Ogre::SCENE_DYNAMIC)->getId() ||
-          id == sm->getRootSceneNode(Ogre::SCENE_STATIC)->getId())
-        return true;
-    }
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
-void SceneNodeAH::loopNode(Ogre::Node* node, const std::string& s) {
-  if ((mSmmt < 0 || mSmmt == child->getMemoryManagerType()) &&
-      (s.empty() || StringUtil::startsWith(child->getName(), s)))
-    appendPromptBuffer(createNameid(node->getName(), node->getId()));
-  auto oi = node->getChildIterator();
-  while (oi.hasMoreElements()) loopNode(oi.getNext(), s);
+  return getMatchedNodeHandler("sceneNode")->getUniformValue();
 }
 
 //------------------------------------------------------------------------------

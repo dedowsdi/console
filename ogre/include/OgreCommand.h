@@ -101,9 +101,9 @@ protected:
 
 /**
  * dth moType movable... ("m0")
- * dth ltl_sceneNode sceneNode ("sn0")
- * dth ltl_sceneNode sceneNode moType ("sn1")
- * dth ltl_sceneNode sceneNode moType movable("sn2")
+ * dth ltl_sceneNode t_sceneNode ("sn0")
+ * dth ltl_sceneNode t_sceneNode moType ("sn1")
+ * dth ltl_sceneNode t_sceneNode moType movable("sn2")
  * dth ltl_tagPoint entity ("tag0")
  * dth ltl_tagPoint entity moType  ("tag1")
  * dth ltl_tagPoint entity bone ("tag2")
@@ -126,14 +126,6 @@ private:
   void destroyMovableObjects(Movables& movables);
 };
 
-/**
- * edmo moTyp movable ("0")
- * edmo ltl_sceneNode sceneNode moType movable ("1")
- * edmo ltl_tagPoint entity bone moType movable ("2")
- *
- * Edit movable object, you need to make sure this movable remains in scene when
- * you edit it, and clean it after you have done your work
- */
 class _PacExport EdmoCmd : public Command {
 public:
   EdmoCmd();
@@ -141,7 +133,6 @@ public:
 
 protected:
   virtual bool doExecute();
-  virtual bool buildArgHandler();
 };
 
 /**
