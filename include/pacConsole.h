@@ -17,13 +17,14 @@ public:
   virtual ~Console();
 
   virtual void init();
+  
 
   /**
    * Execute cmdLine. Add cmdLine to command history.
    * @param cmdLine : cmd line to be executed.It will get cmd line from ui if
    * it's empty.
    */
-  bool execute(const std::string& cmdLine = "");
+  virtual bool execute(const std::string& cmdLine = "");
 
   /**
    * Prompt and complete for current cmd line .

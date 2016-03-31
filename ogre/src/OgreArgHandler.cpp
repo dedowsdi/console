@@ -1,14 +1,22 @@
 #include "pacStable.h"
 #include "OgreArgHandler.h"
 #include "OgreConsole.h"
-#include "Ogre.h"
+#include <OgreMovableObject.h>
+#include <OgreParticleSystem.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreResourceManager.h>
+#include <OgreParticleSystemManager.h>
+#include <OgreMeshManager.h>
+#include <OgreTextureManager.h>
 
 namespace pac {
 
 //------------------------------------------------------------------------------
-MovableAH::MovableAH(
-    const std::string& name /*= "movable"*/, const std::string& moType /*= ""*/)
+MovableAH::MovableAH(const std::string& name /*= "movable"*/,
+    const std::string& moType /*= ""*/, bool attachedOnly /*= false*/)
     : ArgHandler(name),
+      mAttachedOnly(attachedOnly),
       mEntity(0),
       mSceneNode(0),
       mEntityNode(0),
@@ -54,8 +62,9 @@ bool MovableAH::doValidate(const std::string& s) {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
   if (mSceneNode) {
     // sceneNode moType movable
-    return OgreUtil::getMovableByIdtypeNoThrow(
+    auto mo = OgreUtil::getMovableByIdtypeNoThrow(
         sm, OgreUtil::getIdFromNameid(s), mMoType);
+    return mo && (!mAttachedOnly || mo->isAttached());
   } else if (mEntity) {
     PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED, "no tagpoint in 2.0");
     // entity [bone] moType movable
@@ -69,8 +78,9 @@ bool MovableAH::doValidate(const std::string& s) {
     //}
     // return false;
   } else {
-    return OgreUtil::getMovableByIdtypeNoThrow(
+    auto mo = OgreUtil::getMovableByIdtypeNoThrow(
         sm, OgreUtil::getIdFromNameid(s), mMoType);
+    return mo && (!mAttachedOnly || mo->isAttached());
   }
 }
 
@@ -120,12 +130,12 @@ MovableTH::MovableTH(const std::string& name, const std::string& moAhName)
   bool fixMoType = moAhName != "movable";
   if (fixMoType) {
     mRoot->acn(moAhName)->eb("0");
-    mRoot->acn("parentSceneNode", "t_sceneNode")->acn(moAhName)->eb("1");
+    mRoot->acn("parentSceneNode", "sceneNode")->acn(moAhName)->eb("1");
   } else {
     // moType movable
     mRoot->acn("moType")->acn(moAhName)->eb("0");
     // t_sceneNode moType movable
-    mRoot->acn("parentSceneNode", "t_sceneNode")
+    mRoot->acn("parentSceneNode", "sceneNode")
         ->acn("moType")
         ->acn(moAhName)
         ->eb("1");
@@ -185,8 +195,10 @@ void BoneAH::onLinked(Node* grandNode) {
 }
 
 //------------------------------------------------------------------------------
-SceneNodeAH::SceneNodeAH()
-    : ArgHandler("sceneNode"),
+SceneNodeAH::SceneNodeAH(
+    const std::string& name /*= "sceneNode"*/, bool includeRoot /*= true*/)
+    : ArgHandler(name),
+      mIncludeRoot(includeRoot),
       mParentSnNode(0),
       mAncestorSnNode(0),
       mSmmtNode(0),
@@ -220,18 +232,33 @@ void SceneNodeAH::populatePromptBuffer(const std::string& s) {
     }
   } else if (mAncestorSceneNode) {
     // output all children
-    auto oi = mParentSceneNode->getChildIterator();
+    auto oi = mAncestorSceneNode->getChildIterator();
     while (oi.hasMoreElements()) loopNode(oi.getNext(), s);
   } else {
-    loopNode(sm->getRootSceneNode(Ogre::SCENE_DYNAMIC), s);
-    loopNode(sm->getRootSceneNode(Ogre::SCENE_STATIC), s);
+    Ogre::SceneNode* dynamicRoot = sm->getRootSceneNode(Ogre::SCENE_DYNAMIC);
+    Ogre::SceneNode* staticRoot = sm->getRootSceneNode(Ogre::SCENE_STATIC);
+    if (mIncludeRoot) {
+      loopNode(dynamicRoot, s);
+      loopNode(staticRoot, s);
+    } else {
+      auto doi = dynamicRoot->getChildIterator();
+      while (doi.hasMoreElements()) loopNode(doi.getNext(), s);
+      auto soi = staticRoot->getChildIterator();
+      while (soi.hasMoreElements()) loopNode(soi.getNext(), s);
+    }
   }
 }
 
 //------------------------------------------------------------------------------
 bool SceneNodeAH::doValidate(const std::string& s) {
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  return OgreUtil::getSceneNodeByIdNoThrow(sm, OgreUtil::getIdFromNameid(s));
+  auto node =
+      OgreUtil::getSceneNodeByIdNoThrow(sm, OgreUtil::getIdFromNameid(s));
+  if (mSmmt >= 0 && OgreUtil::getSceneType(node) != mSmmt) return false;
+  if (mIncludeRoot)
+    return node;
+  else
+    return node && node->getId() != 0 && node->getId() != 1;
 }
 
 //------------------------------------------------------------------------------
@@ -275,29 +302,51 @@ SceneNodeTH::SceneNodeTH() : TreeArgHandler("t_sceneNode") {
   mRoot->acn("sceneNode")->eb("0");
   //  en_smmt sceneNode ("1")
   mRoot->acn("en_smmt")->acn("sceneNode")->eb("1");
-  //  ltl_parent parentSceneNode sceneNode ("2")
+  //  ltl_childOfNode parentSceneNode sceneNode ("2")
   Node* parentSnNode =
-      mRoot->acn("ltl_parent")->acn("parentSceneNode", "sceneNode");
+      mRoot->acn("ltl_childOfNode")->acn("parentSceneNode", "sceneNode");
   parentSnNode->acn("sceneNode")->eb("2");
-  //  ltl_parent parentSceneNode en_smmt sceneNode ("3")
+  //  ltl_childOfNode parentSceneNode en_smmt sceneNode ("3")
   parentSnNode->acn("en_smmt")->acn("sceneNode")->eb("3");
-  //  ltl_ancestor ancestorSceneNode sceneNode ("4")
+  //  ltl_descendantOfNode ancestorSceneNode sceneNode ("4")
   Node* ancestorSnNode =
-      mRoot->acn("ltl_ancestor")->acn("ancestorSceneNode", "sceneNode");
+      mRoot->acn("ltl_descendantOfNode")->acn("ancestorSceneNode", "sceneNode");
   ancestorSnNode->acn("sceneNode")->eb("4");
-  //  ltl_ancestor ancestorSceneNode en_smmt sceneNode ("5")
+  //  ltl_descendantOfNode ancestorSceneNode en_smmt sceneNode ("5")
   ancestorSnNode->acn("en_smmt")->acn("sceneNode")->eb("5");
+  //  ltl_parentOfNode childNode ("6")
+  mRoot->acn("ltl_parentOfNode")->acn("childNode")->eb("ps0");
+  //  ltl_parentOfMovalbe childMovable ("7")
+  mRoot->acn("ltl_parentOfMovable")
+      ->acn("moType")
+      ->acn("childMovable")
+      ->eb("pm0");
 }
 
 //------------------------------------------------------------------------------
 Ogre::SceneNode* SceneNodeTH::getSceneNode() {
-  return static_cast<SceneNodeAH*>(getMatchedNodeHandler("sceneNode"))
-      ->getSceneNode();
+  return OgreUtil::getSceneNodeById(
+      sgOgreConsole.getSceneMgr(), getUniformValue());
 }
 
 //------------------------------------------------------------------------------
 std::string SceneNodeTH::getUniformValue() const {
-  return getMatchedNodeHandler("sceneNode")->getUniformValue();
+  Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
+  const std::string& branch = getMatchedBranch();
+  if (branch == "ps0") {
+    Ogre::SceneNode* node = OgreUtil::getSceneNodeById(
+        sceneMgr, getMatchedNodeUniformValue("childNode"));
+    if (node->getParent())
+      return Ogre::StringConverter::toString(node->getParent()->getId());
+    else
+      PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 parent sceneNode");
+  } else if (branch == "pm0") {
+    Ogre::MovableObject* mo = OgreUtil::getMovableByIdtype(sceneMgr,
+        OgreUtil::getIdFromNameid(getMatchedNodeValue("childMovable")),
+        getMatchedNodeValue("moType"));
+    return Ogre::StringConverter::toString(mo->getParentNode()->getId());
+  } else
+    return getMatchedNodeHandler("sceneNode")->getUniformValue();
 }
 
 //------------------------------------------------------------------------------
@@ -405,5 +454,53 @@ void ParticleSystemTemplateAH::populatePromptBuffer(const std::string& s) {
 //------------------------------------------------------------------------------
 bool ParticleSystemTemplateAH::doValidate(const std::string& s) {
   return mManager->getTemplate(s);
+}
+
+//------------------------------------------------------------------------------
+PositionTH::PositionTH() : TreeArgHandler("position") {
+  // real3
+  mRoot->acn("real3")->eb("0");
+  // ltl_posOfNode t_sceneNode ("1")
+  mRoot->acn("ltl_posOfNode")->acn("t_sceneNode")->eb("1");
+}
+
+//------------------------------------------------------------------------------
+std::string PositionTH::getUniformValue() const {
+  const std::string& branch = getMatchedBranch();
+  if (branch == "0") {
+    // real3
+    return getMatchedNodeValue("real3");
+  } else {
+    // posOfNode t_sceneNode ("1")
+    Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
+    Ogre::SceneNode* node = OgreUtil::getSceneNodeById(
+        sceneMgr, getMatchedNodeUniformValue("t_sceneNode"));
+    return Ogre::StringConverter::toString(node->_getDerivedPositionUpdated());
+  }
+}
+
+//------------------------------------------------------------------------------
+DirectionTH::DirectionTH() : TreeArgHandler("direction") {
+  // real3
+  mRoot->acn("real3")->eb("0");
+  // ltl_posOfNode t_sceneNode ("1")
+  mRoot->acn("ltl_dirOfNode")->acn("t_sceneNode")->eb("1");
+}
+
+//------------------------------------------------------------------------------
+std::string DirectionTH::getUniformValue() const {
+  const std::string& branch = getMatchedBranch();
+  if (branch == "0") {
+    // real3
+    return getMatchedNodeValue("real3");
+  } else {
+    // ltl_dirOfNode t_sceneNode ("1")
+    Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
+    Ogre::SceneNode* node = OgreUtil::getSceneNodeById(
+        sceneMgr, getMatchedNodeUniformValue("t_sceneNode"));
+    Ogre::Vector3 v[3];
+    node->_getDerivedOrientationUpdated().ToAxes(v);
+    return Ogre::StringConverter::toString(-v[2]);
+  }
 }
 }

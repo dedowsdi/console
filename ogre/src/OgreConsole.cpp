@@ -10,6 +10,7 @@
 #include <OgreMeshManager.h>
 #include <OgreTextureManager.h>
 #include <OgreParticleSystemManager.h>
+#include <OgreSceneManager.h>
 //#include <OgreCompositorManager.h>
 #include <OgreNode.h>
 
@@ -41,6 +42,11 @@ OgreConsole::OgreConsole(ConsoleUI* ui, Ogre::SceneManager* sceneMgr)
     : Console(ui), mSceneMgr(sceneMgr), mMovableDir(0), mNodeDir(0) {}
 
 //------------------------------------------------------------------------------
+bool OgreConsole::execute(const std::string& cmdLine /*= ""*/) {
+  return Console::execute(cmdLine);
+}
+
+//------------------------------------------------------------------------------
 void OgreConsole::initArghandler() {
   Console::initArghandler();
   initEnumArgHandler();
@@ -48,8 +54,7 @@ void OgreConsole::initArghandler() {
   initStringArgHandler();
   initLiteralArgHandler();
   initTreeArgHandler();
-  initNodeArgHandler();
-  initMovableArgHandler();
+  initNodeAndMovableArgHandler();
 }
 
 //------------------------------------------------------------------------------
@@ -75,9 +80,9 @@ void OgreConsole::initDir() {
   mMovableDir = new AbsDir("movable");
   mNodeDir = new AbsDir("node");
 
-  sgRootDir.addChild(mSceneDir);
-  sgRootDir.addChild(mMovableDir);
-  sgRootDir.addChild(mNodeDir);
+  sgRootDir.addChild(mSceneDir, false);
+  sgRootDir.addChild(mMovableDir, false);
+  sgRootDir.addChild(mNodeDir, false);
 }
 
 //------------------------------------------------------------------------------
@@ -114,25 +119,48 @@ void OgreConsole::initResourceArghandler() {
 }
 
 //------------------------------------------------------------------------------
-void OgreConsole::initMovableArgHandler() {
+void OgreConsole::initNodeAndMovableArgHandler() {
+  // scenenode
+  sgArgLib.registerArgHandler(new SceneNodeAH());
+  sgArgLib.registerArgHandler(new SceneNodeAH("childNode", false));
+  sgArgLib.registerArgHandler(new BoneAH());
+
   // movable
   sgArgLib.registerArgHandler(new MovableAH());
+  sgArgLib.registerArgHandler(new MovableAH("childMovable", "", true));
   sgArgLib.registerArgHandler(new MovableAH("particle", "ParticleSystem"));
   sgArgLib.registerArgHandler(new MovableAH("light", "Light"));
   sgArgLib.registerArgHandler(new MovableAH("camera", "Camera"));
   sgArgLib.registerArgHandler(new MovableAH("entity", "Entity"));
+
+  // t_sceneNode
+  sgArgLib.registerArgHandler(new SceneNodeTH());
+  // t_movable
   sgArgLib.registerArgHandler(new MovableTH("t_movable", "movable"));
   sgArgLib.registerArgHandler(new MovableTH("t_light", "light"));
   sgArgLib.registerArgHandler(new MovableTH("t_camera", "camera"));
   sgArgLib.registerArgHandler(new MovableTH("t_entity", "entity"));
   sgArgLib.registerArgHandler(new MovableTH("t_particle", "particle"));
-}
+  //tree
+  sgArgLib.registerArgHandler(new PositionTH());
+  sgArgLib.registerArgHandler(new DirectionTH());
 
-//------------------------------------------------------------------------------
-void OgreConsole::initNodeArgHandler() {
-  sgArgLib.registerArgHandler(new SceneNodeAH());
-  sgArgLib.registerArgHandler(new SceneNodeTH());
-  sgArgLib.registerArgHandler(new BoneAH());
+  // used to handler yaw, pitch row 
+  auto handler = new TreeArgHandler("degree_transform");  
+  Node* root = handler->getRoot();
+  root = handler->getRoot();
+  root->acn("degree")->acn("en_transformSpace")->eb("0");
+  sgArgLib.registerArgHandler(handler);
+  // used to handle SceneNode::LookAt 
+  handler = new TreeArgHandler("position_transform");  
+  root = handler->getRoot();
+  root->acn("position")->acn("en_transformSpace")->eb("0");
+  sgArgLib.registerArgHandler(handler);
+  // used to handle SceneNode::setDirection
+  handler = new TreeArgHandler("direction_transform");  
+  root = handler->getRoot();
+  root->acn("direction")->acn("en_transformSpace")->eb("0");
+  sgArgLib.registerArgHandler(handler);
 }
 
 //------------------------------------------------------------------------------
@@ -161,15 +189,21 @@ void OgreConsole::initLiteralArgHandler() {
   sgArgLib.registerArgHandler(new LiteralArgHandler("entity"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("light"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("parent"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("parentOfMovable"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("parentOfNode"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("particle"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("sceneNode"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("tagPoint"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("childOfNode"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("descendantOfNode"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("posOfNode"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("dirOfNode"));
 }
 
 //------------------------------------------------------------------------------
 void OgreConsole::initTreeArgHandler() {
   // scenemanager related
-  TreeArgHandler* handler = new TreeArgHandler("handler");
+  TreeArgHandler* handler = new TreeArgHandler("fog");
   Node* root = handler->getRoot();
   // fogMode colorValue expDensity linearStart linearEnd
   root->acn("en_fogMode")
@@ -180,10 +214,5 @@ void OgreConsole::initTreeArgHandler() {
       ->eb("0");
   sgArgLib.registerArgHandler(handler);
 
-  // node related
-  handler = new TreeArgHandler("ypr");  // ypr as yaw pitch roll
-  root = handler->getRoot();
-  root->acn("en_transformSpace")->acn("real")->eb("0");
-  sgArgLib.registerArgHandler(handler);
 }
 }

@@ -2,7 +2,6 @@
 #define PACARGHANDLER_H
 
 #include "pacSingleton.h"
-#include "pacEnumUtil.h"
 
 namespace pac {
 

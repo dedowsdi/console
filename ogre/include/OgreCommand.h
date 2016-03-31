@@ -4,7 +4,6 @@
 #include "OgreConsolePreRequisite.h"
 #include "pacCommand.h"
 #include "OgreSI.h"
-#include <boost/regex.hpp>
 
 namespace pac {
 
@@ -29,10 +28,12 @@ protected:
 /**
  * lsnd ("g0")
  * lsnd en_smmt ("g1")
- * lsnd [-r] t_sceneNode ("s0")      [-r] recursively list children
- * lsnd [-r] t_sceneNode en_smmt("s1") 
+ * lsnd [-r] sceneNode ("s0")      [-r] recursively list children
+ * lsnd [-r] sceneNode en_smmt("s1")
  * lsnd ltl_regex regex ("r0")
  * lsnd ltl_regex regex en_smmt("r1")
+ * lsnd ltl_parentOfNode t_sceneNode ("ps0")
+ * lsnd ltl_parentOfMovable moType movable ("pm0")
  */
 class _PacExport LsndCmd : public Command {
 public:
@@ -82,8 +83,8 @@ protected:
 /**
  * lsmo moType ("g0")
  * lsmo moType ltl_regex regex ("g1")
- * lsmo ltl_sceneNode t_sceneNode ("sn0")
- * lsmo ltl_sceneNode t_sceneNode moType ("sn1")
+ * lsmo ltl_sceneNode sceneNode ("sn0")
+ * lsmo ltl_sceneNode sceneNode moType ("sn1")
  * lsmo ltl_tagPoint entity ("tag0")
  * lsmo ltl_tagPoint entity moType ("tag1")
  * lsmo ltl_tagPoint entity bone ("tag2")
@@ -96,7 +97,7 @@ public:
 
 protected:
   virtual bool doExecute();
-   virtual bool buildArgHandler();
+  virtual bool buildArgHandler();
 };
 
 /**
@@ -151,7 +152,7 @@ protected:
 
 /**
  * adnd t_sncneNode en_smmt id ("1")
- * add scenenode 
+ * add scenenode
  */
 class _PacExport AdndCmd : public Command {
 public:

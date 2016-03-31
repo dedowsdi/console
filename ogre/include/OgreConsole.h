@@ -10,6 +10,7 @@ class _PacExport OgreConsole : public Console {
 public:
   OgreConsole(ConsoleUI* ui, Ogre::SceneManager* sceneMgr);
 
+  virtual bool execute(const std::string& cmdLine = "");
   /**
    * The scene need better be freezed when you want to change properties of some
    * movable object  or scenenode, otherwise if the editting object got removed
@@ -74,8 +75,7 @@ protected:
   virtual void initDir();
   virtual void initEnumArgHandler();
   virtual void initResourceArghandler();
-  virtual void initMovableArgHandler();
-  virtual void initNodeArgHandler();
+  virtual void initNodeAndMovableArgHandler();
   virtual void initStringArgHandler();
   virtual void initLiteralArgHandler();
   virtual void initTreeArgHandler();

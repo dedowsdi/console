@@ -20,6 +20,11 @@ public:
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
+  struct _PacExport ParentNode : public ParamCmd {
+    ParentNode() : ParamCmd("t_sceneNode") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
   MovableSI(Ogre::MovableObject* obj);
   Ogre::MovableObject* getMovable() const;
 
@@ -28,6 +33,7 @@ protected:
 
 protected:
   static Visible msVisible;
+  static ParentNode msParentNode;
   Ogre::MovableObject* mMovable;
 };
 
@@ -39,11 +45,6 @@ public:
     virtual void doSet(void* target, ArgHandler* handler);
   };
 
-  struct _PacExport Position : public ParamCmd {
-    Position() : ParamCmd("real3") {}
-    virtual std::string doGet(const void* target) const;
-    virtual void doSet(void* target, ArgHandler* handler);
-  };
 
   struct _PacExport Diffuse : public ParamCmd {
     Diffuse() : ParamCmd("nreal3") {}
@@ -119,7 +120,6 @@ protected:
 
 protected:
   static LightType msLightType;
-  static Position msPosition;
   static Diffuse msDiffuse;
   static Specular msSpecular;
   static Direction msDirection;
@@ -194,6 +194,7 @@ public:
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
+  
 
   struct _PacExport Orientation : public ParamCmd {
     Orientation() : ParamCmd("quaternion") {}
@@ -207,20 +208,22 @@ public:
   };
 
   struct _PacExport Yaw : public ParamCmd {
-    Yaw() : ParamCmd("ypr") {}
+    Yaw() : ParamCmd("degree_transform") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
   struct _PacExport Pitch : public ParamCmd {
-    Pitch() : ParamCmd("ypr") {}
+    Pitch() : ParamCmd("degree_transform") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
   struct _PacExport Roll : public ParamCmd {
-    Roll() : ParamCmd("ypr") {}
+    Roll() : ParamCmd("degree_transform") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
+
+
 
   NodeSI(Ogre::Node* node);
 
@@ -242,12 +245,27 @@ protected:
 
 class _PacExport SceneNodeSI : public NodeSI {
 public:
+  struct _PacExport Direction : public ParamCmd {
+    Direction() : ParamCmd("direction_transform") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport LookAt : public ParamCmd {
+    LookAt() : ParamCmd("position_transform") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
   SceneNodeSI(Ogre::SceneNode* sceneNode);
 
   Ogre::SceneNode* getSceneNode() const;
 
 protected:
   void initParams();
+
+  static Direction msDirection;
+  static LookAt msLookAt;
 
 };
 

@@ -81,7 +81,7 @@ bool Console::execute(const std::string& cmdLine /*= ""*/) {
 
   sgLogger.logMessage(
       "************************************************************");
-  sgLogger.logMessage("executing command \"" + cmdLine + "\"");
+  sgLogger.logMessage("executing command \"" + line + "\"");
 
   fakeOutputDirAndCmd(line);
   mCmdHistory->push(line);
@@ -95,18 +95,18 @@ bool Console::execute(const std::string& cmdLine /*= ""*/) {
     if (cmd) {
       cmd->setArgsAndOptions(m[2]);
       if (cmd->execute()) {
-        sgLogger.logMessage("finished executing command \"" + cmdLine + "\"");
+        sgLogger.logMessage("finished executing command \"" + line + "\"");
         sgLogger.logMessage(
             "************************************************************");
         return true;
       }
+    } else {
+      outputLine("unknown command : " + m[1]);
     }
-
-    outputLine("unknown command : " + m[1]);
   } else {
     outputLine("unknown input");
   }
-  sgLogger.logMessage("failed executing command \"" + cmdLine + "\"");
+  sgLogger.logMessage("failed executing command \"" + line + "\"");
   sgLogger.logMessage(
       "************************************************************");
   return false;
@@ -248,9 +248,10 @@ void Console::cleanTempDir(AbsDir* dir) {
     delete dir;
     return;
   }
-
-  std::for_each(dir->beginChildIter(), dir->endChildIter(),
-      [&](AbsDir* d) -> void { cleanTempDir(d); });
+  //operator on copy
+  AbsDirs dirs(dir->beginChildIter(), dir->endChildIter());
+  std::for_each(
+      dirs.begin(), dirs.end(), [&](AbsDir* d) -> void { cleanTempDir(d); });
 }
 
 //------------------------------------------------------------------------------

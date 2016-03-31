@@ -17,7 +17,8 @@ void Branch::recordNodeValue(Node* node, SVCIter f, SVCIter l) {
   NodeValues::iterator iter =
       std::find_if(this->nodeValues.begin(), this->nodeValues.end(),
           [&](NodeValues::value_type& v) -> bool { return v.first == node; });
-  sgLogger.logMessage("record node value : <" + node->getName() + "> : \"" +
+  sgLogger.logMessage("record node value : <" + node->getName() + "(" +
+                          node->getAhName() + ")> : \"" +
                           StringUtil::join(f, l) + "\" ",
       SL_TRIVIAL);
 
@@ -59,8 +60,8 @@ void Branch::popTree(Node* leaf) {
         "tree of leaf(" + leaf->getTree()->getName() +
             ") is different from top tree:" + tree->getName());
 
-  //validate branch use depth first algorithm, so it's ok to set value and
-  //matched leaf here temporary
+  // validate branch use depth first algorithm, so it's ok to set value and
+  // matched leaf here temporary
   tree->setValue(StringUtil::join(tlp.second, this->current));
   tree->setMatchedLeaf(leaf);
 
@@ -159,6 +160,7 @@ void ArgHandler::applyPromptBuffer(const std::string& s, bool autoComplete) {
         [&](const std::string& v) -> void { sgConsole.outputLine(v); });
   } else {
     if (mPromptBuffer.size() > 1 || !autoComplete) {
+      // output items
       RaiiConsoleBuffer raii;
       std::for_each(mPromptBuffer.begin(), mPromptBuffer.end(),
           [&](const std::string& v) -> void { sgConsole.output(v); });
@@ -178,8 +180,8 @@ void ArgHandler::validateBranch(
           return true;
         }
         if (!validate(*v.current)) {
-          sgLogger.logMessage(getTreeNode()->getArgPath() +
-                                  " faile to validate \"" + *v.current + "\"",
+          sgLogger.logMessage(getTreeNode()->getArgPath() + "(" + mName +
+                                  ") faile to validate \"" + *v.current + "\"",
               SL_TRIVIAL);
           return true;
         }
@@ -545,12 +547,15 @@ void TreeArgHandler::prompt(const std::string& s) {
   this->validateBranch(branches, ahv);
 
   // mutiple candidates, filter those failed to generate prompt buffer
+  bool allBufferIsCompleteType = true;
   ArgHandlerVec candidates;
   std::for_each(ahv.begin(), ahv.end(), [&](ArgHandler* handler) -> void {
     handler->runtimeInit();
     handler->populatePromptBuffer(*sv.rbegin());
     if (handler->getPromptBufferSize() > 0) {
       candidates.push_back(handler);
+      if (handler->getPromptType() == PT_PROMPTONLY)
+        allBufferIsCompleteType = false;
     }
   });
 
@@ -559,12 +564,36 @@ void TreeArgHandler::prompt(const std::string& s) {
   else if (candidates.size() > 1) {
     sgConsole.outputLine(
         "found " + StringUtil::toString(candidates.size()) + " branches:");
+    sgConsole.outputLine(
+        "************************************************************");
+    StringVector buffers;
     std::for_each(
         candidates.begin(), candidates.end(), [&](ArgHandler* v) -> void {
           // output head
           sgConsole.outputLine(v->getTreeNode()->getArgPath() + ":");
           v->applyPromptBuffer(*sv.rbegin(), false);
+          sgConsole.outputLine(
+              "------------------------------------------------------------");
+          if (allBufferIsCompleteType) {
+            std::copy(v->beginPromptBuffer(), v->endPromptBuffer(),
+                std::inserter(buffers, buffers.begin()));
+          }
         });
+
+    if (allBufferIsCompleteType) {
+      // complete typing when there are multiple candidates and all of them are
+      // complete type
+      const std::string&& iden =
+          StdUtil::getIdenticalString(buffers.begin(), buffers.end());
+      if (!iden.empty()) {
+        // just check again
+        if (!s.empty() && !StringUtil::startsWith(iden, s))
+          PAC_EXCEPT(Exception::ERR_INVALID_STATE,
+              "complete string don't starts with typing!!!!");
+
+        sgConsole.complete(iden.substr(s.size()));
+      }
+    }
   }
 }
 
@@ -684,7 +713,10 @@ void TreeArgHandler::getLeaves(NodeVector& nv) { return mRoot->getLeaves(nv); }
 
 //------------------------------------------------------------------------------
 const std::string& TreeArgHandler::getMatchedBranch() const {
-  PacAssertS(mMatchedLeaf, "Havn't found matched leaf for " + getName());
+  if (!mMatchedLeaf) {
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE,
+        "havn't found matched leaf for " + getName());
+  }
   return mMatchedLeaf->getName();
 }
 
@@ -692,7 +724,10 @@ const std::string& TreeArgHandler::getMatchedBranch() const {
 Node* TreeArgHandler::getMatchedNode(const std::string& name) const {
   if (!mMatchedLeaf) PAC_EXCEPT(Exception::ERR_INVALID_STATE, "0 matched leaf");
   Node* node = mMatchedLeaf->getAncestorNode(name);
-  if (!node) PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND, name + " not found");
+  if (!node) {
+    PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
+        "matchedNode \"" + name + "\" not found at tree " + mName);
+  }
   return node;
 }
 
@@ -794,6 +829,7 @@ void ArgHandlerLib::init() {
   this->registerArgHandler(new PriDeciArgHandler<long>("long"));
   this->registerArgHandler(new PriDeciArgHandler<unsigned long>("ulong"));
   this->registerArgHandler(new PriDeciArgHandler<Real>("real"));
+  this->registerArgHandler(new PriDeciArgHandler<Real>("degree"));
   // normalized real
   this->registerArgHandler(
       new PriDeciRangeArgHandler<Real>("nreal", -1.0, 1.0));

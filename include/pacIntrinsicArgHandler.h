@@ -4,6 +4,7 @@
 #include "pacArgHandler.h"
 #include "pacConsole.h"
 #include "pacStringUtil.h"
+#include "pacEnumUtil.h"
 
 namespace pac {
 

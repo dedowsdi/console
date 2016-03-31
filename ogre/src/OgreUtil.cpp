@@ -1,6 +1,8 @@
 #include "pacStable.h"
 #include "OgreUtil.h"
 #include <limits>
+#include <OgreSceneManager.h>
+#include <OgreCamera.h>
 
 namespace pac {
 Ogre::IdType OgreUtil::nid = std::numeric_limits<Ogre::IdType>::max();

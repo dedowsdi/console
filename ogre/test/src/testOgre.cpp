@@ -1,4 +1,5 @@
 #include <iostream>
+#include "testOgreArgHandler.hpp"
 #include "testOgreConsole.hpp"
 #include "testOgreSI.hpp"
 #include "testConsoleUI.hpp"

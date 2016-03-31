@@ -5,6 +5,8 @@
 #include "pacIntrinsicArgHandler.h"
 #include "OgreId.h"
 #include "OgreUtil.h"
+#include <OgreMovableObject.h>
+#include <OgreCamera.h>
 
 namespace pac {
 
@@ -18,11 +20,11 @@ public:
    * movable arg handler
    * @param name : ah name
    * @param moType : movable type, if you set this, this handler will ignore
-   * previous motype node 
-   * @return : 
+   * previous motype node
+   * @return :
    */
-  MovableAH(
-      const std::string& name = "movable", const std::string& moType = "");
+  MovableAH(const std::string& name = "movable", const std::string& moType = "",
+      bool attachedOnly = false);
   virtual ArgHandler* clone() { return new MovableAH(*this); }
 
 protected:
@@ -42,19 +44,19 @@ private:
     while (oi.hasMoreElements()) {
       auto mo = oi.getNext();
       const std::string&& nameid = OgreUtil::createNameid(mo);
-      if ((s.empty() || StringUtil::startsWith(nameid, s)))
+      if ((!mAttachedOnly || mo->isAttached()) &&
+          (s.empty() || StringUtil::startsWith(nameid, s)))
         appendPromptBuffer(nameid);
     }
   }
 
 private:
-  bool mFixType;
+  bool mFixType, mAttachedOnly;
   Ogre::Entity* mEntity;
   Ogre::SceneNode* mSceneNode;
   Node* mEntityNode, *mBoneNode, *mSnNode, *mMoTypeNode;
   std::string mMoType, mBone;
 };
-
 
 /**
  *  moType movable
@@ -62,15 +64,15 @@ private:
  *  entity moType movable
  *  entity bone moType movable
  *
- * all the way to locate a movable, moType only exists if moAhName is movable 
+ * all the way to locate a movable, moType only exists if moAhName is movable
  */
-class _PacExport MovableTH : public TreeArgHandler
-{
+class _PacExport MovableTH : public TreeArgHandler {
 public:
-	MovableTH(const std::string& name, const std::string& moAhName);
+  MovableTH(const std::string& name, const std::string& moAhName);
   virtual ArgHandler* clone() { return new MovableTH(*this); }
   Ogre::MovableObject* getMovableObject() const;
   virtual std::string getUniformValue() const;
+
 protected:
   std::string mMoAhName;
 };
@@ -101,7 +103,7 @@ protected:
  */
 class _PacExport SceneNodeAH : public ArgHandler {
 public:
-  SceneNodeAH();
+  SceneNodeAH(const std::string& name = "sceneNode", bool includeRoot = true);
   virtual ArgHandler* clone() { return new SceneNodeAH(*this); }
   virtual std::string getUniformValue() const;
   Ogre::SceneNode* getSceneNode();
@@ -119,6 +121,7 @@ protected:
   virtual void runtimeInit();
 
 private:
+  bool mIncludeRoot;
   Node* mParentSnNode, *mAncestorSnNode, *mSmmtNode;
   Ogre::SceneNode* mParentSceneNode, *mAncestorSceneNode;
   int mSmmt;
@@ -127,10 +130,12 @@ private:
 /**
  *  sceneNode ("0")
  *  en_smmt sceneNode ("1")
- *  ltl_parent parentSceneNode sceneNode ("2")
- *  ltl_parent parentSceneNode en_smmt sceneNode ("3")
- *  ltl_ancestor ancestorSceneNode sceneNode ("4")
- *  ltl_ancestor ancestorSceneNode en_smmt sceneNode ("5")
+ *  ltl_childOfNode parentSceneNode sceneNode ("2")
+ *  ltl_childOfNode parentSceneNode en_smmt sceneNode ("3")
+ *  ltl_descendantOfNode ancestorSceneNode sceneNode ("4")
+ *  ltl_descendantOfNode ancestorSceneNode en_smmt sceneNode ("5")
+ *  ltl_parentOfNode childNode ("ps0")
+ *  ltl_parentOfMovalbe moType childMovable ("pm0")
  *
  *  all the way to locate a scene node
  */
@@ -190,6 +195,28 @@ protected:
 
 protected:
   Ogre::ParticleSystemManager* mManager;
+};
+
+/**
+ * real3 ("0")
+ * ltl_posOfNode t_sceneNode ("1")
+ * all the way to locate a position
+ */
+class _PacExport PositionTH : public TreeArgHandler {
+public:
+  PositionTH();
+  std::string getUniformValue() const;
+};
+
+/**
+ * real3 ("0")
+ * ltl_posOfNode t_sceneNode ("1" , negative-z of  node)
+ * all the way to locate a direction 
+ */
+class _PacExport DirectionTH : public TreeArgHandler {
+public:
+  DirectionTH();
+  std::string getUniformValue() const;
 };
 }
 

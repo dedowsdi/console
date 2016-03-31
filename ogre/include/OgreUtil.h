@@ -1,8 +1,10 @@
 #ifndef OGREUTIL_H
 #define OGREUTIL_H
 
-#include "pacConsolePreRequisite.h"
-#include "Ogre.h"
+#include "OgreConsolePreRequisite.h"
+#include <OgreCommon.h>
+#include <OgreId.h>
+
 namespace pac {
 
 class OgreUtil {

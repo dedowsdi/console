@@ -1,8 +1,12 @@
 #include "pacStable.h"
 #include "pacAbsDir.h"
 #include "OgreParticleSystemSI.h"
-#include "Ogre.h"
 #include "OgreParticleSystemRenderer.h"
+#include <OgreParticleSystem.h>
+#include <OgreParticleEmitter.h>
+#include <OgreParticleAffector.h>
+#include <OgreParticleSystemRenderer.h>
+#include <OgreStringConverter.h>
 
 namespace pac {
 
