@@ -84,6 +84,18 @@ bool CdCmd::doExecute() {
 SetCmd::SetCmd() : Command("set") {}
 
 //------------------------------------------------------------------------------
+void SetCmd::outputErrMessage(const std::string& args) {
+  TreeArgHandler* tree = static_cast<TreeArgHandler*>(mArgHandler);
+  ArgHandler* valueHandler = tree->getNode("value")->getArgHandler();
+  if (valueHandler->getName() == "value") {
+    mArgHandler->outputErrMessage(args);
+  } else {
+    //@TODO , extract value component in args
+    valueHandler->outputErrMessage("inputed value ");
+  }
+}
+
+//------------------------------------------------------------------------------
 bool SetCmd::doExecute() {
   TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
   const std::string& branch = handler->getMatchedBranch();
@@ -101,8 +113,7 @@ bool SetCmd::doExecute() {
   }
 
   const std::string& param = handler->getMatchedNodeValue("param");
-  ArgHandler* valueHandler =
-      handler->getMatchedNodeHandler("value");
+  ArgHandler* valueHandler = handler->getMatchedNodeHandler("value");
   dir->setParameter(param, valueHandler);
 
   return true;
@@ -148,7 +159,6 @@ bool GetCmd::doExecute() {
       outputProperties(curDir, "", handler->getMatchedNodeValue("regex"));
     }
   } else if (branch == "3" || branch == "4" || branch == "5") {
-
     AbsDir* dir =
         AbsDirUtil::findPath(handler->getMatchedNodeValue("path"), curDir);
     if (branch == "3") {

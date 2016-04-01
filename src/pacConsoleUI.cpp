@@ -21,6 +21,12 @@ void ConsoleUI::outputLine(const std::string& output, int type /*= 1*/) {
 void ConsoleUI::complete(const std::string& s) { setCmdLine(getCmdLine() + s); }
 
 //------------------------------------------------------------------------------
+int ConsoleUI::getTextWidth() const {
+  // reserve 1 space?
+  return getOutputWidgetWidth() / getFontWidth();
+}
+
+//------------------------------------------------------------------------------
 std::string ConsoleUI::Alpha::doGet(const void* target) const {
   const ConsoleUI* ui = static_cast<const ConsoleUI*>(target);
   return StringUtil::toString(ui->getAlpha());

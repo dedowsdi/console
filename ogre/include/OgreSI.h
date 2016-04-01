@@ -246,13 +246,13 @@ protected:
 class _PacExport SceneNodeSI : public NodeSI {
 public:
   struct _PacExport Direction : public ParamCmd {
-    Direction() : ParamCmd("direction_transform") {}
+    Direction() : ParamCmd("sceneNode_direction") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
 
   struct _PacExport LookAt : public ParamCmd {
-    LookAt() : ParamCmd("position_transform") {}
+    LookAt() : ParamCmd("sceneNode_lookAt") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };

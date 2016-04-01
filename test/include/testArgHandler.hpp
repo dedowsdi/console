@@ -853,7 +853,7 @@ TEST_F(TestArgHandler, LoopReal3) {
   if (ml1real3->validate(mReal3))
     ASSERT_EQ(mReal3, ml1real3->getMatchedNodeValue("real3LoopNode"));
   if (ml1real3->validate(mMatrix3)) {
-    Node* node = ml1real3->getNode("real3LoopNode");
+    Node* node = ml1real3->getMatchedNode("real3LoopNode");
     const std::string&& s =
         StringUtil::join(node->beginLoopValueIter(), node->endLoopValueIter());
     ASSERT_EQ(mMatrix3, s);
@@ -869,11 +869,11 @@ TEST_F(TestArgHandler, LoopReal3Bool) {
 
   ASSERT_TRUE(
       ml2real3bool->validate(mMatrix3 + " " + mBoolFalse + " " + mBoolFalse));
-  Node* node = ml2real3bool->getNode("real3LoopNode");
+  Node* node = ml2real3bool->getMatchedNode("real3LoopNode");
   const std::string&& s =
       StringUtil::join(node->beginLoopValueIter(), node->endLoopValueIter());
   EXPECT_EQ(mMatrix3, s);
-  node = ml2real3bool->getNode("boolLoopNode");
+  node = ml2real3bool->getMatchedNode("boolLoopNode");
   const std::string&& s1 =
       StringUtil::join(node->beginLoopValueIter(), node->endLoopValueIter());
   EXPECT_EQ(mBoolFalse + " " + mBoolFalse, s1);

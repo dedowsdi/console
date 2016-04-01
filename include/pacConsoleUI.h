@@ -48,7 +48,7 @@ public:
    * get line text width
    * @return : line text width
    */
-  int getTextWidth() const { return getOutputWidgetWidth() / getFontWidth(); }
+  int getTextWidth() const ;
 
   class Alpha : public ParamCmd {
   public:

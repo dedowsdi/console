@@ -37,6 +37,8 @@ public:
    */
   virtual bool execute();
 
+  virtual void outputErrMessage(const std::string& args);
+
   virtual Command* clone() = 0;
 
   const std::string& getName() const { return mName; }

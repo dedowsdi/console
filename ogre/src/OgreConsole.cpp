@@ -53,8 +53,7 @@ void OgreConsole::initArghandler() {
   initResourceArghandler();
   initStringArgHandler();
   initLiteralArgHandler();
-  initTreeArgHandler();
-  initNodeAndMovableArgHandler();
+  initMiscArgHandler();
 }
 
 //------------------------------------------------------------------------------
@@ -119,7 +118,8 @@ void OgreConsole::initResourceArghandler() {
 }
 
 //------------------------------------------------------------------------------
-void OgreConsole::initNodeAndMovableArgHandler() {
+void OgreConsole::initMiscArgHandler()
+{
   // scenenode
   sgArgLib.registerArgHandler(new SceneNodeAH());
   sgArgLib.registerArgHandler(new SceneNodeAH("childNode", false));
@@ -152,14 +152,30 @@ void OgreConsole::initNodeAndMovableArgHandler() {
   root->acn("degree")->acn("en_transformSpace")->eb("0");
   sgArgLib.registerArgHandler(handler);
   // used to handle SceneNode::LookAt 
-  handler = new TreeArgHandler("position_transform");  
+  handler = new TreeArgHandler("sceneNode_lookAt");  
   root = handler->getRoot();
-  root->acn("position")->acn("en_transformSpace")->eb("0");
+  Node* node =  root->acn("position")->acn("en_transformSpace");
+  node->eb("0");
+  node->acn("localDirectionVector", "real3")->eb("1");
   sgArgLib.registerArgHandler(handler);
   // used to handle SceneNode::setDirection
-  handler = new TreeArgHandler("direction_transform");  
+  handler = new TreeArgHandler("sceneNode_direction");  
   root = handler->getRoot();
-  root->acn("direction")->acn("en_transformSpace")->eb("0");
+  node =  root->acn("direction")->acn("en_transformSpace");
+  node->eb("0");
+  node->acn("localDirectionVector", "real3")->eb("1");
+  sgArgLib.registerArgHandler(handler);
+
+  // scenemanager related
+  handler = new TreeArgHandler("fog");
+  root = handler->getRoot();
+  // fogMode colorValue expDensity linearStart linearEnd
+  root->acn("en_fogMode")
+      ->acn("colour", "real4")
+      ->acn("expDensity", "real")
+      ->acn("linearStart", "real")
+      ->acn("linearEnd", "real")
+      ->eb("0");
   sgArgLib.registerArgHandler(handler);
 }
 
@@ -198,21 +214,5 @@ void OgreConsole::initLiteralArgHandler() {
   sgArgLib.registerArgHandler(new LiteralArgHandler("descendantOfNode"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("posOfNode"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("dirOfNode"));
-}
-
-//------------------------------------------------------------------------------
-void OgreConsole::initTreeArgHandler() {
-  // scenemanager related
-  TreeArgHandler* handler = new TreeArgHandler("fog");
-  Node* root = handler->getRoot();
-  // fogMode colorValue expDensity linearStart linearEnd
-  root->acn("en_fogMode")
-      ->acn("colour", "real4")
-      ->acn("expDensity", "real")
-      ->acn("linearStart", "real")
-      ->acn("linearEnd", "real")
-      ->eb("0");
-  sgArgLib.registerArgHandler(handler);
-
 }
 }

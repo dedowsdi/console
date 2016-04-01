@@ -162,7 +162,7 @@ public:
   /**
    * Test next item in each branches with this handler, remove it if it's
    * invalid or args already consumed. Increment the testing string iterator if
-   * it's valid. 
+   * it's valid.
    * @param branches : candidate branches
    */
   virtual void validateBranch(
@@ -275,7 +275,7 @@ public:
   Node* addChildNode(Node* child);
 
   /**
-   * Create child node, add it to children.
+   * Create child node, add it to children. Name must be unique amone children.
    * @param name : child node name
    * @param ahName : child node arg handler name, it will be set to child node
    * name if it's empty
@@ -293,14 +293,13 @@ public:
     return addChildNode(name, ahName, nt);
   }
 
+  Node* getChildNode(const std::string& name) const;
+  Node* getChildAt(size_t index) const;
   /**
-   * Get child node by name.
-   * @param name : child node name
-   * @param recursive : recursive child of child, set this to false if you just
-   * want to search in direct child.
-   * @return : child node with specified name
+   * return 1st descendant node in specific name, DFS.
    */
-  Node* getChildNode(const std::string& name, bool recursive = true) const;
+  Node* getDescendantNode(const std::string& name) const;
+
 
   /**
    * Get parent node by name. This is always a recursive operation.
@@ -479,7 +478,11 @@ public:
    * @return : catched value
    */
   const std::string& getMatchedNodeValue(const std::string& name) const;
+  // const std::string& getMatchedNodeValueNoThrow(const std::string& name)
+  // const;
   const std::string getMatchedNodeUniformValue(const std::string& name) const;
+  // const std::string getMatchedNodeUniformValueNoThrow(
+  // const std::string& name) const;
   /**
    * get matcheed node value if matched branch is in branches
    * @param name : node name
@@ -507,6 +510,7 @@ public:
    * @return : node in matched branch with specified name
    */
   Node* getMatchedNode(const std::string& name) const;
+  // Node* getMatchedNodeNoThrow(const std::string& name) const;
 
   bool hasMatchedNode(const std::string& name) const;
 

@@ -74,6 +74,10 @@ class _PacExport SetCmd : public Command {
 public:
   SetCmd();
   virtual Command* clone() { return new SetCmd(*this); }
+  /**
+   * @TODO optimize error info for param and value
+   */
+  virtual void outputErrMessage(const std::string& args);
 
 protected:
   virtual bool doExecute();

@@ -75,10 +75,9 @@ protected:
   virtual void initDir();
   virtual void initEnumArgHandler();
   virtual void initResourceArghandler();
-  virtual void initNodeAndMovableArgHandler();
+  virtual void initMiscArgHandler();
   virtual void initStringArgHandler();
   virtual void initLiteralArgHandler();
-  virtual void initTreeArgHandler();
 
 protected:
   Ogre::SceneManager* mSceneMgr;

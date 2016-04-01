@@ -164,23 +164,25 @@ TEST_F(TestOgreScene, handler_direction) {
       Ogre::StringConverter::toString(v[2]), handler->getUniformValue()));
 }
 TEST_F(TestOgreScene, handler_position_transform) {
-  auto handler = sgArgLib.createArgHandler("position_transform");
+  auto handler = sgArgLib.createArgHandler("sceneNode_lookAt");
   EXPECT_TRUE(handler->validate("1 2 3 TS_WORLD"));
   EXPECT_TRUE(handler->validate("posOfNode " + mEntNode0Nameid + " TS_WORLD"));
   Ogre::Vector3 v[3];
   mEntNode0->_getDerivedOrientationUpdated().ToAxes(v);
   EXPECT_TRUE(cmpRealStrings(
       Ogre::StringConverter::toString(v[2]), handler->getUniformValue()));
+  EXPECT_TRUE(handler->validate("1 2 3 TS_WORLD 0 1 0"));
 }
 
 TEST_F(TestOgreScene, handler_direction_transform) {
-  auto handler = sgArgLib.createArgHandler("direction_transform");
+  auto handler = sgArgLib.createArgHandler("sceneNode_direction");
   EXPECT_TRUE(handler->validate("1 2 3 TS_WORLD"));
   EXPECT_TRUE(handler->validate("dirOfNode " + mEntNode0Nameid + " TS_WORLD"));
   Ogre::Vector3 v[3];
   mEntNode0->_getDerivedOrientationUpdated().ToAxes(v);
   EXPECT_TRUE(cmpRealStrings(
       Ogre::StringConverter::toString(v[2]), handler->getUniformValue()));
+  EXPECT_TRUE(handler->validate("1 2 3 TS_WORLD 0 1 0"));
 }
 }
 

@@ -44,9 +44,14 @@ bool Command::execute() {
     bool res = this->doExecute();
     return res;
   } else {
-    mArgHandler->outputErrMessage(args);
+    outputErrMessage(args);
     return false;
   }
+}
+
+//------------------------------------------------------------------------------
+void Command::outputErrMessage(const std::string& args) {
+  mArgHandler->outputErrMessage(args);
 }
 
 //------------------------------------------------------------------------------

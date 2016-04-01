@@ -296,23 +296,50 @@ Node* Node::addChildNode(Node* child) {
 //------------------------------------------------------------------------------
 Node* Node::addChildNode(const std::string& name,
     const std::string& ahName /*= ""*/, NodeType nt /*= NT_NORMAL*/) {
+  NodeVector::const_iterator iter = std::find_if(mChildren.begin(),
+      mChildren.end(),
+      [&](NodeVector::value_type& v) -> bool { return v->getName() == name; });
+  if (iter != mChildren.end()) {
+    PAC_EXCEPT(Exception::ERR_DUPLICATE_ITEM,
+        name + "  already exists under node " + mName);
+  }
   Node* node = new Node(name, ahName.empty() ? name : ahName, nt);
   this->addChildNode(node);
   return node;
 }
 
 //------------------------------------------------------------------------------
-Node* Node::getChildNode(
-    const std::string& name, bool recursive /*= true*/) const {
-  for (NodeVector::const_iterator iter = mChildren.begin();
-       iter != mChildren.end(); ++iter) {
-    if (isLeaf()) continue;
-    if ((*iter)->getName() == name) return *iter;
-    if (recursive) {
-      Node* node = (*iter)->getChildNode(name, recursive);
-      if (node) return node;
-    }
+Node* Node::getChildNode(const std::string& name) const {
+  NodeVector::const_iterator iter = std::find_if(mChildren.begin(),
+      mChildren.end(), [&](const NodeVector::value_type& v)
+                           -> bool { return v->getName() == name; });
+
+  if (iter == mChildren.end())
+    PAC_EXCEPT(
+        Exception::ERR_ITEM_NOT_FOUND, name + " is not a child of " + mName);
+
+  return *iter;
+}
+
+//------------------------------------------------------------------------------
+Node* Node::getChildAt(size_t index) const {
+  if (index >= mChildren.size()) {
+    PAC_EXCEPT(Exception::ERR_INVALIDPARAMS,
+        StringUtil::toString(index) + " out of " +
+            StringUtil::toString(mChildren.size()));
   }
+  return mChildren[index];
+}
+
+//------------------------------------------------------------------------------
+Node* Node::getDescendantNode(const std::string& name) const {
+  for (auto iter = mChildren.begin(); iter != mChildren.end(); ++iter) {
+    if ((*iter)->getName() == name) return *iter;
+
+    Node* n = (*iter)->getDescendantNode(name);
+    if (n) return n;
+  }
+
   return 0;
 }
 
@@ -444,6 +471,7 @@ void Node::getLeaves(NodeVector& nv) {
 //------------------------------------------------------------------------------
 std::string Node::getArgPath() const {
   if (isRoot()) return mTree->getName();
+  if (isLeaf()) return mParent->getArgPath() + "->(\"" + mName + "\")";
   return mParent->getArgPath() + "->" + mName;
 }
 
@@ -562,18 +590,18 @@ void TreeArgHandler::prompt(const std::string& s) {
   if (candidates.size() == 1)
     candidates[0]->applyPromptBuffer(*sv.rbegin(), true);
   else if (candidates.size() > 1) {
-    sgConsole.outputLine(
-        "found " + StringUtil::toString(candidates.size()) + " branches:");
-    sgConsole.outputLine(
-        "************************************************************");
+    std::string m =
+        "found " + StringUtil::toString(candidates.size()) + " branches:";
+    sgConsole.outputLine(std::string(m.size(), '*'));
+    sgConsole.outputLine(m);
     StringVector buffers;
     std::for_each(
         candidates.begin(), candidates.end(), [&](ArgHandler* v) -> void {
           // output head
-          sgConsole.outputLine(v->getTreeNode()->getArgPath() + ":");
+          m = v->getTreeNode()->getArgPath() + ":";
+          sgConsole.outputLine(std::string(m.size(), '-'));
+          sgConsole.outputLine(m);
           v->applyPromptBuffer(*sv.rbegin(), false);
-          sgConsole.outputLine(
-              "------------------------------------------------------------");
           if (allBufferIsCompleteType) {
             std::copy(v->beginPromptBuffer(), v->endPromptBuffer(),
                 std::inserter(buffers, buffers.begin()));
@@ -680,7 +708,8 @@ std::string TreeArgHandler::getArgPath() const {
 
 //------------------------------------------------------------------------------
 Node* TreeArgHandler::getNode(const std::string& name) {
-  Node* node = mRoot->getChildNode(name, true);
+  if (mRoot->getName() == name) return mRoot;
+  Node* node = mRoot->getDescendantNode(name);
   if (node == 0)
     PAC_EXCEPT(Exception::ERR_ITEM_NOT_FOUND,
         name + " not found in tree handler" + getName());
@@ -696,8 +725,23 @@ const std::string& TreeArgHandler::getMatchedNodeValue(
 //------------------------------------------------------------------------------
 const std::string TreeArgHandler::getMatchedNodeUniformValue(
     const std::string& name) const {
-  return getMatchedNode(name)->getArgHandler()->getUniformValue();
+  Node* n = getMatchedNode(name);
+  if (n->isLoop()) {
+    PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED,
+        "For now, you can only use get mathced node uniform value on normal "
+        "node");
+  }
+  return n->getArgHandler()->getUniformValue();
 }
+
+//------------------------------------------------------------------------------
+// const std::string TreeArgHandler::getMatchedNodeUniformValueNoThrow(
+// const std::string& name) const {
+// static std::string blank;
+// Node* node = getMatchedNodeNoThrow(name);
+// if (!node || node->isLeaf()) return blank;
+// return node->getArgHandler()->getUniformValue();
+//}
 
 //------------------------------------------------------------------------------
 const std::string& TreeArgHandler::getMatchedNodeValue(const std::string& name,
@@ -707,6 +751,14 @@ const std::string& TreeArgHandler::getMatchedNodeValue(const std::string& name,
       std::find(branches.begin(), branches.end(), mMatchedLeaf->getName());
   return iter == branches.end() ? blank : getMatchedNodeValue(name);
 }
+
+//------------------------------------------------------------------------------
+// const std::string& TreeArgHandler::getMatchedNodeValueNoThrow(
+// const std::string& name) const {
+// static std::string blank;
+// Node* node = getMatchedNodeNoThrow(name);
+// return node ? node->getValue() : blank;
+//}
 
 //------------------------------------------------------------------------------
 void TreeArgHandler::getLeaves(NodeVector& nv) { return mRoot->getLeaves(nv); }
@@ -730,6 +782,11 @@ Node* TreeArgHandler::getMatchedNode(const std::string& name) const {
   }
   return node;
 }
+
+//------------------------------------------------------------------------------
+// Node* TreeArgHandler::getMatchedNodeNoThrow(const std::string& name) const {
+// return mMatchedLeaf ? mMatchedLeaf->getAncestorNode(name) : 0;
+//}
 
 //------------------------------------------------------------------------------
 bool TreeArgHandler::hasMatchedNode(const std::string& name) const {

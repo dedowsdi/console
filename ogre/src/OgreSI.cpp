@@ -517,7 +517,11 @@ void SceneNodeSI::Direction::doSet(void* target, ArgHandler* handler) {
       tree->getMatchedNodeValue("en_transformSpace"));
   const Ogre::Vector3&& dir = Ogre::StringConverter::parseVector3(
       tree->getMatchedNodeUniformValue("direction"));
-  node->setDirection(dir, ts);
+  const std::string& localDirectionVector =
+      tree->getMatchedNodeValue("localDirectionVector", {"1"});
+  Ogre::Vector3 v = Ogre::StringConverter::parseVector3(
+      localDirectionVector, Ogre::Vector3::NEGATIVE_UNIT_Z);
+  node->setDirection(dir, ts, v);
 }
 
 //------------------------------------------------------------------------------
@@ -539,7 +543,11 @@ void SceneNodeSI::LookAt::doSet(void* target, ArgHandler* handler) {
       tree->getMatchedNodeValue("en_transformSpace"));
   const Ogre::Vector3&& pos = Ogre::StringConverter::parseVector3(
       tree->getMatchedNodeValue("position"));
-  node->lookAt(pos, ts);
+  const std::string& localDirectionVector =
+      tree->getMatchedNodeValue("localDirectionVector", {"1"});
+  Ogre::Vector3 v = Ogre::StringConverter::parseVector3(
+      localDirectionVector, Ogre::Vector3::NEGATIVE_UNIT_Z);
+  node->lookAt(pos, ts, v);
 }
 
 //------------------------------------------------------------------------------
