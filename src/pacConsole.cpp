@@ -19,6 +19,7 @@ Console::Console(ConsoleUI* ui)
     : StringInterface("console", false),
       mIsBuffering(false),
       mDir(0),
+      mAlternateDir(0),
       mUi(ui),
       mPattern(0),
       mCmdHistory(0) {
@@ -167,6 +168,7 @@ Console& Console::complete(const std::string& s) {
 
 //------------------------------------------------------------------------------
 void Console::setCwd(AbsDir* dir) {
+  mAlternateDir = mDir;
   mDir = dir;
   std::string&& cwd = dir->getFullPath();
   if (cwd.size() > 1) {
@@ -210,6 +212,17 @@ void Console::rollCommand(bool backWard /*= true*/) {
 }
 
 //------------------------------------------------------------------------------
+void Console::deleteDir(AbsDir* dir) {
+  if (dir == &sgRootDir) {
+    mDir = 0;
+    mAlternateDir = 0;
+    return;
+  }
+  if (mDir == dir) mDir = &sgRootDir;
+  if (mAlternateDir == dir) mAlternateDir = 0;
+}
+
+//------------------------------------------------------------------------------
 void Console::cleanTempDirs() { cleanTempDir(&sgRootDir); }
 
 //------------------------------------------------------------------------------
@@ -248,7 +261,7 @@ void Console::cleanTempDir(AbsDir* dir) {
     delete dir;
     return;
   }
-  //operator on copy
+  // operator on copy
   AbsDirs dirs(dir->beginChildIter(), dir->endChildIter());
   std::for_each(
       dirs.begin(), dirs.end(), [&](AbsDir* d) -> void { cleanTempDir(d); });

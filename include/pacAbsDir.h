@@ -130,7 +130,7 @@ public:
   void setParent(AbsDir* v) { mParent = v; }
 
   StringInterface* getStringInterface() const { return mStringInterface; }
-  void setStringInterface(StringInterface* v) { mStringInterface = v; }
+  void setStringInterface(StringInterface* v) ;
 
   bool getTemp() const { return mTemp; }
   void setTemp(bool v) { mTemp = v; }
@@ -160,7 +160,7 @@ public:
    * Find dir by path. Path can be relative or absolute.
    * @param path : target path
    * @param curDir : current dir, you can ignore this if you use absolute path
-   * @return : target dir
+   * @return : target dir or 0
    */
   static AbsDir* findPath(const std::string& path, AbsDir* curDir = 0);
 

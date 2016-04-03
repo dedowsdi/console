@@ -3,6 +3,7 @@
 #include "testOgreConsole.hpp"
 #include "testOgreSI.hpp"
 #include "testConsoleUI.hpp"
+#include "testOgreParticleSystemSI.hpp"
 #include "ogreTestApp.h"
 
 using namespace pac;

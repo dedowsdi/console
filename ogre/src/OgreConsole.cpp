@@ -69,6 +69,10 @@ void OgreConsole::initCommand() {
   sgCmdLib.registerCommand(new AdndCmd());
   sgCmdLib.registerCommand(new EdndCmd());
   sgCmdLib.registerCommand(new RmndCmd());
+  sgCmdLib.registerCommand(new AdemitCmd());
+  sgCmdLib.registerCommand(new RmemitCmd());
+  sgCmdLib.registerCommand(new AdafctCmd());
+  sgCmdLib.registerCommand(new RmafctCmd());
 }
 
 //------------------------------------------------------------------------------
@@ -118,8 +122,7 @@ void OgreConsole::initResourceArghandler() {
 }
 
 //------------------------------------------------------------------------------
-void OgreConsole::initMiscArgHandler()
-{
+void OgreConsole::initMiscArgHandler() {
   // scenenode
   sgArgLib.registerArgHandler(new SceneNodeAH());
   sgArgLib.registerArgHandler(new SceneNodeAH("childNode", false));
@@ -141,27 +144,27 @@ void OgreConsole::initMiscArgHandler()
   sgArgLib.registerArgHandler(new MovableTH("t_camera", "camera"));
   sgArgLib.registerArgHandler(new MovableTH("t_entity", "entity"));
   sgArgLib.registerArgHandler(new MovableTH("t_particle", "particle"));
-  //tree
+  // tree
   sgArgLib.registerArgHandler(new PositionTH());
   sgArgLib.registerArgHandler(new DirectionTH());
 
-  // used to handler yaw, pitch row 
-  auto handler = new TreeArgHandler("degree_transform");  
+  // used to handler yaw, pitch row
+  auto handler = new TreeArgHandler("degree_transform");
   Node* root = handler->getRoot();
   root = handler->getRoot();
   root->acn("degree")->acn("en_transformSpace")->eb("0");
   sgArgLib.registerArgHandler(handler);
-  // used to handle SceneNode::LookAt 
-  handler = new TreeArgHandler("sceneNode_lookAt");  
+  // used to handle SceneNode::LookAt
+  handler = new TreeArgHandler("sceneNode_lookAt");
   root = handler->getRoot();
-  Node* node =  root->acn("position")->acn("en_transformSpace");
+  Node* node = root->acn("position")->acn("en_transformSpace");
   node->eb("0");
   node->acn("localDirectionVector", "real3")->eb("1");
   sgArgLib.registerArgHandler(handler);
   // used to handle SceneNode::setDirection
-  handler = new TreeArgHandler("sceneNode_direction");  
+  handler = new TreeArgHandler("sceneNode_direction");
   root = handler->getRoot();
-  node =  root->acn("direction")->acn("en_transformSpace");
+  node = root->acn("direction")->acn("en_transformSpace");
   node->eb("0");
   node->acn("localDirectionVector", "real3")->eb("1");
   sgArgLib.registerArgHandler(handler);
@@ -189,9 +192,19 @@ void OgreConsole::initStringArgHandler() {
       new StringArgHandler("affector_force_application", {"average", "add"});
   sgArgLib.registerArgHandler(forceApp);
 
-  StringArgHandler* resType = new StringArgHandler(
-      "resType", {"material", "mesh", "texture", "compositor", "pst"});
+  StringArgHandler* resType =
+      new StringArgHandler("resType", {"material", "mesh", "texture", "pst"});
   sgArgLib.registerArgHandler(resType);
+
+  StringArgHandler* emitterType = new StringArgHandler("emitterType",
+      {"Point", "Box", "Cylinder", "Ellipsoid", "HollowEllipsoid", "Ring"});
+  sgArgLib.registerArgHandler(emitterType);
+
+  StringArgHandler* affectorType = new StringArgHandler(
+      "affectorType", {"LinearForce", "ColourFader", "ColourFader2", "Scaler",
+                       "Rotator", "ColourInterpolator", "ColourImage",
+                       "DeflectorPlane", "DirectionRandomiser"});
+  sgArgLib.registerArgHandler(affectorType);
 }
 
 //------------------------------------------------------------------------------

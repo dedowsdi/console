@@ -55,7 +55,9 @@ Ogre::ParticleSystem* ParticleSystemSI::getParticleSystem() const
 }
 
 //------------------------------------------------------------------------------
-void ParticleSystemSI::bindArgHandlers() { bindArgHandlerByType(); }
+void ParticleSystemSI::bindArgHandlers() { bindArgHandlerByType(); 
+  mAhDict->bindArgHandler("material", "material");
+}
 
 //------------------------------------------------------------------------------
 ParticleEmitterSI::ParticleEmitterSI(Ogre::ParticleEmitter* emitter)
@@ -71,7 +73,6 @@ Ogre::ParticleEmitter* ParticleEmitterSI::getParticleEmitter() {
 //------------------------------------------------------------------------------
 void ParticleEmitterSI::bindArgHandlers() {
   bindArgHandlerByType();
-  mAhDict->bindArgHandler("material", "material");
 }
 
 //------------------------------------------------------------------------------
@@ -90,10 +91,10 @@ Ogre::ParticleAffector* ParticleAffectorSI::getParticleAffector() const {
 //------------------------------------------------------------------------------
 void ParticleAffectorSI::bindArgHandlers() {
   bindArgHandlerByType();
-  if (mName == "LinearForceAffector") {
+  if (mName == "LinearForce") {
     mAhDict->bindArgHandler("force_application", "affector_force_application");
 
-  } else if (mName == "ColourImageAffector") {
+  } else if (mName == "ColourImage") {
     mAhDict->bindArgHandler("image", "texture");
   }
 }

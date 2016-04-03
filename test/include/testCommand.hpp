@@ -48,6 +48,9 @@ TEST_F(TestCommand, setArgsAndOptions) {
   mCmd->setArgsAndOptions(" /abc -bc def ");
   EXPECT_STREQ("/abc def ", mCmd->getArgs().c_str());
   EXPECT_STREQ("bc", mCmd->getOptions().c_str());
+  mCmd->setArgsAndOptions("abc - ");
+  EXPECT_STREQ("abc - ", mCmd->getArgs().c_str());
+
 
   EXPECT_THROW(mCmd->setArgsAndOptions("d-"), InvalidParametersException);
   EXPECT_THROW(mCmd->setArgsAndOptions(" abc d-"), InvalidParametersException);

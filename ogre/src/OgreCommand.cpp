@@ -12,6 +12,8 @@
 #include <OgreTextureManager.h>
 #include <OgreParticleSystemManager.h>
 #include <OgreParticleSystem.h>
+#include <OgreParticleEmitter.h>
+#include <OgreParticleAffector.h>
 #include <OgreEntity.h>
 #include <OgreCamera.h>
 #include <boost/regex.hpp>
@@ -636,6 +638,161 @@ bool RmndCmd::buildArgHandler() {
   node->eb("0");
   // rmnd t_sncneNode ltl_childonly ("1")
   node->acn("ltl_childOnly")->eb("1");
+  return true;
+}
+
+//------------------------------------------------------------------------------
+AdemitCmd::AdemitCmd() : Command("ademit") {}
+
+//------------------------------------------------------------------------------
+bool AdemitCmd::doExecute() {
+  Ogre::SceneManager* mgr = sgOgreConsole.getSceneMgr();
+  TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
+  Ogre::ParticleSystem* ps =
+      static_cast<Ogre::ParticleSystem*>(OgreUtil::getMovableByIdtype(
+          mgr, handler->getMatchedNodeUniformValue("particle")));
+  const std::string& emitterType = handler->getMatchedNodeValue("emitterType");
+  ps->addEmitter(emitterType);
+  AbsDir* psDir = sgOgreConsole.getMovableDir()->addUniqueChild(
+      OgreUtil::createNameid(ps), OgreSiUtil::createMovableSI(ps));
+  AbsDir* dir = psDir->getChildByName(
+      emitterType + +"_" +
+      Ogre::StringConverter::toString(ps->getNumEmitters() - 1));
+  sgConsole.setCwd(dir);
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool AdemitCmd::buildArgHandler() {
+  // ademit particle emitterType
+  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
+  mArgHandler = handler;
+  Node* root = handler->getRoot();
+  root->acn("particle")->acn("emitterType")->eb("0");
+  return true;
+}
+
+//------------------------------------------------------------------------------
+RmemitCmd::RmemitCmd() : Command("rmemit") {}
+
+//------------------------------------------------------------------------------
+bool RmemitCmd::doExecute() {
+  Ogre::SceneManager* mgr = sgOgreConsole.getSceneMgr();
+  TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
+  Ogre::ParticleSystem* ps =
+      static_cast<Ogre::ParticleSystem*>(OgreUtil::getMovableByIdtype(
+          mgr, handler->getMatchedNodeUniformValue("particle")));
+  const std::string& emitterType = handler->getMatchedNodeValue("emitterType");
+  unsigned int index = Ogre::StringConverter::parseUnsignedInt(
+      handler->getMatchedNodeValue("index"));
+  std::vector<Ogre::ParticleEmitter*> emitters;
+  for (size_t i = 0; i < ps->getNumEmitters(); ++i) {
+    auto e = ps->getEmitter(i);
+    if (e->getType() == emitterType) emitters.push_back(e);
+  }
+
+  if (emitters.size() <= index) {
+    sgOgreConsole.outputLine(Ogre::StringConverter::toString(index) +
+                             " out of " +
+                             Ogre::StringConverter::toString(emitters.size()));
+    return false;
+  }
+
+  ps->removeEmitter(index);
+  AbsDir* psDir = sgOgreConsole.getMovableDir()->addUniqueChild(
+      OgreUtil::createNameid(ps), OgreSiUtil::createMovableSI(ps));
+  sgConsole.setCwd(psDir);
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool RmemitCmd::buildArgHandler() {
+  // ademit particle emitterType index
+  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
+  mArgHandler = handler;
+  Node* root = handler->getRoot();
+  root->acn("particle")->acn("emitterType")->acn("index", "ushort")->eb("0");
+  return true;
+}
+
+//------------------------------------------------------------------------------
+AdafctCmd::AdafctCmd() : Command("adafct") {}
+
+//------------------------------------------------------------------------------
+bool AdafctCmd::doExecute() {
+  Ogre::SceneManager* mgr = sgOgreConsole.getSceneMgr();
+  TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
+  Ogre::ParticleSystem* ps =
+      static_cast<Ogre::ParticleSystem*>(OgreUtil::getMovableByIdtype(
+          mgr, handler->getMatchedNodeUniformValue("particle")));
+  const std::string& affectorType =
+      handler->getMatchedNodeValue("affectorType");
+  ps->addAffector(affectorType);
+  sgOgreConsole.getMovableDir()->addUniqueChild(
+      OgreUtil::createNameid(ps), OgreSiUtil::createMovableSI(ps));
+  AbsDir* psDir = sgOgreConsole.getMovableDir()->addUniqueChild(
+      OgreUtil::createNameid(ps), OgreSiUtil::createMovableSI(ps));
+  AbsDir* dir = psDir->getChildByName(
+      affectorType + "_" +
+      Ogre::StringConverter::toString(ps->getNumAffectors() - 1));
+  sgConsole.setCwd(dir);
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool AdafctCmd::buildArgHandler() {
+  // adafct particle emitterType
+  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
+  mArgHandler = handler;
+  Node* root = handler->getRoot();
+  root->acn("particle")->acn("affectorType")->eb("0");
+  return true;
+}
+
+//------------------------------------------------------------------------------
+RmafctCmd::RmafctCmd() : Command("rmafct") {}
+
+//------------------------------------------------------------------------------
+bool RmafctCmd::doExecute() {
+  Ogre::SceneManager* mgr = sgOgreConsole.getSceneMgr();
+  TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
+  Ogre::ParticleSystem* ps =
+      static_cast<Ogre::ParticleSystem*>(OgreUtil::getMovableByIdtype(
+          mgr, handler->getMatchedNodeUniformValue("particle")));
+  const std::string& affectorType =
+      handler->getMatchedNodeValue("affectorType");
+  unsigned int index = Ogre::StringConverter::parseUnsignedInt(
+      handler->getMatchedNodeValue("index"));
+  std::vector<Ogre::ParticleAffector*> afctters;
+  for (size_t i = 0; i < ps->getNumAffectors(); ++i) {
+    auto e = ps->getAffector(i);
+    if (e->getType() == affectorType) afctters.push_back(e);
+  }
+
+  if (afctters.size() <= index) {
+    sgOgreConsole.outputLine(Ogre::StringConverter::toString(index) +
+                             " out of " +
+                             Ogre::StringConverter::toString(afctters.size()));
+    return false;
+  }
+
+  ps->removeAffector(index);
+  AbsDir* psDir = sgOgreConsole.getMovableDir()->addUniqueChild(
+      OgreUtil::createNameid(ps), OgreSiUtil::createMovableSI(ps));
+  sgOgreConsole.setCwd(psDir);
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool RmafctCmd::buildArgHandler() {
+  // adafct particle affectorType index
+  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
+  mArgHandler = handler;
+  Node* root = handler->getRoot();
+  root->acn("particle")->acn("affectorType")->acn("index", "ushort")->eb("0");
   return true;
 }
 }

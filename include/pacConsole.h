@@ -17,7 +17,6 @@ public:
   virtual ~Console();
 
   virtual void init();
-  
 
   /**
    * Execute cmdLine. Add cmdLine to command history.
@@ -55,6 +54,7 @@ public:
    */
   void setCwd(AbsDir* dir);
   AbsDir* getCwd() { return mDir; }
+  AbsDir* getAlternateDir() const { return mAlternateDir; }
 
   /**
    * Buffer output, to be aligned later. This function will reset buffer. Use
@@ -73,6 +73,14 @@ public:
   void rollCommand(bool backWard = true);
 
   /**
+   * must be called at dtor of dir. Set cwd to root if cwd is the same as dir
+   * being destroied. Set alternate dir to 0 if it's the same as dir being
+   * destroid.
+   * @param dir : dir being destroying
+   */
+  void deleteDir(AbsDir* dir);
+
+  /**
    * Clean all temporary dirs.
    */
   void cleanTempDirs();
@@ -86,7 +94,6 @@ public:
   ConsolePattern* getPattern() const { return mPattern; }
 
   void resize();
-  
 
 protected:
   // set up console pattern
@@ -95,9 +102,9 @@ protected:
   virtual void initCmdHistory();
   // set up dir system
   virtual void initDir();
-  //set up arg handlers
+  // set up arg handlers
   virtual void initArghandler();
-  //set up commands 
+  // set up commands
   virtual void initCommand();
 
 private:
@@ -118,11 +125,10 @@ private:
 
   void cleanTempDir(AbsDir* dir);
 
-
 private:
   int mIsBuffering;
 
-  AbsDir* mDir;
+  AbsDir* mDir, *mAlternateDir;
   ConsoleUI* mUi;
   ConsolePattern* mPattern;
   CmdHistory* mCmdHistory;

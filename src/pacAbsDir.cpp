@@ -1,4 +1,5 @@
 #include "pacAbsDir.h"
+#include "pacConsole.h"
 #include "pacStringInterface.h"
 #include "pacException.h"
 #include "pacStringUtil.h"
@@ -13,6 +14,9 @@ AbsDir::AbsDir(const std::string& name, StringInterface* si /*= 0*/)
 
 //------------------------------------------------------------------------------
 AbsDir::~AbsDir() {
+
+  sgConsole.deleteDir(this);
+
   if (mParent) mParent->removeChild(this);
   // operator on copy
   AbsDirs dirs(mChildren);
@@ -82,6 +86,7 @@ AbsDir* AbsDir::addUniqueChild(
     const std::string& name, StringInterface* si, bool temp /*= true*/) {
   if (hasChild(name)) {
     AbsDir* dir = getChildByName(name);
+
     dir->setStringInterface(si);
     dir->setTemp(temp);
     return dir;
@@ -180,13 +185,23 @@ AbsDirs::iterator AbsDir::beginChildIter() { return mChildren.begin(); }
 AbsDirs::iterator AbsDir::endChildIter() { return mChildren.end(); }
 
 //------------------------------------------------------------------------------
+void AbsDir::setStringInterface(StringInterface* v) {
+  AbsDirs dirs(mChildren);
+  // clean children
+  std::for_each(
+      dirs.begin(), dirs.end(), [&](AbsDir* v) -> void { delete v; });
+  v->onCreateDir(this);
+  mStringInterface = v;
+}
+
+//------------------------------------------------------------------------------
 RootDir::RootDir() : AbsDir(pac::delim, 0) {}
 
 //------------------------------------------------------------------------------
 AbsDir* AbsDirUtil::findPath(const std::string& path, AbsDir* curDir /*=0*/) {
-  if (path.find(" ") != std::string::npos)
-    PAC_EXCEPT(
-        Exception::ERR_INVALIDPARAMS, "\"" + path + "\" contains space!");
+  if (path.find(" ") != std::string::npos) return 0;
+  // PAC_EXCEPT(
+  // Exception::ERR_INVALIDPARAMS, "\"" + path + "\" contains space!");
 
   if (path.empty()) return curDir;
 

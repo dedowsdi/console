@@ -93,6 +93,9 @@ bool StringInterface::createParamDict() {
 //-----------------------------------------------------------------------
 StringVector StringInterface::getParameters(void) const {
   const ParamDictionary* dict = getParamDict();
+  if(!dict){
+    PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED, "0 dict");
+  }
   return dict->getParameters();
 }
 

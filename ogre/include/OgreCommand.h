@@ -179,6 +179,58 @@ protected:
   virtual bool doExecute();
   virtual bool buildArgHandler();
 };
+
+/**
+ * ademit particle emitterType 
+ */
+class _PacExport AdemitCmd : public Command {
+public:
+  AdemitCmd();
+  virtual Command* clone() { return new AdemitCmd(*this); }
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+};
+
+/**
+ * rmemit particle emitterType index 
+ */
+class _PacExport RmemitCmd : public Command {
+public:
+  RmemitCmd();
+  virtual Command* clone() { return new RmemitCmd(*this); }
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+};
+
+/**
+ * adafct particle affectorType 
+ */
+class _PacExport AdafctCmd : public Command {
+public:
+  AdafctCmd();
+  virtual Command* clone() { return new AdafctCmd(*this); }
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+};
+
+/**
+ * rmafct particle affectorType index 
+ */
+class _PacExport RmafctCmd : public Command {
+public:
+  RmafctCmd();
+  virtual Command* clone() { return new RmafctCmd(*this); }
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+};
 }
 
 #endif /* OGRECOMMAND_H */

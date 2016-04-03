@@ -70,13 +70,34 @@ bool CtdCmd::doExecute() {
 }
 
 //------------------------------------------------------------------------------
-CdCmd::CdCmd() : Command("cd", "path") {}
+CdCmd::CdCmd() : Command("cd") {}
 
 //------------------------------------------------------------------------------
 bool CdCmd::doExecute() {
-  AbsDir* curDir = sgConsole.getCwd();
-  AbsDir* targetDir = AbsDirUtil::findPath(mArgHandler->getValue(), curDir);
+  TreeArgHandler* tree = static_cast<TreeArgHandler*>(mArgHandler);
+  const std::string& branch = tree->getMatchedBranch();
+  AbsDir* targetDir;
+  if (branch == "0") {
+    AbsDir* curDir = sgConsole.getCwd();
+    targetDir = AbsDirUtil::findPath(mArgHandler->getValue(), curDir);
+  } else {
+    targetDir = sgConsole.getAlternateDir();
+  }
+  if (!targetDir) {
+    sgConsole.outputLine("0 target dir");
+    return false;
+  }
   sgConsole.setCwd(targetDir);
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool CdCmd::buildArgHandler() {
+  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
+  this->mArgHandler = handler;
+  Node* root = handler->getRoot();
+  root->acn("path")->eb("0");
+  root->acn("ltl_-")->eb("1");
   return true;
 }
 

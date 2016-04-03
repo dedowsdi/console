@@ -30,6 +30,9 @@ public:
 
   const std::string& getValueArgHandler(const std::string& name);
 
+  virtual StringVector getParameters(void) const;
+
+
   bool createaAhDict();
 protected:
 

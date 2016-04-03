@@ -55,6 +55,7 @@ protected:
 
 /**
  * cd path
+ * cd -
  * change current working directory
  */
 class _PacExport CdCmd : public Command {
@@ -64,6 +65,7 @@ public:
 
 protected:
   virtual bool doExecute();
+  virtual bool buildArgHandler();
 };
 
 /**

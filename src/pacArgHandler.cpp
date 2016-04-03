@@ -615,11 +615,12 @@ void TreeArgHandler::prompt(const std::string& s) {
           StdUtil::getIdenticalString(buffers.begin(), buffers.end());
       if (!iden.empty()) {
         // just check again
-        if (!s.empty() && !StringUtil::startsWith(iden, s))
+        const std::string& s1 = *sv.rbegin();
+        if (!s1.empty() && !StringUtil::startsWith(iden, s1))
           PAC_EXCEPT(Exception::ERR_INVALID_STATE,
               "complete string don't starts with typing!!!!");
 
-        sgConsole.complete(iden.substr(s.size()));
+        sgConsole.complete(iden.substr(s1.size()));
       }
     }
   }
@@ -915,6 +916,7 @@ void ArgHandlerLib::init() {
   // iteral
   this->registerArgHandler(new LiteralArgHandler("regex"));
   this->registerArgHandler(new LiteralArgHandler("angleAxis"));
+  this->registerArgHandler(new LiteralArgHandler("-"));
 
   this->registerArgHandler(new QuaternionArgHandler());
   this->registerArgHandler(new IdArgHandler());

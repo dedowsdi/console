@@ -89,12 +89,6 @@ bool cmpRealStrings(const std::string& lhs, const std::string& rhs) {
   return true;
 }
 
-StringVector getSortedVector(std::initializer_list<std::string> items) {
-  StringVector sv(items.begin(), items.end());
-  std::sort(sv.begin(), sv.end());
-  return sv;
-}
-
 class TestOgreScene : public ::testing::Test {
 protected:
   /**

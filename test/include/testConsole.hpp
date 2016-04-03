@@ -1,49 +1,14 @@
 #ifndef TESTCONSOLE_H
 #define TESTCONSOLE_H
 #include "pacConsole.h"
-#include "testAbsDir.hpp"
+#include "testConsoleSystem.hpp"
 #include "pacConsoleUI.h"
 #include "pacIntrinsicArgHandler.h"
 #include "testConsoleUI.hpp"
 
 namespace pac {
-class TestConsole : public ::testing::Test {
-protected:
-  void SetUp() {
-    d = pac::delim;
-    dir0 = new AbsDir("dir0", new TestSI());
-    dir0_0 = new AbsDir("dir0_0", new TestSI());
-    dir0_0_0 = new AbsDir("dir0_0_0", new TestSI());
-    sgRootDir.addChild(dir0);
-    dir0->addChild(dir0_0);
-    dir0_0->addChild(dir0_0_0);
-    sgConsole.setCwd(&sgRootDir);
-    pathDir0 = d + "dir0" + d;
-    pathDir0_0 = pathDir0 + "dir0_0" + d;
-    pathDir0_0_0 = pathDir0_0 + "dir0_0_0" + d;
-    pathConsole = d + "consoleUi" + d;
-    getImplUi()->setLastOutput("");
-    getImplUi()->setCmdLine("");
-  }
 
-  void TearDown() {
-    if (dir0) delete dir0;
-  }
-
-  ImplConsoleUI* getImplUi() {
-    return static_cast<ImplConsoleUI*>(sgConsole.getUi());
-  }
-
-  const std::string& getLastOutput() { return getImplUi()->getLastOutput(); }
-  std::string getCwd() { return getImplUi()->getCwd(); }
-  std::string getCmdLine() { return getImplUi()->getCmdLine(); }
-
-  AbsDir* dir0, *dir0_0, *dir0_0_0;
-  std::string d;
-  std::string pathDir0, pathDir0_0, pathDir0_0_0, pathConsole;
-};
-
-TEST_F(TestConsole, pathArgHandler) {
+TEST_F(TestConsoleSystem, pathArgHandler) {
   PathArgHandler* handler =
       static_cast<PathArgHandler*>(sgArgLib.createArgHandler("path"));
   EXPECT_TRUE(handler->validate(d));
@@ -56,9 +21,10 @@ TEST_F(TestConsole, pathArgHandler) {
   EXPECT_EQ(dir0_0_0, handler->getPathDir());
   EXPECT_TRUE(handler->validate(pathConsole));
   EXPECT_EQ(pathConsole, handler->getPathDir()->getFullPath());
+  EXPECT_FALSE(handler->validate(" "));
   delete handler;
 }
-TEST_F(TestConsole, paramArgHandler) {
+TEST_F(TestConsoleSystem, paramArgHandler) {
   sgConsole.setCwd(dir0);
   ParamArgHandler* handler =
       static_cast<ParamArgHandler*>(sgArgLib.createArgHandler("param"));
@@ -68,7 +34,7 @@ TEST_F(TestConsole, paramArgHandler) {
   delete handler;
 }
 // deprecated
-// TEST_F(TestConsole, pparamArgHandler) {
+// TEST_F(TestConsoleSystem, pparamArgHandler) {
 // sgConsole.setCwd(dir0);
 // PparamArgHandler* handler =
 // static_cast<PparamArgHandler*>(sgArgLib.createArgHandler("pparam"));
@@ -85,7 +51,7 @@ TEST_F(TestConsole, paramArgHandler) {
 // delete handler;
 //}
 
-// TEST_F(TestConsole, valueArgHandler) {
+// TEST_F(TestConsoleSystem, valueArgHandler) {
 // sgConsole.setCwd(dir0);
 
 // TreeArgHandler* handler =
@@ -94,12 +60,12 @@ TEST_F(TestConsole, paramArgHandler) {
 
 //}
 
-TEST_F(TestConsole, illigalCmdName) {
+TEST_F(TestConsoleSystem, illigalCmdName) {
   sgConsole.getUi()->setCmdLine("adfsf");
   EXPECT_FALSE(sgConsole.execute());
 }
 
-TEST_F(TestConsole, promptCmd) {
+TEST_F(TestConsoleSystem, promptCmd) {
   sgConsole.getUi()->setCmdLine("");
   sgConsole.prompt();
   EXPECT_EQ("", getCmdLine());
@@ -123,12 +89,12 @@ TEST_F(TestConsole, promptCmd) {
   EXPECT_EQ("set", getCmdLine());
 }
 
-TEST_F(TestConsole, executeCmdCd) {
+TEST_F(TestConsoleSystem, executeCmdCd) {
   sgConsole.execute("cd " + d + "dir0");
   ASSERT_EQ(dir0, sgConsole.getCwd());
-  sgConsole.execute("  cd " + d + "dir0" + d + "dir0_0" + d);
+  sgConsole.execute("  cd " + pathDir0_0);
   ASSERT_EQ(dir0_0, sgConsole.getCwd());
-  sgConsole.execute("cd " + d + "dir0" + d + "dir0_0" + d + "dir0_0_0");
+  sgConsole.execute("cd " + pathDir0_0_0);
   ASSERT_EQ(dir0_0_0, sgConsole.getCwd());
   sgConsole.execute("cd " + d);
   ASSERT_EQ(&sgRootDir, sgConsole.getCwd());
@@ -145,8 +111,21 @@ TEST_F(TestConsole, executeCmdCd) {
   sgConsole.execute("cd .." + d + "..");
   ASSERT_EQ(&sgRootDir, sgConsole.getCwd());
 }
+TEST_F(TestConsoleSystem, executeCmdCdAalternate) {
+  EXPECT_TRUE(sgConsole.execute("cd " + d + "dir0"));
+  EXPECT_TRUE(sgConsole.execute("cd -"));
+  ASSERT_EQ(&sgRootDir, sgConsole.getCwd());
+  EXPECT_TRUE(sgConsole.execute("cd -"));
+  ASSERT_EQ(dir0, sgConsole.getCwd());
+  EXPECT_TRUE(sgConsole.execute("cd " + pathDir0_0_0));
+  EXPECT_TRUE(sgConsole.execute("cd " + pathDir0_0));
+  delete dir0_0_0;
+  EXPECT_EQ(0, sgConsole.getAlternateDir());
+  delete dir0_0;
+  EXPECT_EQ(&sgRootDir, sgConsole.getCwd());
+}
 
-TEST_F(TestConsole, promptCmdCd) {
+TEST_F(TestConsoleSystem, promptCmdCd) {
   sgConsole.getUi()->setCmdLine("cd " + d + "con");
   sgConsole.prompt();
   EXPECT_EQ("cd " + d + "consoleUi", getCmdLine());
@@ -156,44 +135,40 @@ TEST_F(TestConsole, promptCmdCd) {
   sgConsole.getUi()->setCmdLine("cd " + d + "dir0");
   sgConsole.prompt();
   EXPECT_EQ("cd " + d + "dir0", getCmdLine());
-  sgConsole.getUi()->setCmdLine("cd " + d + "dir0" + d);
+  sgConsole.getUi()->setCmdLine("cd " + pathDir0 + "dir0_0");
   sgConsole.prompt();
-  EXPECT_EQ("cd " + d + "dir0" + d + "dir0_0", getCmdLine());
-  sgConsole.getUi()->setCmdLine("cd " + d + "dir0" + d + "dir0_0");
+  EXPECT_EQ("cd " + pathDir0 + "dir0_0", getCmdLine());
+  sgConsole.getUi()->setCmdLine("cd " + pathDir0_0);
   sgConsole.prompt();
-  EXPECT_EQ("cd " + d + "dir0" + d + "dir0_0", getCmdLine());
-  sgConsole.getUi()->setCmdLine("cd " + d + "dir0" + d + "dir0_0" + d);
-  sgConsole.prompt();
-  EXPECT_EQ("cd " + d + "dir0" + d + "dir0_0" + d + "dir0_0_0", getCmdLine());
+  EXPECT_EQ("cd " + pathDir0_0 + "dir0_0_", getCmdLine());
 }
 
-TEST_F(TestConsole, executeCmdPwd) {
+TEST_F(TestConsoleSystem, executeCmdPwd) {
   sgConsole.execute("cd " + d + "dir0");
   sgConsole.execute("pwd");
-  EXPECT_EQ(d + "dir0" + d + "\n", getLastOutput());
+  EXPECT_EQ(getSortedVector({pathDir0}), mUi->getItems());
   sgConsole.execute("cd dir0_0" + d);
   sgConsole.execute(" pwd ");
-  EXPECT_EQ(d + "dir0" + d + "dir0_0" + d + "\n", getLastOutput());
+  EXPECT_EQ(getSortedVector({pathDir0_0}), mUi->getItems());
   sgConsole.execute("cd dir0_0_0" + d);
   sgConsole.execute(" pwd ");
-  EXPECT_EQ(
-      d + "dir0" + d + "dir0_0" + d + "dir0_0_0" + d + "\n", getLastOutput());
+  EXPECT_EQ((getSortedVector({pathDir0_0_0})), mUi->getItems());
 }
 
-TEST_F(TestConsole, promptCmdPwd) {
+TEST_F(TestConsoleSystem, promptCmdPwd) {
   sgConsole.getUi()->setCmdLine("pwd  ");
   sgConsole.prompt();
   EXPECT_EQ("pwd  ", getCmdLine());
 }
 
-TEST_F(TestConsole, executeCmdLs) {
+TEST_F(TestConsoleSystem, executeCmdLs) {
   sgConsole.execute("ls");
-  ASSERT_EQ("consoleUi  dir0  \n", getLastOutput());
+  ASSERT_EQ(getSortedVector({"consoleUi", "dir0"}), mUi->getItems());
   sgConsole.execute("ls dir0");
-  ASSERT_EQ("dir0_0  \n", getLastOutput());
+  ASSERT_EQ(getSortedVector({"dir0_0", "dir0_1"}), mUi->getItems());
 }
 
-TEST_F(TestConsole, promptCmdLs) {
+TEST_F(TestConsoleSystem, promptCmdLs) {
   sgConsole.getUi()->setCmdLine("ls " + d + "con");
   sgConsole.prompt();
   EXPECT_EQ("ls " + d + "consoleUi", getCmdLine());
@@ -203,20 +178,17 @@ TEST_F(TestConsole, promptCmdLs) {
   sgConsole.getUi()->setCmdLine("ls " + d + "dir0");
   sgConsole.prompt();
   EXPECT_EQ("ls " + d + "dir0", getCmdLine());
-  sgConsole.getUi()->setCmdLine("ls " + d + "dir0" + d);
+  sgConsole.getUi()->setCmdLine("ls " + pathDir0);
   sgConsole.prompt();
-  EXPECT_EQ("ls " + d + "dir0" + d + "dir0_0", getCmdLine());
-  sgConsole.getUi()->setCmdLine("ls " + d + "dir0" + d + "dir0_0");
+  EXPECT_EQ("ls " + pathDir0 + "dir0_", getCmdLine());
+  sgConsole.getUi()->setCmdLine("ls " + pathDir0+ "dir0_0");
   sgConsole.prompt();
-  EXPECT_EQ("ls " + d + "dir0" + d + "dir0_0", getCmdLine());
-  sgConsole.getUi()->setCmdLine("ls " + d + "dir0" + d + "dir0_0" + d);
+  EXPECT_EQ("ls " + pathDir0 + "dir0_0", getCmdLine());
+  sgConsole.getUi()->setCmdLine("ls " + pathDir0_0);
   sgConsole.prompt();
-  EXPECT_EQ("ls " + d + "dir0" + d + "dir0_0" + d + "dir0_0_0", getCmdLine());
-  sgConsole.getUi()->setCmdLine("ls " + d + "consoleUi " + d + "di");
-  sgConsole.prompt();
-  EXPECT_EQ("ls " + d + "consoleUi " + d + "dir0", getCmdLine());
+  EXPECT_EQ("ls " + pathDir0_0 + "dir0_0_", getCmdLine());
 }
-TEST_F(TestConsole, executeCmdSet) {
+TEST_F(TestConsoleSystem, executeCmdSet) {
   sgConsole.setCwd(dir0);
   EXPECT_TRUE(sgConsole.execute("set paramInt 0"));
   EXPECT_STREQ("0", dir0->getParameter("paramInt").c_str());
@@ -231,7 +203,7 @@ TEST_F(TestConsole, executeCmdSet) {
   EXPECT_FALSE(sgConsole.execute("set " + pathDir0 + " paramString x"));
 }
 
-TEST_F(TestConsole, promptCmdSet) {
+TEST_F(TestConsoleSystem, promptCmdSet) {
   sgConsole.setCwd(dir0);
   sgConsole.getUi()->setCmdLine("set paramString");
   sgConsole.prompt();
@@ -258,7 +230,7 @@ TEST_F(TestConsole, promptCmdSet) {
   EXPECT_EQ("set " + pathDir0_0_0 + " paramBool false", getCmdLine());
 }
 
-TEST_F(TestConsole, executeCmdCtd) {
+TEST_F(TestConsoleSystem, executeCmdCtd) {
   sgConsole.execute("ctd");
   EXPECT_EQ(1, sgRootDir.getNumChildren());
   dir0 = 0;

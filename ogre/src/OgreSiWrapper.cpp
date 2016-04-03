@@ -2,6 +2,7 @@
 #include "pacArgHandler.h"
 #include "OgreSiWrapper.h"
 #include "OgreStringInterface.h"
+#include "OgreUtil.h"
 
 namespace pac {
 ParamAhDictMap OgreSiWrapper::msAhDictMap;
@@ -42,6 +43,16 @@ const std::string& OgreSiWrapper::getValueArgHandler(const std::string& name) {
 }
 
 //------------------------------------------------------------------------------
+StringVector OgreSiWrapper::getParameters(void) const {
+  auto l = mOgreSI->getParameters();
+  StringVector sv;
+  std::for_each(l.begin(), l.end(),
+      [&](Ogre::ParameterDef& def) -> void { sv.push_back(def.name); });
+
+  return sv;
+}
+
+//------------------------------------------------------------------------------
 bool OgreSiWrapper::createaAhDict() {
   ParamAhDictMap::iterator iter = msAhDictMap.find(mName);
 
@@ -56,8 +67,7 @@ bool OgreSiWrapper::createaAhDict() {
 }
 
 //------------------------------------------------------------------------------
-void OgreSiWrapper::bindArgHandlerByType()
-{
+void OgreSiWrapper::bindArgHandlerByType() {
   const Ogre::ParameterList& paramList = mOgreSI->getParameters();
   std::for_each(paramList.begin(), paramList.end(),
       [&](const Ogre::ParameterList::value_type& v) -> void {

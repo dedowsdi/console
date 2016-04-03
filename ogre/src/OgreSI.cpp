@@ -40,7 +40,6 @@ NodeSI::Pitch NodeSI::msPitch;
 NodeSI::Roll NodeSI::msRoll;
 SceneNodeSI::Direction SceneNodeSI::msDirection;
 SceneNodeSI::LookAt SceneNodeSI::msLookAt;
-// SceneManagerSI::ShadowTechnique SceneManagerSI::msShadowTechnique;
 SceneManagerSI::ShadowColour SceneManagerSI::msShadowColour;
 SceneManagerSI::AmbientLight SceneManagerSI::msAmbientLight;
 SceneManagerSI::Fog SceneManagerSI::msFog;
@@ -568,23 +567,6 @@ void SceneNodeSI::initParams() {
   mParamDict->addParameter("direction", &msDirection);
   mParamDict->addParameter("lookAt", &msLookAt);
 }
-
-//------------------------------------------------------------------------------
-// std::string SceneManagerSI::ShadowTechnique::doGet(const void* target) const
-// {
-// Ogre::SceneManager* sm =
-// static_cast<const SceneManagerSI*>(target)->getSceneMgr();
-// return enumToString(sm->getShadowTechnique());
-//}
-
-//------------------------------------------------------------------------------
-// void SceneManagerSI::ShadowTechnique::doSet(void* target, ArgHandler*
-// handler) {
-// Ogre::SceneManager* sm =
-// static_cast<const SceneManagerSI*>(target)->getSceneMgr();
-// sm->setShadowTechnique(
-// enumFromString<Ogre::ShadowTechnique>(handler->getValue()));
-//}
 
 //------------------------------------------------------------------------------
 std::string SceneManagerSI::ShadowColour::doGet(const void* target) const {

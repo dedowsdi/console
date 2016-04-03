@@ -117,7 +117,7 @@ public:
   ParamDictionary* getParamDict(void) { return mParamDict; }
   const ParamDictionary* getParamDict(void) const { return mParamDict; }
 
-  StringVector getParameters(void) const;
+  virtual StringVector getParameters(void) const;
 
   /**
    * Set parameter value. It doesn't matter if specified prameter doesn't
@@ -154,7 +154,7 @@ public:
    * @param name : parameter name
    * @return : param value arg handler name
    */
-  const std::string& getValueArgHandler(const std::string& name);
+  virtual const std::string& getValueArgHandler(const std::string& name);
 
   /**
    * Copy parameter values to another stringinterface. These two

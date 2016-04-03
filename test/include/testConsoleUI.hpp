@@ -6,6 +6,12 @@
 
 namespace pac {
 
+StringVector getSortedVector(std::initializer_list<std::string> items) {
+  StringVector sv(items.begin(), items.end());
+  std::sort(sv.begin(), sv.end());
+  return sv;
+}
+
 class ImplConsoleUI : public ConsoleUI {
 public:
   ImplConsoleUI() : mAlpha(1.0f) {}
