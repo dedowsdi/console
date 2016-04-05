@@ -8,7 +8,7 @@ let g:mycppMakes = {
       \'testOgre':'ogre/test/testOgre',
       \'myguiConsole':'ogre/demo/mygui/myguiConsole'
 			\}
-let g:mycppBuildDir = "./build/"
+let g:mycppBuildDir = "./build/Debug/"
 let g:mycppClassPrefix='_PacExport'
 let g:mycppPreRequisite=['pacConsolePreRequisite.h']
 let g:mycppStable=['pacStable.h']

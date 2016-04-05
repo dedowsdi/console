@@ -55,6 +55,8 @@ public:
   void setCwd(AbsDir* dir);
   AbsDir* getCwd() { return mDir; }
   AbsDir* getAlternateDir() const { return mAlternateDir; }
+  AbsDir* getRootDir() const { return mRootDir; }
+
 
   /**
    * Buffer output, to be aligned later. This function will reset buffer. Use
@@ -128,7 +130,7 @@ private:
 private:
   int mIsBuffering;
 
-  AbsDir* mDir, *mAlternateDir;
+  AbsDir* mDir, *mAlternateDir, *mRootDir;
   ConsoleUI* mUi;
   ConsolePattern* mPattern;
   CmdHistory* mCmdHistory;

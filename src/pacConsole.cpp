@@ -20,6 +20,7 @@ Console::Console(ConsoleUI* ui)
       mIsBuffering(false),
       mDir(0),
       mAlternateDir(0),
+      mRootDir(0),
       mUi(ui),
       mPattern(0),
       mCmdHistory(0) {
@@ -56,10 +57,11 @@ void Console::initCmdHistory() { mCmdHistory = new CmdHistory(); }
 
 //------------------------------------------------------------------------------
 void Console::initDir() {
-  new RootDir();
+  //build root
+  mRootDir = new AbsDir(pac::delim);
   setCwd(&sgRootDir);
   AbsDir* uiDir = new AbsDir("consoleUi", mUi);
-  sgRootDir.addChild(uiDir, false);
+  mRootDir->addChild(uiDir, false);
 }
 
 //------------------------------------------------------------------------------
@@ -213,7 +215,7 @@ void Console::rollCommand(bool backWard /*= true*/) {
 
 //------------------------------------------------------------------------------
 void Console::deleteDir(AbsDir* dir) {
-  if (dir == &sgRootDir) {
+  if (dir == mRootDir) {
     mDir = 0;
     mAlternateDir = 0;
     return;

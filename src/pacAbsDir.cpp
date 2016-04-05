@@ -14,7 +14,6 @@ AbsDir::AbsDir(const std::string& name, StringInterface* si /*= 0*/)
 
 //------------------------------------------------------------------------------
 AbsDir::~AbsDir() {
-
   sgConsole.deleteDir(this);
 
   if (mParent) mParent->removeChild(this);
@@ -188,14 +187,10 @@ AbsDirs::iterator AbsDir::endChildIter() { return mChildren.end(); }
 void AbsDir::setStringInterface(StringInterface* v) {
   AbsDirs dirs(mChildren);
   // clean children
-  std::for_each(
-      dirs.begin(), dirs.end(), [&](AbsDir* v) -> void { delete v; });
+  std::for_each(dirs.begin(), dirs.end(), [&](AbsDir* v) -> void { delete v; });
   v->onCreateDir(this);
   mStringInterface = v;
 }
-
-//------------------------------------------------------------------------------
-RootDir::RootDir() : AbsDir(pac::delim, 0) {}
 
 //------------------------------------------------------------------------------
 AbsDir* AbsDirUtil::findPath(const std::string& path, AbsDir* curDir /*=0*/) {
@@ -239,6 +234,4 @@ AbsDir* AbsDirUtil::findRelativePath(const std::string& path, AbsDir* curDir) {
   }
   return curDir;
 }
-template <>
-RootDir* Singleton<RootDir>::msSingleton = 0;
 }

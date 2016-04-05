@@ -85,6 +85,6 @@ namespace pac
 #define sgCmdLib pac::CommandLib::getSingleton()
 #define sgArgLib pac::ArgHandlerLib::getSingleton()
 #define sgLogger pac::Logger::getSingleton()
-#define sgRootDir pac::RootDir::getSingleton()
+#define sgRootDir (*sgConsole.getRootDir()) 
 
 #endif /* PACCONSOLEPREREQUISITE_H */

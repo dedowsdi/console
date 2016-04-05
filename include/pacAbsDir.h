@@ -143,14 +143,6 @@ protected:
   AbsDirs mChildren;
 };
 
-/*
- *root dir, the same as path delimiter, it's singleton.
- */
-class RootDir : public AbsDir, public Singleton<RootDir> {
-public:
-  RootDir();
-};
-
 class AbsDirUtil {
 private:
   AbsDirUtil() {}
