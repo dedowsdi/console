@@ -1,0 +1,3 @@
+[Mygui]
+FileSystem=@MYGUI_MEDIA_DIR_REL@/Media
+FileSystem=@MYGUI_MEDIA_DIR_REL@/Media/MyGUI_Media
