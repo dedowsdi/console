@@ -37,7 +37,7 @@ macro( setupPluginFileFromTemplate BUILD_TYPE )
 		file( MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${BUILD_TYPE}/Plugins" )
 	endif()
 
-	findPluginAndSetPath( ${BUILD_TYPE} OGRE_PLUGIN_RS_GL	RenderSystem_GL )
+	findPluginAndSetPath( ${BUILD_TYPE} OGRE_PLUGIN_RS_GL3+	RenderSystem_GL3Plus )
 	findPluginAndSetPath( ${BUILD_TYPE} OGRE_PLUGIN_PARTICLE_FX	Plugin_ParticleFX )
 
 	configure_file( ${CMAKE_SOURCE_DIR}/ogre/CMake/Templates/plugins.cfg.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.cfg )
@@ -73,6 +73,9 @@ macro( setupOgre OGRE_SOURCE, OGRE_BINARIES, OGRE_LIBRARIES, OGRE_INCLUDE_DIRS)
 
 	# Ogre config
 	set(${OGRE_INCLUDE_DIRS} "${OGRE_SOURCE}/OgreMain/include;${${OGRE_INCLUDE_DIRS}}")
+	set(${OGRE_INCLUDE_DIRS} "${OGRE_SOURCE}/Components/Hlms/Common/include;${${OGRE_INCLUDE_DIRS}}")
+	set(${OGRE_INCLUDE_DIRS} "${OGRE_SOURCE}/Components/Hlms/Unlit/include;${${OGRE_INCLUDE_DIRS}}")
+	set(${OGRE_INCLUDE_DIRS} "${OGRE_SOURCE}/Components/Hlms/Pbs/include;${${OGRE_INCLUDE_DIRS}}")
 	set(${OGRE_INCLUDE_DIRS} "${OGRE_BINARIES}/include;${${OGRE_INCLUDE_DIRS}}")
 
 	# Ogre includes
@@ -98,10 +101,10 @@ macro(setupOgrePlugins)
 		set( OGRE_PLUGIN_DIR "Plugins" )
 	endif()
 
-	#message( STATUS "Copying Hlms data files from Ogre repository" )
-	#file( COPY "${OGRE_SOURCE}/Samples/Media/Hlms/Common"	DESTINATION "${CMAKE_SOURCE_DIR}/bin/Data/Hlms" )
-	#file( COPY "${OGRE_SOURCE}/Samples/Media/Hlms/Pbs"		DESTINATION "${CMAKE_SOURCE_DIR}/bin/Data/Hlms" )
-	#file( COPY "${OGRE_SOURCE}/Samples/Media/Hlms/Unlit"	DESTINATION "${CMAKE_SOURCE_DIR}/bin/Data/Hlms" )
+	message( STATUS "Copying Hlms data files from Ogre repository" )
+	file( COPY "${OGRE_SOURCE}/Samples/Media/Hlms/Common"	DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/media/Hlms" )
+	file( COPY "${OGRE_SOURCE}/Samples/Media/Hlms/Pbs"		DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/media/Hlms" )
+	file( COPY "${OGRE_SOURCE}/Samples/Media/Hlms/Unlit"	DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/media/Hlms" )
 
 	message( STATUS "Copying DLLs and generating Plugins.cfg for ${CMAKE_BUILD_TYPE}" )
 	setupPluginFileFromTemplate( ${CMAKE_BUILD_TYPE} )

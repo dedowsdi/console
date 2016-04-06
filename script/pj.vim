@@ -12,4 +12,4 @@ let g:mycppBuildDir = "./build/Debug/"
 let g:mycppClassPrefix='_PacExport'
 let g:mycppPreRequisite=['pacConsolePreRequisite.h']
 let g:mycppStable=['pacStable.h']
-set path+=/usr/local/include/OGRE,/usr/local/include/MYGUI
+set path+=thirdlib/OgreMain,thirdlib/MyGUI

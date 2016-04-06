@@ -60,13 +60,13 @@ private:
 
 /**
  * ath ltl_sceneNode t_sceneNode ltl_light id ("sn0")
- * ath ltl_sceneNode t_sceneNode ltl_entity id mesh ("sn1")
+ * ath ltl_sceneNode t_sceneNode ltl_item id mesh ("sn1") 
  * ath ltl_sceneNode t_sceneNode ltl_particle id pst ("sn2")
  * ath ltl_sceneNode t_sceneNode ltl_camera id("sn3")
- * ath ltl_tagPoint entity bone ltl_light id ("tag0")
- * ath ltl_tagPoint entity bone ltl_entity id mesh ("tag1")
- * ath ltl_tagPoint entity bone ltl_particle id pst ("tag2")
- * ath ltl_tagPoint entity bone ltl_camera id ("tag3")
+ * ath ltl_tagPoint item bone ltl_light id ("tag0")
+ * ath ltl_tagPoint item bone ltl_item id mesh ("tag1")
+ * ath ltl_tagPoint item bone ltl_particle id pst ("tag2")
+ * ath ltl_tagPoint item bone ltl_camera id ("tag3")
  *
  * attach movable to scenenode or entity bone
  */
@@ -81,14 +81,14 @@ protected:
 };
 
 /**
- * lsmo moType ("g0")
+ * lsmo moType ("g0") 
  * lsmo moType ltl_regex regex ("g1")
  * lsmo ltl_sceneNode sceneNode ("sn0")
  * lsmo ltl_sceneNode sceneNode moType ("sn1")
- * lsmo ltl_tagPoint entity ("tag0")
- * lsmo ltl_tagPoint entity moType ("tag1")
- * lsmo ltl_tagPoint entity bone ("tag2")
- * lsmo ltl_tagPoint entity bone moType ("tag3")
+ * lsmo ltl_tagPoint Item ("tag0")
+ * lsmo ltl_tagPoint Item moType ("tag1")
+ * lsmo ltl_tagPoint Item bone ("tag2")
+ * lsmo ltl_tagPoint Item bone moType ("tag3")
  */
 class _PacExport LsmoCmd : public Command {
 public:
@@ -101,10 +101,13 @@ protected:
 };
 
 /**
- * dth moType movable... ("m0")
+ * dth moType movable... ("m0")   
  * dth ltl_sceneNode t_sceneNode ("sn0")
  * dth ltl_sceneNode t_sceneNode moType ("sn1")
  * dth ltl_sceneNode t_sceneNode moType movable("sn2")
+ *
+ *
+ * not supported
  * dth ltl_tagPoint entity ("tag0")
  * dth ltl_tagPoint entity moType  ("tag1")
  * dth ltl_tagPoint entity bone ("tag2")

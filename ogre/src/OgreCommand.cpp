@@ -8,13 +8,16 @@
 #include "OgreArgHandler.h"
 #include <OgreSceneManager.h>
 #include <OgreMaterialManager.h>
-#include <OgreMeshManager.h>
+#include <OgreMeshManager2.h>
 #include <OgreTextureManager.h>
 #include <OgreParticleSystemManager.h>
 #include <OgreParticleSystem.h>
 #include <OgreParticleEmitter.h>
 #include <OgreParticleAffector.h>
 #include <OgreEntity.h>
+#include <Animation/OgreTagPoint.h>
+#include <Animation/OgreBone.h>
+#include <Animation/OgreSkeletonInstance.h>
 #include <OgreCamera.h>
 #include <boost/regex.hpp>
 
@@ -244,7 +247,7 @@ bool AthCmd::doExecute() {
   std::string moType;
   if (handler->hasMatchedNode("ltl_light"))
     moType = "Light";
-  else if (handler->hasMatchedNode("ltl_entity"))
+  else if (handler->hasMatchedNode("ltl_item"))
     moType = "Entity";
   else if (handler->hasMatchedNode("ltl_particle"))
     moType = "ParticleSystem";
@@ -258,8 +261,8 @@ bool AthCmd::doExecute() {
     // ath ltl_tagPoint entity bone ltl_light id ("tag0")
     mo = sceneMgr->createLight();
   } else if (branch == "sn1" || branch == "tag1") {
-    // ath ltl_sceneNode t_sceneNode ltl_entity id mesh ("sn1")
-    // ath ltl_tagPoint entity bone ltl_entity id mesh ("tag1")
+    // ath ltl_sceneNode t_sceneNode ltl_item id mesh ("sn1")
+    // ath ltl_tagPoint entity bone ltl_item id mesh ("tag1")
     mo = sceneMgr->createEntity(handler->getMatchedNodeValue("mesh"));
   } else if (branch == "sn2" || branch == "tag2") {
     // ath ltl_sceneNode t_sceneNode ltl_particle id pst ("sn2")
@@ -285,10 +288,16 @@ bool AthCmd::doExecute() {
                                               "t_sceneNode")->getSceneNode();
     sceneNode->attachObject(mo);
   } else if (branch.size() > 0 && branch[0] == 't') {
-    // Ogre::Entity* ent =
-    // sceneMgr->getEntity(handler->getMatchedNodeValue("entity"));
-    // const std::string& bone = handler->getMatchedNodeValue("bone");
-    // ent->attachObjectToBone(bone, mo);
+    Ogre::Item* item = static_cast<Ogre::Item*>(OgreUtil::getMovableByIdtype(
+        sceneMgr, handler->getMatchedNodeUniformValue("item")));
+
+    auto bone = item->getSkeletonInstance()->getBone(
+        handler->getMatchedNodeValue("bone"));
+    auto tp = sceneMgr->createTagPoint();
+    tp->setName(item->getName() + "_" + bone->getName() + ":" + mo->getName());
+    tp->attachObject(mo);
+    bone->addTagPoint(tp);
+
   } else {
     PAC_EXCEPT(Exception::ERR_INVALID_STATE, "invalid branch");
   }
@@ -302,22 +311,22 @@ bool AthCmd::buildArgHandler() {
   Node* snNode = root->acn("ltl_sceneNode")->acn("t_sceneNode");
   // ath ltl_sceneNode t_sceneNode ltl_light id ("sn0")
   snNode->acn("ltl_light")->acn("id")->eb("sn0");
-  // ath ltl_sceneNode t_sceneNode ltl_entity id mesh ("sn1")
-  snNode->acn("ltl_entity")->acn("id")->acn("mesh")->eb("sn1");
+  // ath ltl_sceneNode t_sceneNode ltl_item id mesh ("sn1")
+  snNode->acn("ltl_item")->acn("id")->acn("mesh")->eb("sn1");
   // ath ltl_sceneNode t_sceneNode ltl_particle id pst ("sn2")
   snNode->acn("ltl_particle")->acn("id")->acn("pst")->eb("sn2");
   // ath ltl_sceneNode t_sceneNode ltl_camera id("sn3")
   snNode->acn("ltl_camera")->acn("id")->eb("sn3");
 
-  // Node* entNode = root->acn("ltl_tagPoint")->acn("entity")->acn("bone");
-  //// ath ltl_tagPoint entity bone ltl_light id ("tag0")
-  // entNode->acn("ltl_light")->acn("id")->eb("tag0");
-  //// ath ltl_tagPoint entity bone ltl_entity id mesh ("tag1")
-  // entNode->acn("ltl_entity")->acn("id")->acn("mesh")->eb("tag1");
-  //// ath ltl_tagPoint entity bone ltl_particle id pst ("tag2")
-  // entNode->acn("ltl_particle")->acn("id")->acn("pst")->eb("tag2");
-  //// ath ltl_tagPoint entity bone ltl_camera id ("tag3")
-  // entNode->acn("ltl_camera")->acn("id")->eb("tag3");
+  Node* itemNode = root->acn("ltl_tagPoint")->acn("item")->acn("bone");
+  // ath ltl_tagPoint entity bone ltl_light id ("tag0")
+  itemNode->acn("ltl_light")->acn("id")->eb("tag0");
+  // ath ltl_tagPoint entity bone ltl_item id mesh ("tag1")
+  itemNode->acn("ltl_item")->acn("id")->acn("mesh")->eb("tag1");
+  // ath ltl_tagPoint entity bone ltl_particle id pst ("tag2")
+  itemNode->acn("ltl_particle")->acn("id")->acn("pst")->eb("tag2");
+  // ath ltl_tagPoint entity bone ltl_camera id ("tag3")
+  itemNode->acn("ltl_camera")->acn("id")->eb("tag3");
 
   mArgHandler = handler;
   return true;

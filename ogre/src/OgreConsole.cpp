@@ -7,7 +7,7 @@
 #include "pacAbsDir.h"
 #include "pacEnumUtil.h"
 #include <OgreMaterialManager.h>
-#include <OgreMeshManager.h>
+#include <OgreMeshManager2.h>
 #include <OgreTextureManager.h>
 #include <OgreParticleSystemManager.h>
 #include <OgreSceneManager.h>
@@ -134,7 +134,7 @@ void OgreConsole::initMiscArgHandler() {
   sgArgLib.registerArgHandler(new MovableAH("particle", "ParticleSystem"));
   sgArgLib.registerArgHandler(new MovableAH("light", "Light"));
   sgArgLib.registerArgHandler(new MovableAH("camera", "Camera"));
-  sgArgLib.registerArgHandler(new MovableAH("entity", "Entity"));
+  sgArgLib.registerArgHandler(new MovableAH("item", "Item"));
 
   // t_sceneNode
   sgArgLib.registerArgHandler(new SceneNodeTH());
@@ -142,7 +142,7 @@ void OgreConsole::initMiscArgHandler() {
   sgArgLib.registerArgHandler(new MovableTH("t_movable", "movable"));
   sgArgLib.registerArgHandler(new MovableTH("t_light", "light"));
   sgArgLib.registerArgHandler(new MovableTH("t_camera", "camera"));
-  sgArgLib.registerArgHandler(new MovableTH("t_entity", "entity"));
+  sgArgLib.registerArgHandler(new MovableTH("t_item", "item"));
   sgArgLib.registerArgHandler(new MovableTH("t_particle", "particle"));
   // tree
   sgArgLib.registerArgHandler(new PositionTH());
@@ -185,7 +185,7 @@ void OgreConsole::initMiscArgHandler() {
 //------------------------------------------------------------------------------
 void OgreConsole::initStringArgHandler() {
   StringArgHandler* moType = new StringArgHandler(
-      "moType", {"ParticleSystem", "Light", "Camera", "Entity"});
+      "moType", {"ParticleSystem", "Light", "Camera", "Item"});
   sgArgLib.registerArgHandler(moType);
 
   StringArgHandler* forceApp =
@@ -193,7 +193,7 @@ void OgreConsole::initStringArgHandler() {
   sgArgLib.registerArgHandler(forceApp);
 
   StringArgHandler* resType =
-      new StringArgHandler("resType", {"material", "mesh", "texture", "pst"});
+      new StringArgHandler("resType", {"material", "mesh", "texture", "pst", "datablock"});
   sgArgLib.registerArgHandler(resType);
 
   StringArgHandler* emitterType = new StringArgHandler("emitterType",
@@ -215,7 +215,7 @@ void OgreConsole::initLiteralArgHandler() {
   sgArgLib.registerArgHandler(new LiteralArgHandler("camera"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("childOnly"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("direct"));
-  sgArgLib.registerArgHandler(new LiteralArgHandler("entity"));
+  sgArgLib.registerArgHandler(new LiteralArgHandler("item"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("light"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("parent"));
   sgArgLib.registerArgHandler(new LiteralArgHandler("parentOfMovable"));

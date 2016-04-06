@@ -6,6 +6,7 @@
 #include "OgreId.h"
 #include "OgreUtil.h"
 #include <OgreMovableObject.h>
+#include <OgreItem.h>
 #include <OgreCamera.h>
 
 namespace pac {
@@ -52,9 +53,9 @@ private:
 
 private:
   bool mFixType, mAttachedOnly;
-  Ogre::Entity* mEntity;
+  Ogre::Item* mItem;
   Ogre::SceneNode* mSceneNode;
-  Node* mEntityNode, *mBoneNode, *mSnNode, *mMoTypeNode;
+  Node* mItemNode, *mBoneNode, *mSnNode, *mMoTypeNode;
   std::string mMoType, mBone;
 };
 
@@ -92,8 +93,8 @@ protected:
   virtual void onLinked(Node* grandNode);
 
 protected:
-  Ogre::Entity* mEntity;
-  Node* mEntityNode;
+  Ogre::Item* mItem;
+  Node* mItemNode;
 };
 
 /**
@@ -195,6 +196,19 @@ protected:
 
 protected:
   Ogre::ParticleSystemManager* mManager;
+};
+
+class _PacExport DatablockAH : public ArgHandler {
+public:
+  DatablockAH(Ogre::HlmsManager* mgr);
+  virtual ArgHandler* clone() { return new DatablockAH(*this); }
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
+
+protected:
+  Ogre::HlmsManager* mManager;
 };
 
 /**

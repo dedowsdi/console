@@ -95,25 +95,25 @@ TEST_F(TestOgreScene, handler_t_sceneNode) {
   EXPECT_FALSE(handler->validate("parentOfNode " + mDynamicRootNodeNameid));
   EXPECT_FALSE(handler->validate("parentOfNode " + mStaticRootNodeNameid));
   //  ltl_parentOfMovalbe moType childMovable ("pm0")
-  EXPECT_TRUE(handler->validate("parentOfMovable Entity " + mOgreHeadNameid));
-  EXPECT_TRUE(handler->validate("parentOfMovable Entity " + mSinbadNameid));
+  EXPECT_TRUE(handler->validate("parentOfMovable Item " + mOgreHeadNameid));
+  EXPECT_TRUE(handler->validate("parentOfMovable Item " + mSinbadNameid));
   EXPECT_TRUE(handler->validate("parentOfMovable Camera " + mCamera0Nameid));
   EXPECT_EQ(Ogre::StringConverter::toString(
                 OgreUtil::getIdFromNameid(mCameraNodeNameid)),
       handler->getUniformValue());
 
-  EXPECT_FALSE(handler->validate("parentOfMovable Entity " + mLeftSwordNameid));
+  EXPECT_FALSE(handler->validate("parentOfMovable Item " + mLeftSwordNameid));
 }
 
 TEST_F(TestOgreScene, handler_t_movable) {
   auto handler = sgArgLib.createArgHandler("t_movable");
   //  moType movable
-  ASSERT_TRUE(handler->validate("Entity " + mOgreHeadNameid));
+  ASSERT_TRUE(handler->validate("Item " + mOgreHeadNameid));
   EXPECT_EQ(Ogre::StringConverter::toString(
                 OgreUtil::getIdFromNameid(mOgreHeadNameid)) +
-                "@Entity",
+                "@Item",
       handler->getUniformValue());
-  EXPECT_TRUE(handler->validate("Entity " + mOgreHeadNameid));
+  EXPECT_TRUE(handler->validate("Item " + mOgreHeadNameid));
   EXPECT_TRUE(handler->validate("Light " + mLight0Nameid));
   ASSERT_TRUE(handler->validate("Camera " + mCamera0Nameid));
   EXPECT_EQ(Ogre::StringConverter::toString(
@@ -127,7 +127,7 @@ TEST_F(TestOgreScene, handler_t_movable) {
       handler->getUniformValue());
   //  t_sceneNode moType movable
   EXPECT_TRUE(
-      handler->validate(mEntNode0Nameid + " Entity " + mOgreHeadNameid));
+      handler->validate(mEntNode0Nameid + " Item " + mOgreHeadNameid));
   EXPECT_TRUE(handler->validate(mLightNodeNameid + " Light " + mLight0Nameid));
   EXPECT_TRUE(
       handler->validate(mCameraNodeNameid + " Camera " + mCamera0Nameid));

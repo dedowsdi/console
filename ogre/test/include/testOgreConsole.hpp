@@ -149,6 +149,8 @@ TEST_F(TestOgreScene, testLsres) {
   // EXPECT_TRUE(sgOgreConsole.execute("lsres compositor regex .*"));
   EXPECT_TRUE(sgOgreConsole.execute("lsres pst"));
   EXPECT_TRUE(sgOgreConsole.execute("lsres pst regex .*"));
+  EXPECT_TRUE(sgOgreConsole.execute("lsres datablock"));
+  EXPECT_TRUE(sgOgreConsole.execute("lsres datablock regex .*"));
 }
 TEST_F(TestOgreScene, testLsresPrompt) {
   sgConsole.getUi()->setCmdLine("lsres material regex S");
@@ -157,14 +159,25 @@ TEST_F(TestOgreScene, testLsresPrompt) {
 }
 
 TEST_F(TestOgreScene, testLsmoOutput) {
-  EXPECT_TRUE(sgOgreConsole.execute("lsmo Entity"));
+  // EXPECT_TRUE(sgOgreConsole.execute("lsmo Entity"));
+  // EXPECT_EQ(getSortedVector({mOgreHeadNameid, mSinbadNameid,
+  // mLeftSwordNameid,
+  // mRightSwordNameid}),
+  // mUi->getItems());
+  // EXPECT_TRUE(sgOgreConsole.execute("lsmo Entity regex .*"));
+  // EXPECT_EQ(getSortedVector({mOgreHeadNameid, mSinbadNameid,
+  // mLeftSwordNameid,
+  // mRightSwordNameid}),
+  // mUi->getItems());
+  EXPECT_TRUE(sgOgreConsole.execute("lsmo Item"));
   EXPECT_EQ(getSortedVector({mOgreHeadNameid, mSinbadNameid, mLeftSwordNameid,
                 mRightSwordNameid}),
       mUi->getItems());
-  EXPECT_TRUE(sgOgreConsole.execute("lsmo Entity regex .*"));
+  EXPECT_TRUE(sgOgreConsole.execute("lsmo Item regex .*"));
   EXPECT_EQ(getSortedVector({mOgreHeadNameid, mSinbadNameid, mLeftSwordNameid,
                 mRightSwordNameid}),
       mUi->getItems());
+
   EXPECT_TRUE(sgOgreConsole.execute("lsmo sceneNode " + mEntNode0Nameid));
   EXPECT_EQ(getSortedVector({mOgreHeadNameid}), mUi->getItems());
   // EXPECT_TRUE(sgOgreConsole.execute(
@@ -239,7 +252,7 @@ TEST_F(TestOgreScene, testAth) {
   EXPECT_TRUE(sgOgreConsole.execute(
       "ath sceneNode " + mBlankNode0Nameid + " light sn0"));
   EXPECT_TRUE(sgOgreConsole.execute(
-      "ath sceneNode " + mBlankNode0Nameid + " entity sn0 ogrehead.mesh"));
+      "ath sceneNode " + mBlankNode0Nameid + " item sn0 ogrehead.mesh"));
   EXPECT_TRUE(sgOgreConsole.execute(
       "ath sceneNode " + mBlankNode0Nameid + " particle sn0 fireball"));
   EXPECT_TRUE(sgOgreConsole.execute(
@@ -248,22 +261,26 @@ TEST_F(TestOgreScene, testAth) {
   // ath ltl_tagPoint entity bone ltl_entity id mesh ("tag1")
   // ath ltl_tagPoint entity bone ltl_particle id pst ("tag2")
   // ath ltl_tagPoint entity bone ltl_camera id ("tag3")
-  // EXPECT_TRUE(sgOgreConsole.execute(
-  //"ath tagPoint sinbad IndexFingerDist.L light ebl0 "));
-  // EXPECT_FALSE(sgOgreConsole.execute(
-  //"ath tagPoint sinbad IndexFingerDist.L light ebl0 "));
-  // EXPECT_TRUE(sgOgreConsole.execute(
-  //"ath tagPoint sinbad IndexFingerDist.L entity ebe0 ogrehead.mesh"));
-  // EXPECT_FALSE(sgOgreConsole.execute(
-  //"ath tagPoint sinbad IndexFingerDist.L entity ebe0 ogrehead.mesh"));
-  // EXPECT_TRUE(sgOgreConsole.execute(
-  //"ath tagPoint sinbad IndexFingerDist.L particle ebp0 fireball"));
-  // EXPECT_FALSE(sgOgreConsole.execute(
-  //"ath tagPoint sinbad IndexFingerDist.L particle ebp0 fireball"));
-  // EXPECT_TRUE(sgOgreConsole.execute(
-  //"ath tagPoint sinbad IndexFingerDist.L camera ebc0"));
-  // EXPECT_FALSE(sgOgreConsole.execute(
-  //"ath tagPoint sinbad IndexFingerDist.L camera ebc0"));
+  EXPECT_TRUE(sgOgreConsole.execute(
+      "ath tagPoint " + mSinbadNameid + " IndexFingerDist.L light ebl0 "));
+  EXPECT_FALSE(sgOgreConsole.execute(
+      "ath tagPoint " + mSinbadNameid + " IndexFingerDist.L light ebl0 "));
+  EXPECT_TRUE(
+      sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
+                            " IndexFingerDist.L entity ebe0 ogrehead.mesh"));
+  EXPECT_FALSE(
+      sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
+                            " IndexFingerDist.L entity ebe0 ogrehead.mesh"));
+  EXPECT_TRUE(
+      sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
+                            " IndexFingerDist.L particle ebp0 fireball"));
+  EXPECT_FALSE(
+      sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
+                            " IndexFingerDist.L particle ebp0 fireball"));
+  EXPECT_TRUE(sgOgreConsole.execute(
+      "ath tagPoint " + mSinbadNameid + " IndexFingerDist.L camera ebc0"));
+  EXPECT_FALSE(sgOgreConsole.execute(
+      "ath tagPoint " + mSinbadNameid + " IndexFingerDist.L camera ebc0"));
 }
 
 TEST_F(TestOgreScene, testAthPrompt) {
@@ -273,9 +290,9 @@ TEST_F(TestOgreScene, testAthPrompt) {
   sgConsole.getUi()->setCmdLine("ath sceneNode ");
   sgConsole.prompt();
   EXPECT_STREQ("ath sceneNode ", getCmdLine().c_str());
-  // sgConsole.getUi()->setCmdLine("ath t");
-  // sgConsole.prompt();
-  // EXPECT_STREQ("ath tagPoint", getCmdLine().c_str());
+  sgConsole.getUi()->setCmdLine("ath t");
+  sgConsole.prompt();
+  EXPECT_STREQ("ath tagPoint", getCmdLine().c_str());
   sgConsole.getUi()->setCmdLine("ath sceneNode ca");
   sgConsole.prompt();
   EXPECT_EQ("ath sceneNode " + mCameraNodeNameid, getCmdLine());
@@ -284,7 +301,7 @@ TEST_F(TestOgreScene, testAthPrompt) {
 TEST_F(TestOgreScene, testDth0) {
   // dth moType movable... ("m0")
   EXPECT_TRUE(sgOgreConsole.execute(
-      "dth Entity " + mOgreHeadNameid + " " + mSinbadNameid));
+      "dth Item " + mOgreHeadNameid + " " + mSinbadNameid));
   EXPECT_FALSE(OgreUtil::hasMovableObject(mSceneMgr, "ogrehead", "Entity"));
   EXPECT_FALSE(OgreUtil::hasMovableObject(mSceneMgr, "sinbad", "Entity"));
   EXPECT_TRUE(sgOgreConsole.execute("dth Light " + mLight0Nameid));
@@ -298,7 +315,7 @@ TEST_F(TestOgreScene, testDth1) {
   // dth ltl_sceneNode sceneNode moType movable("sn2")
   EXPECT_TRUE(sgOgreConsole.execute("dth sceneNode " + mEntNode0Nameid));
   EXPECT_TRUE(
-      sgOgreConsole.execute("dth sceneNode " + mEntNode1Nameid + " Entity"));
+      sgOgreConsole.execute("dth sceneNode " + mEntNode1Nameid + " Item"));
   EXPECT_TRUE(
       sgOgreConsole.execute("dth sceneNode " + mLightNodeNameid + " Light"));
   EXPECT_FALSE(OgreUtil::hasMovableObject(mSceneMgr, "light0", "Light"));
@@ -324,9 +341,9 @@ TEST_F(TestOgreScene, testDth2) {
 }
 
 TEST_F(TestOgreScene, testDthPrompt) {
-  sgConsole.getUi()->setCmdLine("dth Entity o");
+  sgConsole.getUi()->setCmdLine("dth Item o");
   sgConsole.prompt();
-  EXPECT_EQ("dth Entity " + mOgreHeadNameid, getCmdLine());
+  EXPECT_EQ("dth Item " + mOgreHeadNameid, getCmdLine());
   sgConsole.getUi()->setCmdLine(
       "dth sceneNode " + mEntNode0Nameid + " Entity o");
   sgConsole.prompt();
@@ -335,7 +352,7 @@ TEST_F(TestOgreScene, testDthPrompt) {
 }
 
 TEST_F(TestOgreScene, testEdmo) {
-  EXPECT_TRUE(sgOgreConsole.execute("edmo Entity " + mOgreHeadNameid));
+  EXPECT_TRUE(sgOgreConsole.execute("edmo Item " + mOgreHeadNameid));
   EXPECT_EQ(mOgreHeadNameid, sgOgreConsole.getCwd()->getName());
   EXPECT_TRUE(sgOgreConsole.execute(
       "edmo " + mEntNode1Nameid + " Entity " + mSinbadNameid));

@@ -3,5 +3,5 @@
 PluginFolder=@OGRE_PLUGIN_DIR@
 
 # Define plugins
-@OGRE_PLUGIN_RS_GL@
+@OGRE_PLUGIN_RS_GL3Plus@
 @OGRE_PLUGIN_PARTICLE_FX@

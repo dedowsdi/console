@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 #include <OgreSceneManager.h>
 #include <OgreEntity.h>
+#include <OgreItem.h>
 #include <OgreCamera.h>
 #include <OgreParticleSystem.h>
 #include <OgreUtil.h>
@@ -130,13 +131,13 @@ protected:
     mLight0 = mSceneMgr->createLight();
     mLight0->setName("light0");
     mCamera0 = mSceneMgr->createCamera("camera0");
-    mOgreHead = mSceneMgr->createEntity("ogrehead.mesh");
+    mOgreHead = mSceneMgr->createItem("ogrehead.mesh");
     mOgreHead->setName("ogrehead");
-    mSinbad = mSceneMgr->createEntity("sinbad.mesh");
+    mSinbad = mSceneMgr->createItem("sinbad.mesh");
     mSinbad->setName("sinbad");
-    mLeftSword = mSceneMgr->createEntity("sword.mesh");
+    mLeftSword = mSceneMgr->createItem("sword.mesh");
     mLeftSword->setName("leftSword");
-    mRightSword = mSceneMgr->createEntity("sword.mesh");
+    mRightSword = mSceneMgr->createItem("sword.mesh");
     mRightSword->setName("rightSword");
     mParticle0 = mSceneMgr->createParticleSystem("fireball");
     mParticle0->setName("particle0");
@@ -146,8 +147,8 @@ protected:
     mLightNode->attachObject(mLight0);
     mEntNode0->attachObject(mOgreHead);
     mEntNode1->attachObject(mSinbad);
-    mSinbad->attachObjectToBone("Hand.R", mRightSword);
-    mSinbad->attachObjectToBone("Hand.L", mLeftSword);
+    //mSinbad->attachObjectToBone("Hand.R", mRightSword);
+    //mSinbad->attachObjectToBone("Hand.L", mLeftSword);
 
     mDynamicRootNodeNameid = OgreUtil::createNameid(
         mSceneMgr->getRootSceneNode(Ogre::SCENE_DYNAMIC));
@@ -196,7 +197,7 @@ protected:
       *mParticleNode;
   Ogre::Light* mLight0;
   Ogre::Camera* mCamera0;
-  Ogre::Entity* mOgreHead, *mSinbad, *mLeftSword, *mRightSword;
+  Ogre::Item* mOgreHead, *mSinbad, *mLeftSword, *mRightSword;
   Ogre::ParticleSystem* mParticle0;
   ImplConsoleUI* mUi;
   std::string d;

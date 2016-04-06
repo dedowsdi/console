@@ -3,12 +3,15 @@
 #include "OgreConsole.h"
 #include <OgreMovableObject.h>
 #include <OgreParticleSystem.h>
+#include <OgreItem.h>
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
 #include <OgreResourceManager.h>
 #include <OgreParticleSystemManager.h>
 #include <OgreMeshManager.h>
+#include <OgreHlmsManager.h>
 #include <OgreTextureManager.h>
+#include <Animation/OgreSkeletonInstance.h>
 
 namespace pac {
 
@@ -17,9 +20,9 @@ MovableAH::MovableAH(const std::string& name /*= "movable"*/,
     const std::string& moType /*= ""*/, bool attachedOnly /*= false*/)
     : ArgHandler(name),
       mAttachedOnly(attachedOnly),
-      mEntity(0),
+      mItem(0),
       mSceneNode(0),
-      mEntityNode(0),
+      mItemNode(0),
       mBoneNode(0),
       mSnNode(0),
       mMoTypeNode(0),
@@ -35,7 +38,7 @@ void MovableAH::populatePromptBuffer(const std::string& s) {
     // sceneNode moType movable
     auto oi = mSceneNode->getAttachedObjectIterator();
     populateFromOgreIterator(oi, s);
-  } else if (mEntity) {
+  } else if (mItem) {
     PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED, "no tagpoint in 2.0");
     // entity [bone] moType movable
     // auto oi = mEntity->getAttachedObjectIterator();
@@ -65,10 +68,10 @@ bool MovableAH::doValidate(const std::string& s) {
     auto mo = OgreUtil::getMovableByIdtypeNoThrow(
         sm, OgreUtil::getIdFromNameid(s), mMoType);
     return mo && (!mAttachedOnly || mo->isAttached());
-  } else if (mEntity) {
+  } else if (mItem) {
     PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED, "no tagpoint in 2.0");
     // entity [bone] moType movable
-    // auto oi = mEntity->getAttachedObjectIterator();
+    // auto oi = mItem->getAttachedObjectIterator();
     // while (oi.hasMoreElements()) {
     // auto mo = oi.getNext();
     // if (mBone.empty() ||
@@ -93,7 +96,7 @@ std::string MovableAH::getUniformValue() const {
 //------------------------------------------------------------------------------
 void MovableAH::runtimeInit() {
   mBone.clear();
-  mEntity = 0;
+  mItem = 0;
   mSceneNode = 0;
   Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
   if (!mFixType) mMoType = mMoTypeNode->getValue();
@@ -105,8 +108,8 @@ void MovableAH::runtimeInit() {
   if (mSnNode) {
     mSceneNode = OgreUtil::getSceneNodeById(
         sm, mSnNode->getArgHandler()->getUniformValue());
-  } else if (mEntityNode) {
-    // mEntity = sm->getEntity(mEntityNode->getValue());
+  } else if (mItemNode) {
+    // mItem = sm->getEntity(mItemNode->getValue());
     // if (mBoneNode) mBone = mBoneNode->getValue();
   }
 }
@@ -114,7 +117,7 @@ void MovableAH::runtimeInit() {
 //------------------------------------------------------------------------------
 void MovableAH::onLinked(Node* grandNode) {
   mSnNode = mNode->getAncestorNode("parentSceneNode", 2);
-  mEntityNode = mNode->getAncestorNode("parentEntity", 3);
+  mItemNode = mNode->getAncestorNode("parentItem", 3);
   mBoneNode = mNode->getAncestorNode("parentBone", 2);
   if (!mFixType) {
     if (grandNode->isRoot() || grandNode->getAhName() != "moType")
@@ -156,42 +159,42 @@ std::string MovableTH::getUniformValue() const {
 }
 
 //------------------------------------------------------------------------------
-BoneAH::BoneAH() : ArgHandler("bone"), mEntity(0), mEntityNode(0) {}
+BoneAH::BoneAH() : ArgHandler("bone"), mItem(0), mItemNode(0) {}
 
 //------------------------------------------------------------------------------
 void BoneAH::populatePromptBuffer(const std::string& s) {
-  // if (mEntity->hasSkeleton()) {
-  // Ogre::SkeletonInstance* sk = mEntity->getSkeleton();
-  // auto oi = sk->getBoneIterator();
-  // while (oi.hasMoreElements()) {
-  // const std::string& name = oi.getNext()->getName();
-  // if (s.empty() || StringUtil::startsWith(name, s))
-  // appendPromptBuffer(name);
-  //}
-  //}
+  if (mItem->hasSkeleton()) {
+    Ogre::SkeletonInstance* sk = mItem->getSkeletonInstance();
+    for (size_t i = 0; i < sk->getNumBones(); ++i) {
+      const std::string& name = sk->getBone(i)->getName();
+      if (s.empty() || StringUtil::startsWith(name, s)) {
+        appendPromptBuffer(name);
+      }
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
 bool BoneAH::doValidate(const std::string& s) {
-  // if (mEntity->hasSkeleton()) {
-  // Ogre::SkeletonInstance* sk = mEntity->getSkeleton();
-  // return sk->hasBone(s);
-  //}
-
+  if (mItem->hasSkeleton()) {
+    return mItem->getSkeletonInstance()->getBone(s);
+  }
   return false;
 }
 
 //------------------------------------------------------------------------------
 void BoneAH::runtimeInit() {
-  // Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
-  // mEntity = sm->getEntity(mEntityNode->getValue());
+  Ogre::SceneManager* sm = sgOgreConsole.getSceneMgr();
+  mItem = static_cast<Ogre::Item*>(OgreUtil::getMovableByIdtype(
+      sm, mItemNode->getArgHandler()->getUniformValue()));
 }
 
 //------------------------------------------------------------------------------
 void BoneAH::onLinked(Node* grandNode) {
-  if (grandNode->isRoot() || grandNode->getAhName() != "entity")
-    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "bone must follow entity");
-  mEntityNode = grandNode;
+  mItemNode = mNode->getAncestorNode("item", 1);
+  if (!mItemNode) {
+    PAC_EXCEPT(Exception::ERR_INVALID_STATE, "bone must follow item");
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -454,6 +457,35 @@ void ParticleSystemTemplateAH::populatePromptBuffer(const std::string& s) {
 //------------------------------------------------------------------------------
 bool ParticleSystemTemplateAH::doValidate(const std::string& s) {
   return mManager->getTemplate(s);
+}
+
+//------------------------------------------------------------------------------
+DatablockAH::DatablockAH(Ogre::HlmsManager* mgr) : ArgHandler("datablock") {}
+
+//------------------------------------------------------------------------------
+void DatablockAH::populatePromptBuffer(const std::string& s) {
+#ifndef NDEBUG
+  auto blockMap = mManager->getDatablocks();
+  std::for_each(blockMap.begin(), blockMap.end(),
+      [&](std::map<const Ogre::IdString, Ogre::HlmsDatablock*>::value_type& v)
+          -> void {
+            const std::string&& block = v.first.getFriendlyText();
+            if (s.empty() || StringUtil::startsWith(block, s))
+              appendPromptBuffer(block);
+          });
+  const std::string&& block =
+      mManager->getDefaultDatablock()->getName().getFriendlyText();
+  if (s.empty() || StringUtil::startsWith(block, s)) appendPromptBuffer(block);
+#endif
+}
+
+//------------------------------------------------------------------------------
+bool DatablockAH::doValidate(const std::string& s) {
+#ifndef NDEBUG
+  auto datablock = mManager->getDatablock(s);
+  return datablock->getName().getFriendlyText() == s;
+#endif
+  return false;
 }
 
 //------------------------------------------------------------------------------

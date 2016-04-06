@@ -45,7 +45,6 @@ public:
     virtual void doSet(void* target, ArgHandler* handler);
   };
 
-
   struct _PacExport Diffuse : public ParamCmd {
     Diffuse() : ParamCmd("nreal3") {}
     virtual std::string doGet(const void* target) const;
@@ -141,11 +140,11 @@ public:
     virtual void doSet(void* target, ArgHandler* handler);
   };
 
-  struct _PacExport PolygonMode : public ParamCmd {
-    PolygonMode() : ParamCmd("en_polygonMode") {}
-    virtual std::string doGet(const void* target) const;
-    virtual void doSet(void* target, ArgHandler* handler);
-  };
+  //struct _PacExport PolygonMode : public ParamCmd {
+    //PolygonMode() : ParamCmd("en_polygonMode") {}
+    //virtual std::string doGet(const void* target) const;
+    //virtual void doSet(void* target, ArgHandler* handler);
+  //};
 
   struct _PacExport Direction : public ParamCmd {
     Direction() : ParamCmd("real3") {}
@@ -168,14 +167,14 @@ protected:
 protected:
   static Position msPosition;
   static Orientation msOrientation;
-  static PolygonMode msPolygonMode;
+  //static PolygonMode msPolygonMode;
   static Direction msDirection;
 };
 
-class _PacExport EntitySI : public MovableSI {
+class _PacExport ItemSI : public MovableSI {
 public:
-  EntitySI(Ogre::Entity* ent);
-  Ogre::Entity* getEntity() const;
+  ItemSI(Ogre::Item* ent);
+  Ogre::Item* getItem() const;
 
 protected:
   void initParams();
@@ -194,7 +193,6 @@ public:
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
-  
 
   struct _PacExport Orientation : public ParamCmd {
     Orientation() : ParamCmd("quaternion") {}
@@ -222,8 +220,6 @@ public:
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
-
-
 
   NodeSI(Ogre::Node* node);
 
@@ -266,23 +262,21 @@ protected:
 
   static Direction msDirection;
   static LookAt msLookAt;
-
 };
 
 class _PacExport SceneManagerSI : public StringInterface {
 public:
-
   struct _PacExport ShadowColour : public ParamCmd {
     ShadowColour() : ParamCmd("nreal4") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
 
-  struct _PacExport AmbientLight : public ParamCmd {
-    AmbientLight() : ParamCmd("nreal4") {}
-    virtual std::string doGet(const void* target) const;
-    virtual void doSet(void* target, ArgHandler* handler);
-  };
+  //struct _PacExport AmbientLight : public ParamCmd {
+    //AmbientLight() : ParamCmd("nreal4") {}
+    //virtual std::string doGet(const void* target) const;
+    //virtual void doSet(void* target, ArgHandler* handler);
+  //};
 
   struct _PacExport Fog : public ParamCmd {
     Fog() : ParamCmd("fog") {}
@@ -298,9 +292,9 @@ protected:
 
 protected:
   Ogre::SceneManager* mSceneMgr;
-  //static ShadowTechnique msShadowTechnique;
+  // static ShadowTechnique msShadowTechnique;
   static ShadowColour msShadowColour;
-  static AmbientLight msAmbientLight;
+  //static AmbientLight msAmbientLight;
   static Fog msFog;
 };
 }
