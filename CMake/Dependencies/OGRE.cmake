@@ -40,7 +40,7 @@ macro( setupPluginFileFromTemplate BUILD_TYPE )
 	findPluginAndSetPath( ${BUILD_TYPE} OGRE_PLUGIN_RS_GL	RenderSystem_GL )
 	findPluginAndSetPath( ${BUILD_TYPE} OGRE_PLUGIN_PARTICLE_FX	Plugin_ParticleFX )
 
-	configure_file( ${CMAKE_SOURCE_DIR}/ogre/CMake/Templates/plugins.cfg.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.cfg )
+	configure_file( ${CMAKE_SOURCE_DIR}/CMake/Templates/plugins.cfg.in ${CMAKE_CURRENT_BINARY_DIR}/plugins.cfg )
 
 	if( WIN32 )
 		# Copy standard DLLs
