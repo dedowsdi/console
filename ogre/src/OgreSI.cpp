@@ -3,6 +3,7 @@
 #include "OgreParticleSystemSI.h"
 #include "pacEnumUtil.h"
 #include "pacArgHandler.h"
+#include "pacStringInterface.h"
 #include "OgreUtil.h"
 #include <OgreLight.h>
 #include <OgreCamera.h>

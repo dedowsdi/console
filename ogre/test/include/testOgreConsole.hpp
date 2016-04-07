@@ -49,7 +49,7 @@ TEST_F(TestOgreScene, testEditNode) {
   EXPECT_FALSE(
       sgOgreConsole.execute("ednd parentOfmovable " + mLeftSwordNameid));
   EXPECT_TRUE(
-      sgOgreConsole.execute("ednd parentOfMovable Entity " + mOgreHeadNameid));
+      sgOgreConsole.execute("ednd parentOfMovable Item " + mOgreHeadNameid));
 }
 
 TEST_F(TestOgreScene, testRmNode) {
@@ -126,10 +126,10 @@ TEST_F(TestOgreScene, testLsnd) {
   EXPECT_TRUE(
       sgOgreConsole.execute("lsnd parentOfNode " + mDynamicRootNodeNameid));
   EXPECT_TRUE(
-      sgOgreConsole.execute("lsnd parentOfMovable Entity " + mOgreHeadNameid));
+      sgOgreConsole.execute("lsnd parentOfMovable Item " + mOgreHeadNameid));
   EXPECT_EQ(getSortedVector({mEntNode0Nameid}), mUi->getItems());
   EXPECT_TRUE(
-      sgOgreConsole.execute("lsnd parentOfMovable Entity " + mLeftSwordNameid));
+      sgOgreConsole.execute("lsnd parentOfMovable Item " + mLeftSwordNameid));
 }
 
 TEST_F(TestOgreScene, testLsNodePrompt) {
@@ -199,7 +199,7 @@ TEST_F(TestOgreScene, testLsmoOutput) {
   //" SCENE_DYNAMIC " + mEntNode0Nameid));
   // EXPECT_EQ(getSortedVector({mOgreHeadNameid}), mUi->getItems());
   EXPECT_TRUE(
-      sgOgreConsole.execute("lsmo sceneNode " + mEntNode0Nameid + " Entity"));
+      sgOgreConsole.execute("lsmo sceneNode " + mEntNode0Nameid + " Item"));
   EXPECT_EQ(getSortedVector({mOgreHeadNameid}), mUi->getItems());
 }
 
@@ -263,23 +263,13 @@ TEST_F(TestOgreScene, testAth) {
   // ath ltl_tagPoint entity bone ltl_camera id ("tag3")
   EXPECT_TRUE(sgOgreConsole.execute(
       "ath tagPoint " + mSinbadNameid + " IndexFingerDist.L light ebl0 "));
-  EXPECT_FALSE(sgOgreConsole.execute(
-      "ath tagPoint " + mSinbadNameid + " IndexFingerDist.L light ebl0 "));
   EXPECT_TRUE(
       sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
-                            " IndexFingerDist.L entity ebe0 ogrehead.mesh"));
-  EXPECT_FALSE(
-      sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
-                            " IndexFingerDist.L entity ebe0 ogrehead.mesh"));
+                            " IndexFingerDist.L item ebe0 ogrehead.mesh"));
   EXPECT_TRUE(
-      sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
-                            " IndexFingerDist.L particle ebp0 fireball"));
-  EXPECT_FALSE(
       sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
                             " IndexFingerDist.L particle ebp0 fireball"));
   EXPECT_TRUE(sgOgreConsole.execute(
-      "ath tagPoint " + mSinbadNameid + " IndexFingerDist.L camera ebc0"));
-  EXPECT_FALSE(sgOgreConsole.execute(
       "ath tagPoint " + mSinbadNameid + " IndexFingerDist.L camera ebc0"));
 }
 
@@ -302,8 +292,8 @@ TEST_F(TestOgreScene, testDth0) {
   // dth moType movable... ("m0")
   EXPECT_TRUE(sgOgreConsole.execute(
       "dth Item " + mOgreHeadNameid + " " + mSinbadNameid));
-  EXPECT_FALSE(OgreUtil::hasMovableObject(mSceneMgr, "ogrehead", "Entity"));
-  EXPECT_FALSE(OgreUtil::hasMovableObject(mSceneMgr, "sinbad", "Entity"));
+  EXPECT_FALSE(OgreUtil::hasMovableObject(mSceneMgr, "ogrehead", "Item"));
+  EXPECT_FALSE(OgreUtil::hasMovableObject(mSceneMgr, "sinbad", "Item"));
   EXPECT_TRUE(sgOgreConsole.execute("dth Light " + mLight0Nameid));
   EXPECT_FALSE(OgreUtil::hasMovableObject(mSceneMgr, "light0", "Light"));
   EXPECT_TRUE(sgOgreConsole.execute("dth Camera " + mCamera0Nameid));
@@ -345,9 +335,9 @@ TEST_F(TestOgreScene, testDthPrompt) {
   sgConsole.prompt();
   EXPECT_EQ("dth Item " + mOgreHeadNameid, getCmdLine());
   sgConsole.getUi()->setCmdLine(
-      "dth sceneNode " + mEntNode0Nameid + " Entity o");
+      "dth sceneNode " + mEntNode0Nameid + " Item o");
   sgConsole.prompt();
-  EXPECT_EQ("dth sceneNode " + mEntNode0Nameid + " Entity " + mOgreHeadNameid,
+  EXPECT_EQ("dth sceneNode " + mEntNode0Nameid + " Item " + mOgreHeadNameid,
       getCmdLine());
 }
 
@@ -355,7 +345,7 @@ TEST_F(TestOgreScene, testEdmo) {
   EXPECT_TRUE(sgOgreConsole.execute("edmo Item " + mOgreHeadNameid));
   EXPECT_EQ(mOgreHeadNameid, sgOgreConsole.getCwd()->getName());
   EXPECT_TRUE(sgOgreConsole.execute(
-      "edmo " + mEntNode1Nameid + " Entity " + mSinbadNameid));
+      "edmo " + mEntNode1Nameid + " Item " + mSinbadNameid));
   EXPECT_EQ(mSinbadNameid, sgOgreConsole.getCwd()->getName());
   // EXPECT_TRUE(
   // sgOgreConsole.execute("edmo tagPoint sinbad Hand.R Entity rightSword"));

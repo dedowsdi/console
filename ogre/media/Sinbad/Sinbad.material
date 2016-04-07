@@ -1,0 +1,67 @@
+hlms Sinbad/Body pbs
+{
+	diffuse 1 1 1 
+		diffuse_map sinbad_body.tga
+}
+hlms Sinbad/Gold pbs
+{
+	diffuse 0.8 0.8 0.8 
+		specular 0.3 0.3 0.2
+		diffuse_map sinbad_clothes.tga
+}
+hlms Sinbad/Sheaths pbs
+{
+	diffuse 1 1 1 
+		specular 0.2 0.1 0.1 1.0
+		diffuse_map sinbad_sword.tga
+}
+hlms Sinbad/Clothes pbs
+{
+	diffuse 1 1 1 1
+		specular 0.05 0.05 0.05
+		diffuse_map sinbad_clothes.tga
+}
+hlms Sinbad/Teeth pbs
+{
+	diffuse 1 1 1 1
+		specular 0.25 0.25 0.25
+		diffuse_map sinbad_body.tga
+}
+hlms Sinbad/Eyes pbs
+{
+	diffuse 1 1 1 1
+		specular 0.75 0.75 0.75
+		diffuse_map sinbad_body.tga
+}
+hlms Sinbad/Spikes pbs
+{
+	diffuse 1 1 1 1
+		specular 0.75 0.75 0.75
+		diffuse_map sinbad_clothes.tga
+}
+hlms Sinbad/Blade pbs
+{
+	diffuse 1 1 1 1
+		specular 1 1 1
+		diffuse_map sinbad_sword.tga
+}
+hlms Sinbad/Ruby pbs
+{
+	diffuse 1 1 1 1
+		specular 0.75 0.75 0.75
+
+		diffuse_map sinbad_sword.tga
+}
+hlms Sinbad/Hilt pbs
+{
+	diffuse 0.8 0.8 0.8 1
+		specular 0.3 0.3 0.2
+
+		diffuse_map sinbad_sword.tga
+}
+hlms Sinbad/Handle pbs
+{
+	diffuse 1 1 1 1
+		specular 0.05 0.05 0.05
+		diffuse_map sinbad_sword.tga
+}

@@ -6,6 +6,8 @@
 #include "pacStringUtil.h"
 #include "pacAbsDir.h"
 #include "OgreArgHandler.h"
+#include <OgreRoot.h>
+#include <OgreHlmsManager.h>
 #include <OgreSceneManager.h>
 #include <OgreMaterialManager.h>
 #include <OgreMeshManager2.h>
@@ -68,7 +70,7 @@ bool LsresCmd::doExecute() {
   boost::regex regex(reExp);
   RaiiConsoleBuffer rcb;
 
-  if (resType != "pst") {
+  if (resType != "pst" && resType != "datablock") {
     // normal resource managed by child class or Ogre::ResourceManager
     auto rm = getResourceManager(resType);
     auto oi = rm->getResourceIterator();
@@ -92,7 +94,7 @@ bool LsresCmd::doExecute() {
             }
           });
     }
-  } else {
+  } else if (resType == "pst") {
     // particle system template
     auto oi =
         Ogre::ParticleSystemManager::getSingletonPtr()->getTemplateIterator();
@@ -101,6 +103,18 @@ bool LsresCmd::doExecute() {
       if (reExp.empty() || boost::regex_match(ps->getName(), regex))
         sgConsole.output(ps->getName());
     }
+  } else if (resType == "datablock") {
+    // datablock
+    auto mgr = Ogre::Root::getSingleton().getHlmsManager();
+    auto oi = mgr->getDatablocks();
+    auto blockMap = mgr->getDatablocks();
+    std::for_each(blockMap.begin(), blockMap.end(),
+        [&](std::map<const Ogre::IdString, Ogre::HlmsDatablock*>::value_type& v)
+            -> void {
+              const std::string&& block = v.first.getFriendlyText();
+              sgConsole.output(block);
+            });
+    sgConsole.output(mgr->getDefaultDatablock()->getName().getFriendlyText());
   }
 
   return true;
@@ -248,7 +262,7 @@ bool AthCmd::doExecute() {
   if (handler->hasMatchedNode("ltl_light"))
     moType = "Light";
   else if (handler->hasMatchedNode("ltl_item"))
-    moType = "Entity";
+    moType = "Item";
   else if (handler->hasMatchedNode("ltl_particle"))
     moType = "ParticleSystem";
   else if (handler->hasMatchedNode("ltl_camera"))
@@ -263,7 +277,7 @@ bool AthCmd::doExecute() {
   } else if (branch == "sn1" || branch == "tag1") {
     // ath ltl_sceneNode t_sceneNode ltl_item id mesh ("sn1")
     // ath ltl_tagPoint entity bone ltl_item id mesh ("tag1")
-    mo = sceneMgr->createEntity(handler->getMatchedNodeValue("mesh"));
+    mo = sceneMgr->createItem(handler->getMatchedNodeValue("mesh"));
   } else if (branch == "sn2" || branch == "tag2") {
     // ath ltl_sceneNode t_sceneNode ltl_particle id pst ("sn2")
     // ath ltl_tagPoint entity bone ltl_particle id pst ("tag2")
@@ -411,7 +425,7 @@ bool LsmoCmd::buildArgHandler() {
   // lsmo ltl_sceneNode sceneNode moType ("sn1")
   snNode->acn("moType")->eb("sn1");
 
-  Node* entNode = root->acn("ltl_tagPoint")->acn("entity");
+  Node* entNode = root->acn("ltl_tagPoint")->acn("item");
   // lsmo ltl_tagPoint entity ("tag0")
   entNode->eb("tag0");
   // lsmo ltl_tagPoint entity moType ("tag1")
@@ -517,7 +531,7 @@ bool DthCmd::buildArgHandler() {
   //  dth ltl_sceneNode t_sceneNode moType movable("sn2")
   motNode->acn("movable")->eb("sn2");
 
-  Node* entNode = root->acn("ltl_tagPoint")->acn("entity");
+  Node* entNode = root->acn("ltl_tagPoint")->acn("item");
   // dth ltl_tagPoint entity ("tag0")
   entNode->eb("tag0");
   // dth ltl_tagPoint entity moType  ("tag1")

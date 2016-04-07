@@ -13,6 +13,7 @@
 #include <OgreSceneManager.h>
 //#include <OgreCompositorManager.h>
 #include <OgreNode.h>
+#include <OgreRoot.h>
 
 namespace pac {
 
@@ -117,6 +118,8 @@ void OgreConsole::initResourceArghandler() {
       Ogre::TextureManager::getSingletonPtr(), {"png", "jpg", "jpeg", "dds"}));
   sgArgLib.registerArgHandler(new ParticleSystemTemplateAH(
       Ogre::ParticleSystemManager::getSingletonPtr()));
+  sgArgLib.registerArgHandler(
+      new DatablockAH(Ogre::Root::getSingleton().getHlmsManager()));
   // sgArgLib.registerArgHandler(
   // new ResourceAH("compositor", Ogre::CompositorManager::getSingletonPtr()));
 }
@@ -192,8 +195,8 @@ void OgreConsole::initStringArgHandler() {
       new StringArgHandler("affector_force_application", {"average", "add"});
   sgArgLib.registerArgHandler(forceApp);
 
-  StringArgHandler* resType =
-      new StringArgHandler("resType", {"material", "mesh", "texture", "pst", "datablock"});
+  StringArgHandler* resType = new StringArgHandler(
+      "resType", {"material", "mesh", "texture", "pst", "datablock"});
   sgArgLib.registerArgHandler(resType);
 
   StringArgHandler* emitterType = new StringArgHandler("emitterType",

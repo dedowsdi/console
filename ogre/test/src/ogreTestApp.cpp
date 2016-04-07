@@ -15,6 +15,10 @@ This source file is part of the
 -----------------------------------------------------------------------------
 */
 #include "ogreTestApp.h"
+#include <OgreArchiveManager.h>
+#include <OgreHlms.h>
+#include <OgreHlmsPbs.h>
+#include <OgreHlmsManager.h>
 
 //------------------------------------------------------------------------------
 OgreTestApp::OgreTestApp(void)
@@ -40,8 +44,8 @@ bool OgreTestApp::configure(void) {
   // Show the configuration dialog and initialise the system
   // You can skip this and use root.restoreConfig() to load configuration
   // settings if you were sure there are valid ones saved in ogre.cfg
-  if (mRoot->showConfigDialog()) {
-  //if (mRoot->restoreConfig()) {
+  // if (mRoot->showConfigDialog()) {
+  if (mRoot->restoreConfig()) {
     // If returned true, user clicked OK so initialise
     // Here we choose to let the system create a default rendering window by
     // passing 'true'
@@ -80,8 +84,7 @@ void OgreTestApp::createFrameListener(void) {
 }
 
 //------------------------------------------------------------------------------
-void OgreTestApp::createScene(void) {
-}
+void OgreTestApp::createScene(void) {}
 //------------------------------------------------------------------------------
 void OgreTestApp::destroyScene(void) {}
 //------------------------------------------------------------------------------
@@ -96,7 +99,7 @@ void OgreTestApp::setupResources(void) {
   Ogre::String secName, typeName, archName;
   while (seci.hasMoreElements()) {
     secName = seci.peekNextKey();
-    Ogre::ConfigFile::SettingsMultiMap* settings = seci.getNext();
+    Ogre::ConfigFile::SettingsMultiMap *settings = seci.getNext();
     Ogre::ConfigFile::SettingsMultiMap::iterator i;
     for (i = settings->begin(); i != settings->end(); ++i) {
       typeName = i->first;
@@ -111,6 +114,21 @@ void OgreTestApp::createResourceListener(void) {}
 //------------------------------------------------------------------------------
 void OgreTestApp::loadResources(void) {
   Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+}
+
+//------------------------------------------------------------------------------
+void OgreTestApp::initHlms() {
+  Ogre::Archive *archiveLibrary = Ogre::ArchiveManager::getSingletonPtr()->load(
+      "/usr/local/source/ogre/ogre2.1/Samples/Media/Hlms/Common/GLSL",
+      "FileSystem", true);
+  Ogre::ArchiveVec library;
+  library.push_back(archiveLibrary);
+
+  Ogre::Archive *archivePbs = Ogre::ArchiveManager::getSingletonPtr()->load(
+      "/usr/local/source/ogre/ogre2.1/Samples/Media/Hlms/Pbs/GLSL",
+      "FileSystem", true);
+  Ogre::HlmsPbs *hlmsPbs = OGRE_NEW Ogre::HlmsPbs(archivePbs, &library);
+  Ogre::Root::getSingleton().getHlmsManager()->registerHlms(hlmsPbs);
 }
 //------------------------------------------------------------------------------
 void OgreTestApp::go(void) {
@@ -137,6 +155,8 @@ bool OgreTestApp::setup(void) {
 
   bool carryOn = configure();
   if (!carryOn) return false;
+
+  initHlms();
 
   chooseSceneManager();
   createCamera();

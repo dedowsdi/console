@@ -53,6 +53,7 @@ protected:
   virtual void setupResources(void);
   virtual void createResourceListener(void);
   virtual void loadResources(void);
+  virtual void initHlms();
 
 
   Ogre::Root* mRoot;

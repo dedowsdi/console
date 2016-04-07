@@ -6,6 +6,10 @@
 #include <Compositor/Pass/PassClear/OgreCompositorPassClearDef.h>
 #include <Compositor/Pass/PassScene/OgreCompositorPassSceneDef.h>
 #include <Compositor/OgreCompositorWorkspaceDef.h>
+#include <OgreHlms.h>
+#include <OgreHlmsPbs.h>
+#include <OgreHlmsUnlit.h>
+#include <OgreHlmsManager.h>
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
 #include <macUtils.h>
@@ -52,8 +56,8 @@ bool BaseMyguiApp::configure(void) {
   // Show the configuration dialog and initialise the system.
   // You can skip this and use root.restoreConfig() to load configuration
   // settings if you were sure there are valid ones saved in ogre.cfg.
-   if(mRoot->showConfigDialog()){
-  //if (mRoot->restoreConfig()) {
+   //if(mRoot->showConfigDialog()){
+  if (mRoot->restoreConfig()) {
     // If returned true, user clicked OK so initialise.
     // Here we choose to let the system create a default rendering window by
     // passing 'true'.
@@ -140,7 +144,7 @@ void BaseMyguiApp::createFrameListener(void) {
 
 //------------------------------------------------------------------------------
 void BaseMyguiApp::createScene(void) {
-  Ogre::Entity *ent = mSceneMgr->createEntity("ogrehead.mesh");
+  Ogre::Item *ent = mSceneMgr->createItem("Sphere1000.mesh");
   ent->setName("ogrehead");
   auto node = mSceneMgr->getRootSceneNode()->createChildSceneNode();
   node->setName("en0");
@@ -157,38 +161,38 @@ void BaseMyguiApp::destroyScene(void) {}
 //---------------------------------------------------------------------------
 void BaseMyguiApp::createWorkspace(void) {
   const Ogre::IdString workspaceName("MyOwnWorkspace");
-  // Ogre::CompositorManager2 *compositorManager =
-  // mRoot->getCompositorManager2();
-  // if (!compositorManager->hasWorkspaceDefinition(workspaceName))
-  // compositorManager->createBasicWorkspaceDef(
-  // workspaceName, Ogre::ColourValue(0.0f, 0.0f, 0.0f));
-  // compositorManager->addWorkspace(
-  // mSceneMgr, mWindow, mCamera, workspaceName, true);
+   Ogre::CompositorManager2 *compositorManager =
+   mRoot->getCompositorManager2();
+   if (!compositorManager->hasWorkspaceDefinition(workspaceName))
+   compositorManager->createBasicWorkspaceDef(
+   workspaceName, Ogre::ColourValue(0.0f, 0.0f, 0.0f));
+   compositorManager->addWorkspace(
+   mSceneMgr, mWindow, mCamera, workspaceName, true);
 
-  Ogre::CompositorManager2 *pCompositorManager =
-      Ogre::Root::getSingleton().getCompositorManager2();
-  Ogre::CompositorNodeDef *nodeDef =
-      pCompositorManager->addNodeDefinition("myworkspace");
-  // Input texture
-  nodeDef->addTextureSourceName(
-      "WindowRT", 0, Ogre::TextureDefinitionBase::TEXTURE_INPUT);
-  // add target pass
-  nodeDef->setNumTargetPass(1);
-  Ogre::CompositorTargetDef *targetDef = nodeDef->addTargetPass("WindowRT");
-  // add clear, scene, mygui passes
-  targetDef->setNumPasses(3);
-  auto passClear = static_cast<Ogre::CompositorPassClearDef *>(
-      targetDef->addPass(Ogre::PASS_CLEAR));
-  passClear->mColourValue = Ogre::ColourValue(0, 0, 0);
-  targetDef->addPass(Ogre::PASS_SCENE);
-  targetDef->addPass(
-      Ogre::PASS_CUSTOM, MyGUI::OgreCompositorPassProvider::mPassId);
-  Ogre::CompositorWorkspaceDef *workDef =
-      pCompositorManager->addWorkspaceDefinition(workspaceName);
-  workDef->connectOutput(nodeDef->getName(), 0);
+  //Ogre::CompositorManager2 *pCompositorManager =
+      //Ogre::Root::getSingleton().getCompositorManager2();
+  //Ogre::CompositorNodeDef *nodeDef =
+      //pCompositorManager->addNodeDefinition("myworkspace");
+  //// Input texture
+  //nodeDef->addTextureSourceName(
+      //"WindowRT", 0, Ogre::TextureDefinitionBase::TEXTURE_INPUT);
+  //// add target pass
+  //nodeDef->setNumTargetPass(1);
+  //Ogre::CompositorTargetDef *targetDef = nodeDef->addTargetPass("WindowRT");
+  //// add clear, scene, mygui passes
+  //targetDef->setNumPasses(3);
+  //auto passClear = static_cast<Ogre::CompositorPassClearDef *>(
+      //targetDef->addPass(Ogre::PASS_CLEAR));
+  //passClear->mColourValue = Ogre::ColourValue(0, 0, 0);
+  //targetDef->addPass(Ogre::PASS_SCENE);
+  //targetDef->addPass(
+      //Ogre::PASS_CUSTOM, MyGUI::OgreCompositorPassProvider::mPassId);
+  //Ogre::CompositorWorkspaceDef *workDef =
+      //pCompositorManager->addWorkspaceDefinition(workspaceName);
+  //workDef->connectOutput(nodeDef->getName(), 0);
 
-  pCompositorManager->addWorkspace(
-      mSceneMgr, mWindow, mCamera, workspaceName, true);
+  //pCompositorManager->addWorkspace(
+      //mSceneMgr, mWindow, mCamera, workspaceName, true);
 }
 //---------------------------------------------------------------------------
 void BaseMyguiApp::setupResources(void) {
@@ -256,6 +260,26 @@ void BaseMyguiApp::go(void) {
   destroyScene();
 }
 
+//------------------------------------------------------------------------------
+void BaseMyguiApp::initHlms() {
+  Ogre::Archive *archiveLibrary = Ogre::ArchiveManager::getSingletonPtr()->load(
+      "/usr/local/source/ogre/ogre2.1/Samples/Media/Hlms/Common/GLSL",
+      "FileSystem", true);
+  Ogre::ArchiveVec library;
+  library.push_back(archiveLibrary);
+
+  Ogre::Archive *archivePbs = Ogre::ArchiveManager::getSingletonPtr()->load(
+      "/usr/local/source/ogre/ogre2.1/Samples/Media/Hlms/Pbs/GLSL",
+      "FileSystem", true);
+  Ogre::HlmsPbs *hlmsPbs = OGRE_NEW Ogre::HlmsPbs(archivePbs, &library);
+  Ogre::Root::getSingleton().getHlmsManager()->registerHlms(hlmsPbs);
+  Ogre::Archive *archiveUnlit = Ogre::ArchiveManager::getSingletonPtr()->load(
+      "/usr/local/source/ogre/ogre2.1/Samples/Media/Hlms/Unlit/GLSL",
+      "FileSystem", true);
+  Ogre::HlmsUnlit *hlmsUnlit = OGRE_NEW Ogre::HlmsUnlit(archiveUnlit, &library);
+  Ogre::Root::getSingleton().getHlmsManager()->registerHlms(hlmsUnlit);
+}
+
 //---------------------------------------------------------------------------
 bool BaseMyguiApp::setup(void) {
   mRoot = new Ogre::Root(mPluginsCfg);
@@ -264,6 +288,8 @@ bool BaseMyguiApp::setup(void) {
 
   bool carryOn = configure();
   if (!carryOn) return false;
+
+  initHlms();
 
   chooseSceneManager();
   createCamera();
@@ -281,8 +307,8 @@ bool BaseMyguiApp::setup(void) {
 
   createFrameListener();
 
-  initGui();
-  initConsole();
+  //initGui();
+  //initConsole();
   createWorkspace();
 
   return true;
@@ -313,11 +339,11 @@ bool BaseMyguiApp::frameStarted(const Ogre::FrameEvent &evt) {
 
 //------------------------------------------------------------------
 void BaseMyguiApp::initGui() {
-  mPlatform = new MyGUI::OgrePlatform();
+  mPlatform = new MyGUI::Ogre2Platform();
   Ogre::WindowEventUtilities::addWindowEventListener(
-      mWindow, MyGUI::OgreRenderManager::getInstancePtr());
+      mWindow, MyGUI::Ogre2RenderManager::getInstancePtr());
   // mWindow is Ogre::RenderWindow*, mSceneMgr is Ogre::SceneManager*
-  mPlatform->initialise(mWindow, "Mygui");
+  mPlatform->initialise(mWindow, mSceneMgr, "Mygui");
 
   mGUI = new MyGUI::Gui();
   mGUI->initialise();
@@ -336,6 +362,7 @@ void BaseMyguiApp::initConsole() {
 
 //---------------------------------------------------------------------------
 bool BaseMyguiApp::keyPressed(const OIS::KeyEvent &arg) {
+  return true;
   if (mExecuteing) {
     return true;
   }
@@ -373,6 +400,7 @@ bool BaseMyguiApp::keyPressed(const OIS::KeyEvent &arg) {
 
 //---------------------------------------------------------------------------
 bool BaseMyguiApp::keyReleased(const OIS::KeyEvent &arg) {
+  return true;
   MyGUI::InputManager::getInstance().injectKeyRelease(
       MyGUI::KeyCode::Enum(arg.key));
   return true;
@@ -380,6 +408,7 @@ bool BaseMyguiApp::keyReleased(const OIS::KeyEvent &arg) {
 
 //---------------------------------------------------------------------------
 bool BaseMyguiApp::mouseMoved(const OIS::MouseEvent &arg) {
+  return true;
   MyGUI::InputManager::getInstance().injectMouseMove(
       arg.state.X.abs, arg.state.Y.abs, arg.state.Z.abs);
   return true;
@@ -387,6 +416,7 @@ bool BaseMyguiApp::mouseMoved(const OIS::MouseEvent &arg) {
 //---------------------------------------------------------------------------
 bool BaseMyguiApp::mousePressed(
     const OIS::MouseEvent &arg, OIS::MouseButtonID id) {
+  return true;
   MyGUI::InputManager::getInstance().injectMousePress(
       arg.state.X.abs, arg.state.Y.abs, MyGUI::MouseButton::Enum(id));
   return true;
@@ -394,6 +424,7 @@ bool BaseMyguiApp::mousePressed(
 //---------------------------------------------------------------------------
 bool BaseMyguiApp::mouseReleased(
     const OIS::MouseEvent &arg, OIS::MouseButtonID id) {
+  return true;
   MyGUI::InputManager::getInstance().injectMouseRelease(
       arg.state.X.abs, arg.state.Y.abs, MyGUI::MouseButton::Enum(id));
   return true;
@@ -436,7 +467,7 @@ MyGUI::MapString BaseMyguiApp::getStatistic() {
     result["triangle"] = MyGUI::utility::toString(stats.triangleCount);
     result["batch"] = MyGUI::utility::toString(stats.batchCount);
     result["batch gui"] = MyGUI::utility::toString(
-        MyGUI::OgreRenderManager::getInstance().getBatchCount());
+        MyGUI::Ogre2RenderManager::getInstance().getBatchCount());
   } catch (...) {
     MYGUI_LOG(Warning, "Error get statistics");
   }

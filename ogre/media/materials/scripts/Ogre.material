@@ -1,66 +1,20 @@
-material Ogre/Earring
+hlms Ogre/Earring pbs
 {
-	technique
-	{
-		pass
-		{
-			ambient 0.7 0.7 0
-			diffuse 0.7 0.7 0
-
-			texture_unit
-			{
-				texture spheremap.png
-				colour_op_ex add src_texture src_current
-				colour_op_multipass_fallback one one
-				env_map spherical
-			}
-		}
-	}
+	diffuse 0.7 0.7 0
+	diffuse_map spheremap.png
 }
 
-material Ogre/Skin
+hlms Ogre/Skin pbs
 {
-	technique
-	{
-		pass
-		{
-			ambient 0.3 0.8 0.3
-
-			texture_unit
-			{
-				texture GreenSkin.jpg
-				tex_address_mode mirror
-			}
-		}
-	}
+	diffuse_map GreenSkin.jpg
 }
 
-material Ogre/Tusks
+hlms Ogre/Tusks pbs
 {
-	technique
-	{
-		pass
-		{
-			ambient 0.7 0.7 0.6
-
-			texture_unit
-			{
-				texture tusk.jpg
-				scale 0.2 0.2
-			}
-		}
-	}
+	diffuse_map tusk.jpg
 }
 
-material Ogre/Eyes
+hlms Ogre/Eyes pbs
 {
-	technique
-	{
-		pass
-		{
-			ambient 1 0.4 0.4
-			diffuse 1 0.7 0
-			emissive 0.3 0.1 0
-		}
-	}
+	diffuse 1 0.7 0
 }

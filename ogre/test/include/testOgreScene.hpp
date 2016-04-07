@@ -133,11 +133,11 @@ protected:
     mCamera0 = mSceneMgr->createCamera("camera0");
     mOgreHead = mSceneMgr->createItem("ogrehead.mesh");
     mOgreHead->setName("ogrehead");
-    mSinbad = mSceneMgr->createItem("sinbad.mesh");
+    mSinbad = mSceneMgr->createItem("Sinbad.mesh");
     mSinbad->setName("sinbad");
-    mLeftSword = mSceneMgr->createItem("sword.mesh");
+    mLeftSword = mSceneMgr->createItem("Sword.mesh");
     mLeftSword->setName("leftSword");
-    mRightSword = mSceneMgr->createItem("sword.mesh");
+    mRightSword = mSceneMgr->createItem("Sword.mesh");
     mRightSword->setName("rightSword");
     mParticle0 = mSceneMgr->createParticleSystem("fireball");
     mParticle0->setName("particle0");

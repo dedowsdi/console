@@ -1,20 +1,16 @@
 # Resources required by the sample browser and most samples.
 [Essential]
-Zip=@OGRE_MEDIA_DIR_REL@/packs/SdkTrays.zip
-Zip=@OGRE_MEDIA_DIR_REL@/packs/profiler.zip
-FileSystem=@OGRE_MEDIA_DIR_REL@/thumbnails
+Zip=@OGRE_MEDIA_DIR_REL@/packs/DebugPack.zip
 
 # Common sample resources needed by many of the samples.
 # Rarely used resources should be separately loaded by the
 # samples which require them.
 [Popular]
-FileSystem=@OGRE_MEDIA_DIR_REL@/materials/programs
-FileSystem=@OGRE_MEDIA_DIR_REL@/materials/scripts
-FileSystem=@OGRE_MEDIA_DIR_REL@/materials/textures
+FileSystem=@OGRE_MEDIA_DIR_REL@/2.0/scripts/Compositors
 FileSystem=@OGRE_MEDIA_DIR_REL@/models
+FileSystem=@OGRE_MEDIA_DIR_REL@/materials/textures
+FileSystem=@OGRE_MEDIA_DIR_REL@/materials/textures/Cubemaps
+FileSystem=@OGRE_MEDIA_DIR_REL@/materials/scripts
+FileSystem=@OGRE_MEDIA_DIR_REL@/materials
+FileSystem=@OGRE_MEDIA_DIR_REL@/Sinbad
 FileSystem=@OGRE_MEDIA_DIR_REL@/particles
-Zip=@OGRE_MEDIA_DIR_REL@/packs/Sinbad.zip
-Zip=@OGRE_MEDIA_DIR_REL@/packs/skybox.zip
-
-[General]
-FileSystem=@OGRE_MEDIA_DIR_REL@

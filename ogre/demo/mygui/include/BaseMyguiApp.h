@@ -2,14 +2,13 @@
 #define BASEMYGUIAPP_H
 
 #include <OgreCamera.h>
-#include <OgreEntity.h>
+#include <OgreItem.h>
 #include <OgreLogManager.h>
 #include <OgreRoot.h>
 #include <OgreViewport.h>
 #include <OgreSceneManager.h>
 #include <OgreRenderWindow.h>
 #include <OgreConfigFile.h>
-
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
 #include <OIS/OISEvents.h>
@@ -47,7 +46,7 @@
 #endif
 
 #include <MyGUI.h>
-#include <MyGUI_OgrePlatform.h>
+#include <MyGUI_Ogre2Platform.h>
 #include <StatisticInfo.h>
 #include "OgreConsole.h"
 #include "MyguiConsoleUI.h"
@@ -55,13 +54,11 @@
 #define sgmLayoutMgr MyGUI::LayoutManager::getInstance()
 #define sgmRenderMgr MyGUI::RenderManager::getInstance()
 
-
 //---------------------------------------------------------------------------
 class BaseMyguiApp : public Ogre::FrameListener,
                      public Ogre::WindowEventListener,
                      public OIS::KeyListener,
-                     public OIS::MouseListener
-                     {
+                     public OIS::MouseListener {
 public:
   BaseMyguiApp(void);
   virtual ~BaseMyguiApp(void);
@@ -75,7 +72,7 @@ protected:
   virtual void chooseSceneManager(void);
   virtual void createCamera(void);
   virtual void createFrameListener(void);
-  virtual void createScene(void);  
+  virtual void createScene(void);
   virtual void destroyScene(void);
   virtual void createWorkspace(void);
   virtual void setupResources(void);
@@ -85,6 +82,7 @@ protected:
   virtual bool frameStarted(const Ogre::FrameEvent& evt);
   virtual void initGui();
   virtual void initConsole();
+  void initHlms();
 
   virtual bool keyPressed(const OIS::KeyEvent& arg);
   virtual bool keyReleased(const OIS::KeyEvent& arg);
@@ -109,7 +107,6 @@ protected:
   pac::OgreConsole* mConsole;
   pac::MyguiConsoleUI* mConsoleUI;
 
-
   bool mCursorWasVisible;  // Was cursor visible before dialog appeared?
   bool mShutDown;
   bool mExecuteing;
@@ -123,7 +120,7 @@ protected:
   Ogre::String m_ResourcePath;
   // mygui
   MyGUI::Gui* mGUI;
-  MyGUI::OgrePlatform* mPlatform;
+  MyGUI::Ogre2Platform* mPlatform;
   diagnostic::StatisticInfo* mInfo;
 
 #ifdef OGRE_STATIC_LIB

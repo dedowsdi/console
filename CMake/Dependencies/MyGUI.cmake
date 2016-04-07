@@ -16,11 +16,11 @@ macro( setupMyGUI MYGUI_SOURCE, MYGUI_BINARIES, MYGUI_LIBRARIES, MYGUI_INCLUDE_D
 
 	set(${MYGUI_INCLUDE_DIRS} "${MYGUI_SOURCE}/MyGUIEngine/include;${${MYGUI_INCLUDE_DIRS}}")
 	set(${MYGUI_INCLUDE_DIRS} "${MYGUI_SOURCE}/Common/Base;${${MYGUI_INCLUDE_DIRS}}")
-	set(${MYGUI_INCLUDE_DIRS} "${MYGUI_SOURCE}/Platforms/Ogre/OgrePlatform/include;${${MYGUI_INCLUDE_DIRS}}")
+	set(${MYGUI_INCLUDE_DIRS} "${MYGUI_SOURCE}/Platforms/Ogre2/Ogre2Platform/include;${${MYGUI_INCLUDE_DIRS}}")
 
 	set( MYGUI_LIBRARIES
-		debug MyGUIEngine_d debug MyGUI.OgrePlatform_d
-		optimized MyGUIEngine optimized MyGUI.OgrePlatform
+		debug MyGUIEngine_d debug MyGUI.Ogre2Platform_d
+		optimized MyGUIEngine optimized MyGUI.Ogre2Platform
 		)
 	MESSAGE(STATUS "set ${MYGUI_INCLUDE_DIRS}: ${${MYGUI_INCLUDE_DIRS}}")
 	MESSAGE(STATUS "set ${MYGUI_LIBRARIES}: ${${MYGUI_LIBRARIES}}")
