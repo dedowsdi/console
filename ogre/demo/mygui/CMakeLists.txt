@@ -1,4 +1,4 @@
-include( ${CMAKE_SOURCE_DIR}/CMake/Dependencies/MyGUI.cmake  )
+include( ${CMAKE_SOURCE_DIR}/cmake/Dependencies/MyGUI.cmake  )
 set(DEMO_MYGUI_HEADS
 	include/BaseMyguiApp.h
 	)
@@ -7,7 +7,7 @@ set(DEMO_MYGUI_SRCS
 	src/MyguiConsoleUI.cpp
 	)
 
-setupMyGUI(MYGUI_SOURCE, MYGUI_BINARIES, MYGUI_LIBRARIES, MYGUI_INCLUDE_DIRS)
+setupMyGUI()
 
 #FIND_LIBRARY(libMyguiOgrePlatform MyGUI.OgrePlatform)
 #IF(NOT libMyguiOgrePlatform)
@@ -15,13 +15,6 @@ setupMyGUI(MYGUI_SOURCE, MYGUI_BINARIES, MYGUI_LIBRARIES, MYGUI_INCLUDE_DIRS)
 #ENDIF()
 
 add_executable(myguiConsole ${DEMO_MYGUI_SRCS})
-target_link_libraries(myguiConsole ogreconsole ${MYGUI_LIBRARIES} ${OIS_LIBRARIES} )
-include_directories(include ${MYGUI_INCLUDE_DIRS} ${OIS_INCLUDE_DIRS})
-
-setupOgrePlugins()
-configure_file(${CMAKE_SOURCE_DIR}/CMake/Templates/resources.cfg.in ${CMAKE_CURRENT_BINARY_DIR}/resources.cfg @ONLY)
-#append mygui resource
-FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/resources.cfg.in myguiRes)
-set(MYGUI_MEDIA_DIR_REL ${CMAKE_CURRENT_SOURCE_DIR})
-STRING(CONFIGURE ${myguiRes} myguiRes)
-FILE(APPEND ${CMAKE_CURRENT_BINARY_DIR}/resources.cfg ${myguiRes})
+target_link_libraries(myguiConsole ogreconsole ${OGRE_SAMPLES_LIBRARIES} ${MYGUI_LIBRARIES} ${MYGUI_COMMON_LIBRARIES} ${OIS_LIBRARIES})
+include_directories(include ${MYGUI_INCLUDE_DIRS})
+message(${MYGUI_INCLUDE_DIRS})

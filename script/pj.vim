@@ -1,15 +1,10 @@
-call mycpp#util#addThirdLibTags('thirdlib')
 "appName, makesure the same target exists in Makefile
-let g:mycppDebugger = "lldb"
-let g:mycppMakes = {
-			\'default':'console',
-			\'console':'',
-			\'test':'test/test',
-      \'testOgre':'ogre/test/testOgre',
-      \'myguiConsole':'ogre/demo/mygui/myguiConsole'
-			\}
+let g:mycppDebugger = "gdb"
 let g:mycppBuildDir = "./build/Debug/"
+"let g:mycppMakes = {
+			"\}
 let g:mycppClassPrefix='_PacExport'
 let g:mycppPreRequisite=['pacConsolePreRequisite.h']
 let g:mycppStable=['pacStable.h']
-set path+=thirdlib/OgreMain,thirdlib/MyGUI
+
+call mycpp#addDependencies('dependencies')

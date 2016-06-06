@@ -13,9 +13,9 @@ TEST_F(TestOgreScene, testParticleSystemSI) {
   ASSERT_TRUE(sgOgreConsole.execute("get"));
   EXPECT_TRUE(sgOgreConsole.execute("set particle_width 10"));
   EXPECT_TRUE(sgOgreConsole.execute("set particle_height 10"));
-  EXPECT_TRUE(sgOgreConsole.execute("set material PE/Lensflare"));
-  EXPECT_TRUE(sgOgreConsole.execute("get material"));
-  EXPECT_STREQ("material : PE/Lensflare  \n", getLastOutput().c_str());
+  //EXPECT_TRUE(sgOgreConsole.execute("set material PE/Lensflare"));
+  //EXPECT_TRUE(sgOgreConsole.execute("get material"));
+  //EXPECT_STREQ("material : PE/Lensflare  \n", getLastOutput().c_str());
   ASSERT_TRUE(sgOgreConsole.execute("cd Point_0"));
   ASSERT_TRUE(sgOgreConsole.execute("get"));
   ASSERT_TRUE(sgOgreConsole.execute("cd .." + d + "billboard"));

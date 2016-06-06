@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.7)
+cmake_minimum_required(VERSION 2.8.12)
 project(CONSOLE)
 
 set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG"  )
@@ -16,8 +16,7 @@ option(BUILD_TEST "build unit test" on)
 option(BUILD_OGRE "build ogre module" on)
 
 #flag
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -Wall -Wno-unused-local-typedef -Wno-overloaded-virtual")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -Wall -Wno-unused-local-typedef -Wno-overloaded-virtual -Wno-inconsistent-missing-override")
 if(BOOST_LOG_DYN_LINK)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_LOG_DYN_LINK")
 endif()
@@ -33,6 +32,10 @@ add_recursive(./include  CONSOLE_HEADS)
 #third lib
 find_package(Boost REQUIRED COMPONENTS regex log log_setup system thread)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 #target
 add_library(console ${BUILD_LIB_TYPE} ${CONSOLE_SRCS} ${CONSOLE_HEADS} )
 set_target_properties(console PROPERTIES VERSION 0.0)
@@ -46,7 +49,7 @@ install(FILES ${CONSOLE_HEADS} DESTINATION include/pac)
 
 # uninstall target
 configure_file(
-	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
 	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
 	IMMEDIATE @ONLY)
 

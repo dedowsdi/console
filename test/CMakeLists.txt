@@ -17,8 +17,9 @@ set(TEST_SRCS
 find_package(GTest REQUIRED)
 #get_target_property(CONSOLE_INCLUDES console INCLUDE_DIRECTORIES)
 
-add_executable(test ${TEST_SRCS})
+add_executable(testBasic ${TEST_SRCS})
 #set_target_properties(test PROPERTIES DEBUG_POSTFIX _d)
-target_link_libraries(test console ${GTEST_LIBRARIES})
-
+message(${GTEST_MAIN_LIBRARIES})
 include_directories(include ${GTest_INCLUDE_DIRS})
+target_link_libraries(testBasic  ${GTEST_MAIN_LIBRARIES}  ${GTEST_LIBRARIES} console)
+

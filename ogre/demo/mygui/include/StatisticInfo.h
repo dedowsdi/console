@@ -1,1 +1,0 @@
-/usr/local/source/mygui/mygui/Common/Base/StatisticInfo.h

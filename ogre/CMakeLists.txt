@@ -1,7 +1,10 @@
-include( ${CMAKE_SOURCE_DIR}/CMake/Dependencies/OGRE.cmake  )
+include( ${CMAKE_SOURCE_DIR}/cmake/Dependencies/OGRE.cmake  )
 set(OGRE_PLUGIN_DIR_REL /usr/local/lib/OGRE CACHE PATH "where ogre plugin lib resides")
+set(OGRE_SDK /usr/local/ogre/ogre2.1/gcc/Debug CACHE PATH "OGRE SDK")
+set(OGRE_SOURCE_DIR /usr/local/source/ogre/ogre2.1 CACHE PATH "ogre source" FORCE)
 
-setupOgre( OGRE_SOURCE, OGRE_BINARIES, OGRE_LIBRARIES, OGRE_INCLUDE_DIRS )
+setupOgreSdk()
+
 add_recursive(./src OGRECONSOLE_SRCS)
 add_recursive(./include OGRECONSOLE_HEADS)
 
@@ -11,7 +14,7 @@ option(BUILD_DEMO_MYGUI "build mygui demo" on)
 IF (APPLE)
 	#FIND_LIBRARY(MYGUI MYGUI REQUIRED)
 	FIND_LIBRARY(OIS OIS REQUIRED)
-ELSE (APPLE) 
+ELSE (APPLE)
 	IF (UNIX)
 		MESSAGE(STATUS "UNIX system")
 		FIND_PACKAGE(PkgConfig REQUIRED)
@@ -22,11 +25,10 @@ ELSE (APPLE)
 	ENDIF()
 ENDIF (APPLE)
 
-
-
-add_library(ogreconsole ${BUILD_TYPE} ${OGRECONSOLE_SRCS})
+add_library(ogreconsole ${BUILD_LIB_TYPE} ${OGRECONSOLE_SRCS})
 set_target_properties(ogreconsole PROPERTIES VERSION 0.0)
 
+message(${OGRE_LIBRARIES})
 target_LINK_LIBRARIES(ogreconsole console ${OGRE_LIBRARIES})
 include_directories(include ${OGRE_INCLUDE_DIRS})
 
