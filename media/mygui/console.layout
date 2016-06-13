@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Widget" skin="PanelEmpty" position_real="0 0 1 1" layer="Info">
+        <Widget type="EditBox" skin="EditBoxEmpty" position_real="0 0 1 0.94043" align="Stretch" name="output">
+            <Property key="Caption" value="output"/>
+            <Property key="TextColour" value="#ffffff"/>
+            <Property key="FontName" value="DejaVuSansMono_12"/>
+            <Property key="VisibleHScroll" value="false"/>
+            <Property key="TextAlign" value="Left Bottom"/>
+            <Property key="MultiLine" value="true"/>
+            <Property key="ReadOnly" value="true"/>
+            <Property key="WordWrap" value="false"/>
+            <Property key="MaxTextLength" value="-1"/>
+        </Widget>
+        <Widget type="EditBox" skin="EditBoxEmpty" position_real="0 0.94043 0.5 0.0449219" name="cwd">
+            <Property key="Caption" value="cwd"/>
+            <Property key="TextColour" value="#ffffff"/>
+            <Property key="FontName" value="DejaVuSansMono_12"/>
+        </Widget>
+        <Widget type="EditBox" skin="EditBoxEmpty" position_real="0.5 0.94043 0.5 0.0449219" name="cmd">
+            <Property key="Caption" value="cmd"/>
+            <Property key="TextColour" value="#ffffff"/>
+            <Property key="FontName" value="DejaVuSansMono_12"/>
+        </Widget>
+    </Widget>
+    <CodeGeneratorSettings>
+        <Property key="IncludeDirectory" value=""/>
+        <Property key="PanelName" value=""/>
+        <Property key="PanelNamespace" value=""/>
+        <Property key="SourceDirectory" value=""/>
+    </CodeGeneratorSettings>
+</MyGUI>
