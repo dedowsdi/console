@@ -98,7 +98,7 @@ protected:
    *     ->camera<-camera0
    *     ->entRoot->en0<-ogrehead
    *              ->en1<-sinbad
-   *     ->particle<-particle0
+   *     //->particle<-particle0
    *     ->blank0
    *     ->blank1
    *     ->blank2(static)
@@ -131,16 +131,16 @@ protected:
     mLight0 = mSceneMgr->createLight();
     mLight0->setName("light0");
     mCamera0 = mSceneMgr->createCamera("camera0");
-    mOgreHead = mSceneMgr->createItem("Cube_d.mesh");
+    mOgreHead = mSceneMgr->createItem("ogrehead.mesh");
     mOgreHead->setName("ogrehead");
-    mSinbad = mSceneMgr->createItem("Cube_d.mesh");
+    mSinbad = mSceneMgr->createItem("Sinbad.mesh");
     mSinbad->setName("sinbad");
-    mLeftSword = mSceneMgr->createItem("Cube_d.mesh");
+    mLeftSword = mSceneMgr->createItem("Sword.mesh");
     mLeftSword->setName("leftSword");
-    mRightSword = mSceneMgr->createItem("Cube_d.mesh");
+    mRightSword = mSceneMgr->createItem("Sword.mesh");
     mRightSword->setName("rightSword");
-    mParticle0 = mSceneMgr->createParticleSystem("fireball");
-    mParticle0->setName("particle0");
+    //mParticle0 = mSceneMgr->createParticleSystem("fireball");
+    //mParticle0->setName("particle0");
 
     mCamera0->detachFromParent();
     mCameraNode->attachObject(mCamera0);
@@ -171,7 +171,7 @@ protected:
     mRightSwordNameid = OgreUtil::createNameid(mRightSword);
     mLight0Nameid = OgreUtil::createNameid(mLight0);
     mCamera0Nameid = OgreUtil::createNameid(mCamera0);
-    mParticle0Nameid = OgreUtil::createNameid(mParticle0);
+    //mParticle0Nameid = OgreUtil::createNameid(mParticle0);
     srand(static_cast<unsigned>(time(0)));
     mUi = static_cast<ImplConsoleUI*>(sgOgreConsole.getUi());
   }

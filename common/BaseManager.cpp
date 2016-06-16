@@ -48,7 +48,8 @@ BaseManager::~BaseManager(void) {
 bool BaseManager::configure(void) {
   Ogre::String windowTitle("ogre");
 
-  if (!mRoot->showConfigDialog()) return false;
+  //if (!mRoot->showConfigDialog()) return false;
+  if(!mRoot->restoreConfig()) return false;
 
   mRoot->getRenderSystem()->setConfigOption("sRGB Gamma Conversion", "Yes");
   mRoot->initialise(false);
@@ -180,7 +181,7 @@ void BaseManager::chooseSceneManager(void) {
 }
 //------------------------------------------------------------------------------
 void BaseManager::createCamera(void) {
-  mCamera = mSceneManager->createCamera("Main Camera");
+  mCamera = mSceneManager->createCamera("Main_Camera");
   mCamera->setPosition(Ogre::Vector3(0, 5, 15));
   mCamera->lookAt(Ogre::Vector3(0, 0, 0));
   mCamera->setNearClipDistance(0.2f);

@@ -253,8 +253,8 @@ TEST_F(TestOgreScene, testAth) {
       "ath sceneNode " + mBlankNode0Nameid + " light sn0"));
   EXPECT_TRUE(sgOgreConsole.execute(
       "ath sceneNode " + mBlankNode0Nameid + " item sn0 ogrehead.mesh"));
-  EXPECT_TRUE(sgOgreConsole.execute(
-      "ath sceneNode " + mBlankNode0Nameid + " particle sn0 fireball"));
+  //EXPECT_TRUE(sgOgreConsole.execute(
+      //"ath sceneNode " + mBlankNode0Nameid + " particle sn0 fireball"));
   EXPECT_TRUE(sgOgreConsole.execute(
       "ath sceneNode " + mBlankNode0Nameid + " camera sn0"));
   // ath ltl_tagPoint entity bone ltl_light id ("tag0")
@@ -266,9 +266,9 @@ TEST_F(TestOgreScene, testAth) {
   EXPECT_TRUE(
       sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
                             " IndexFingerDist.L item ebe0 ogrehead.mesh"));
-  EXPECT_TRUE(
-      sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
-                            " IndexFingerDist.L particle ebp0 fireball"));
+  //EXPECT_TRUE(
+      //sgOgreConsole.execute("ath tagPoint " + mSinbadNameid +
+                            //" IndexFingerDist.L particle ebp0 fireball"));
   EXPECT_TRUE(sgOgreConsole.execute(
       "ath tagPoint " + mSinbadNameid + " IndexFingerDist.L camera ebc0"));
 }

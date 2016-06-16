@@ -120,19 +120,19 @@ TEST_F(TestOgreScene, handler_t_movable) {
                 OgreUtil::getIdFromNameid(mCamera0Nameid)) +
                 "@Camera",
       handler->getUniformValue());
-  ASSERT_TRUE(handler->validate("ParticleSystem " + mParticle0Nameid));
-  EXPECT_EQ(Ogre::StringConverter::toString(
-                OgreUtil::getIdFromNameid(mParticle0Nameid)) +
-                "@ParticleSystem",
-      handler->getUniformValue());
+  //ASSERT_TRUE(handler->validate("ParticleSystem " + mParticle0Nameid));
+  //EXPECT_EQ(Ogre::StringConverter::toString(
+                //OgreUtil::getIdFromNameid(mParticle0Nameid)) +
+                //"@ParticleSystem",
+      //handler->getUniformValue());
   //  t_sceneNode moType movable
   EXPECT_TRUE(
       handler->validate(mEntNode0Nameid + " Item " + mOgreHeadNameid));
   EXPECT_TRUE(handler->validate(mLightNodeNameid + " Light " + mLight0Nameid));
   EXPECT_TRUE(
       handler->validate(mCameraNodeNameid + " Camera " + mCamera0Nameid));
-  EXPECT_TRUE(handler->validate(
-      mParticleNodeNameid + " ParticleSystem " + mParticle0Nameid));
+  //EXPECT_TRUE(handler->validate(
+      //mParticleNodeNameid + " ParticleSystem " + mParticle0Nameid));
   //  entity moType movable
   //  entity bone moType movable
 }
@@ -141,8 +141,8 @@ TEST_F(TestOgreScene, handler_resource) {
   auto handler = sgArgLib.createArgHandler("mesh");
   EXPECT_TRUE(handler->validate("ogrehead.mesh"));
   EXPECT_TRUE(handler->validate("Sinbad.mesh"));
-  handler = sgArgLib.createArgHandler("pst");
-  EXPECT_TRUE(handler->validate("fireball"));
+  //handler = sgArgLib.createArgHandler("pst");
+  //EXPECT_TRUE(handler->validate("fireball"));
 }
 
 TEST_F(TestOgreScene, handler_position) {

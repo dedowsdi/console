@@ -3,7 +3,7 @@
 #include "testOgreConsole.h"
 #include "testOgreSI.h"
 #include "../testConsole/testConsoleUI.h"
-#include "testOgreParticleSystemSI.h"
+//#include "testOgreParticleSystemSI.h"
 #include "../common/BaseManager.h"
 
 using namespace pac;

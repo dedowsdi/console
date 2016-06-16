@@ -53,6 +53,9 @@ void MyguiManager::handleSdlEvent(const SDL_Event &evt) {
         case SDLK_DOWN:
           mConsole->rollCommand(false);
           return;
+        case SDLK_TAB:
+          mConsole->prompt();
+          return;
         default:
           break;
       }
