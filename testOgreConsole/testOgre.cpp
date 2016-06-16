@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
 
   // init console
   ImplConsoleUI ui;
+  ui.initParams();
   OgreConsole oc(&ui, app.getSceneMgr());
   oc.init();
 

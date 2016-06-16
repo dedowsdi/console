@@ -46,6 +46,8 @@ public:
   static bool hasMovableObject(Ogre::SceneManager* mgr, const std::string& name,
       const std::string& type);
 
+  static std::string toString(const Ogre::Plane& p);
+
 private:
   OgreUtil(){};
 };

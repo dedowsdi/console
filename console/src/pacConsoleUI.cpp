@@ -6,11 +6,7 @@ namespace pac {
 ConsoleUI::Alpha ConsoleUI::msAlpha;
 
 //------------------------------------------------------------------------------
-ConsoleUI::ConsoleUI() : StringInterface("consoleUi", false) {
-  if (createParamDict()) {
-    this->initParams();
-  }
-}
+ConsoleUI::ConsoleUI() : StringInterface("consoleUi", false) {}
 
 //------------------------------------------------------------------------------
 void ConsoleUI::outputLine(const std::string& output, int type /*= 1*/) {
@@ -39,7 +35,7 @@ void ConsoleUI::Alpha::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-void ConsoleUI::initParams() {
+void ConsoleUI::buildParams() {
   ParamDictionary* dict = this->getParamDict();
   dict->addParameter("alpha", &msAlpha);
 }

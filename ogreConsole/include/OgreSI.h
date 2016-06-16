@@ -29,7 +29,7 @@ public:
   Ogre::MovableObject* getMovable() const;
 
 protected:
-  void initParams();
+  void buildParams();
 
 protected:
   static Visible msVisible;
@@ -115,7 +115,7 @@ public:
   Ogre::Light* getLight() const;
 
 protected:
-  void initParams();
+  void buildParams();
 
 protected:
   static LightType msLightType;
@@ -132,7 +132,106 @@ protected:
   static ShadowFarDist msShadowFarDist;
 };
 
-class _PacExport CameraSI : public MovableSI {
+class _PacExport FrustumSI : public MovableSI {
+public:
+  FrustumSI(Ogre::Frustum* frustum);
+
+  struct _PacExport FOVy : public ParamCmd {
+    FOVy() : ParamCmd("real") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport AspectRatio : public ParamCmd {
+    AspectRatio() : ParamCmd("real") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport FocalLength : public ParamCmd {
+    FocalLength() : ParamCmd("real") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport FrustumOffset : public ParamCmd {
+    FrustumOffset() : ParamCmd("real2") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport FrustumExtents : public ParamCmd {
+    FrustumExtents() : ParamCmd("real4") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport ProjectionType : public ParamCmd {
+    ProjectionType() : ParamCmd("en_projectionType") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport FarClipDistance : public ParamCmd {
+    FarClipDistance() : ParamCmd("real") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport NearClipDistance : public ParamCmd {
+    NearClipDistance() : ParamCmd("real") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport ReflectionPlane : public ParamCmd {
+    ReflectionPlane() : ParamCmd("readonly") {}
+    virtual std::string doGet(const void* target) const;
+  };
+
+#if OGRE_NO_VIEWPORT_ORIENTATIONMODE == 0
+  struct _PacExport OrientationMode : public ParamCmd {
+    OrientationMode() : ParamCmd("en_orientationMode") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+#endif
+
+  struct _PacExport OrthoWindowWidth : public ParamCmd {
+    OrthoWindowWidth() : ParamCmd("real") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport OrthoWindowHeight : public ParamCmd {
+    OrthoWindowHeight() : ParamCmd("real") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  Ogre::Frustum* getFrustum() const;
+
+protected:
+  void buildParams();
+
+protected:
+  static FOVy mFOVy;
+  static AspectRatio mAspectRatio;
+  static FocalLength mFocalLength;
+  static FrustumOffset mFrustumOffset;
+  static FrustumExtents mFrustumExtents;
+  static ProjectionType mProjectionType;
+  static FarClipDistance mFarClipDistance;
+  static NearClipDistance mNearClipDistance;
+  static ReflectionPlane mReflectionPlane;
+#if OGRE_NO_VIEWPORT_ORIENTATIONMODE == 0
+  static OrientationMode mOrientationMode;
+#endif
+  static OrthoWindowWidth mOrthoWindowWidth;
+  static OrthoWindowHeight mOrthoWindowHeight;
+};
+
+class _PacExport CameraSI : public FrustumSI {
 public:
   struct _PacExport Position : public ParamCmd {
     Position() : ParamCmd("real3") {}
@@ -140,10 +239,10 @@ public:
     virtual void doSet(void* target, ArgHandler* handler);
   };
 
-  //struct _PacExport PolygonMode : public ParamCmd {
-    //PolygonMode() : ParamCmd("en_polygonMode") {}
-    //virtual std::string doGet(const void* target) const;
-    //virtual void doSet(void* target, ArgHandler* handler);
+  // struct _PacExport PolygonMode : public ParamCmd {
+  // PolygonMode() : ParamCmd("en_polygonMode") {}
+  // virtual std::string doGet(const void* target) const;
+  // virtual void doSet(void* target, ArgHandler* handler);
   //};
 
   struct _PacExport Direction : public ParamCmd {
@@ -162,12 +261,12 @@ public:
   Ogre::Camera* getCamera() const;
 
 protected:
-  void initParams();
+  void buildParams();
 
 protected:
   static Position msPosition;
   static Orientation msOrientation;
-  //static PolygonMode msPolygonMode;
+  // static PolygonMode msPolygonMode;
   static Direction msDirection;
 };
 
@@ -177,7 +276,7 @@ public:
   Ogre::Item* getItem() const;
 
 protected:
-  void initParams();
+  void buildParams();
 };
 
 class _PacExport NodeSI : public StringInterface {
@@ -221,12 +320,12 @@ public:
     virtual void doSet(void* target, ArgHandler* handler);
   };
 
-  NodeSI(Ogre::Node* node);
+  NodeSI(Ogre::Node* node, const std::string& name = "Node");
 
   Ogre::Node* getNode() const { return mNode; }
 
 protected:
-  void initParams();
+  void buildParams();
 
 protected:
   Ogre::Node* mNode;
@@ -253,12 +352,13 @@ public:
     virtual void doSet(void* target, ArgHandler* handler);
   };
 
-  SceneNodeSI(Ogre::SceneNode* sceneNode);
+  SceneNodeSI(
+      Ogre::SceneNode* sceneNode, const std::string& name = "SceneNode");
 
   Ogre::SceneNode* getSceneNode() const;
 
 protected:
-  void initParams();
+  void buildParams();
 
   static Direction msDirection;
   static LookAt msLookAt;
@@ -272,10 +372,10 @@ public:
     virtual void doSet(void* target, ArgHandler* handler);
   };
 
-  //struct _PacExport AmbientLight : public ParamCmd {
-    //AmbientLight() : ParamCmd("nreal4") {}
-    //virtual std::string doGet(const void* target) const;
-    //virtual void doSet(void* target, ArgHandler* handler);
+  // struct _PacExport AmbientLight : public ParamCmd {
+  // AmbientLight() : ParamCmd("nreal4") {}
+  // virtual std::string doGet(const void* target) const;
+  // virtual void doSet(void* target, ArgHandler* handler);
   //};
 
   struct _PacExport Fog : public ParamCmd {
@@ -288,13 +388,13 @@ public:
   Ogre::SceneManager* getSceneMgr() const { return mSceneMgr; }
 
 protected:
-  void initParams();
+  void buildParams();
 
 protected:
   Ogre::SceneManager* mSceneMgr;
   // static ShadowTechnique msShadowTechnique;
   static ShadowColour msShadowColour;
-  //static AmbientLight msAmbientLight;
+  // static AmbientLight msAmbientLight;
   static Fog msFog;
 };
 }

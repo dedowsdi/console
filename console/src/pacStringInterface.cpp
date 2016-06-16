@@ -90,11 +90,20 @@ bool StringInterface::createParamDict() {
   }
 }
 
+//------------------------------------------------------------------------------
+void StringInterface::initParams() {
+  if (createParamDict()) {
+    buildParams();
+  } else {
+    mParamDict = &msDictionary[mName];
+  }
+}
+
 //-----------------------------------------------------------------------
 StringVector StringInterface::getParameters(void) const {
   const ParamDictionary* dict = getParamDict();
-  if(!dict){
-    PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED, "0 dict");
+  if (!dict) {
+    PAC_EXCEPT(Exception::ERR_NOT_IMPLEMENTED, mName + " has no dict");
   }
   return dict->getParameters();
 }
@@ -172,9 +181,10 @@ void StringInterface::copyParametersTo(StringInterface* dest) const {
 void StringInterface::serialize(std::ostream& os, size_t lvl /*= 0*/) {
   const StringVector&& params = getParameters();
   std::string indent(" ", lvl);
-  std::for_each(params.begin(), params.end(),
-      [&](const std::string& v)
-          -> void { os << indent << v << this->getParameter(v); });
+  std::for_each(
+      params.begin(), params.end(), [&](const std::string& v) -> void {
+        os << indent << v << this->getParameter(v);
+      });
 }
 
 //-----------------------------------------------------------------------------

@@ -13,21 +13,22 @@
 namespace pac {
 
 class TestSI : public StringInterface {
-public:
-  TestSI() : StringInterface("test", true) {
-    if (createParamDict()) {
-      ParamDictionary* dict = getParamDict();
-      dict->addParameter("paramBool", &msParamBool);
-      dict->addParameter("paramInt", &msParamInt);
-      dict->addParameter("paramString", &msParamString);
+protected:
+  void buildParams() {
+    ParamDictionary* dict = getParamDict();
+    dict->addParameter("paramBool", &msParamBool);
+    dict->addParameter("paramInt", &msParamInt);
+    dict->addParameter("paramString", &msParamString);
 
-      StringArgHandler* handler = new StringArgHandler("testString");
-      handler->insert("one");
-      handler->insert("two");
-      handler->insert("three");
-      sgArgLib.registerArgHandler(handler);
-    }
+    StringArgHandler* handler = new StringArgHandler("testString");
+    handler->insert("one");
+    handler->insert("two");
+    handler->insert("three");
+    sgArgLib.registerArgHandler(handler);
   }
+
+public:
+  TestSI() : StringInterface("test", true) {}
 
   bool getBool() const { return mBool; }
   void setBool(bool b) { mBool = b; }
@@ -87,13 +88,27 @@ class TestConsoleSystem : public ::testing::Test {
 protected:
   void SetUp() {
     d = pac::delim;
-    dir0 = new AbsDir("dir0", new TestSI());
-    dir0_0 = new AbsDir("dir0_0", new TestSI());
-    dir0_1 = new AbsDir("dir0_1", new TestSI());
-    dir0_0_0 = new AbsDir("dir0_0_0", new TestSI());
-    dir0_0_1 = new AbsDir("dir0_0_1", new TestSI());
-    dir0_1_0 = new AbsDir("dir0_1_0", new TestSI());
-    dir0_1_1 = new AbsDir("dir0_1_1", new TestSI());
+    auto t = new TestSI();
+    t->initParams();
+    dir0 = new AbsDir("dir0", t);
+    t = new TestSI();
+    t->initParams();
+    dir0_0 = new AbsDir("dir0_0", t);
+    t = new TestSI();
+    t->initParams();
+    dir0_1 = new AbsDir("dir0_1", t);
+    t = new TestSI();
+    t->initParams();
+    dir0_0_0 = new AbsDir("dir0_0_0", t);
+    t = new TestSI();
+    t->initParams();
+    dir0_0_1 = new AbsDir("dir0_0_1", t);
+    t = new TestSI();
+    t->initParams();
+    dir0_1_0 = new AbsDir("dir0_1_0", t);
+    t = new TestSI();
+    t->initParams();
+    dir0_1_1 = new AbsDir("dir0_1_1", t);
     sgRootDir.addChild(dir0);
     dir0->addChild(dir0_0);
     dir0->addChild(dir0_1);
@@ -127,7 +142,7 @@ protected:
   std::string getCwd() { return getImplUi()->getCwd(); }
   std::string getCmdLine() { return getImplUi()->getCmdLine(); }
 
-  AbsDir* dir0, *dir0_0, *dir0_1, *dir0_0_0, *dir0_0_1, *dir0_1_0, *dir0_1_1;
+  AbsDir *dir0, *dir0_0, *dir0_1, *dir0_0_0, *dir0_0_1, *dir0_1_0, *dir0_1_1;
   std::string d;
   std::string pathDir0, pathDir0_0, pathDir0_1, pathDir0_0_0, pathDir0_0_1,
       pathDir0_1_0, pathDir0_1_1, pathConsole;

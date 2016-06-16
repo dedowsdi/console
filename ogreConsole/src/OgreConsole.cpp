@@ -37,6 +37,11 @@ DEFINE_ENUM_CONVERSION(
     Ogre::Node::, TransformSpace, (TS_LOCAL)(TS_PARENT)(TS_WORLD))
 DEFINE_ENUM_CONVERSION(
     Ogre::, SceneMemoryMgrTypes, (SCENE_DYNAMIC)(SCENE_STATIC))
+DEFINE_ENUM_CONVERSION(
+    Ogre::, ProjectionType, (PT_ORTHOGRAPHIC)(PT_PERSPECTIVE))
+DEFINE_ENUM_CONVERSION(Ogre::, OrientationMode,
+    (OR_DEGREE_0)(OR_DEGREE_90)(OR_DEGREE_180)(OR_DEGREE_270)(OR_PORTRAIT)(
+                           OR_LANDSCAPERIGHT)(OR_LANDSCAPELEFT))
 
 //------------------------------------------------------------------------------
 OgreConsole::OgreConsole(ConsoleUI* ui, Ogre::SceneManager* sceneMgr)
@@ -80,7 +85,9 @@ void OgreConsole::initCommand() {
 void OgreConsole::initDir() {
   Console::initDir();
 
-  mSceneDir = new AbsDir("scene", new SceneManagerSI(mSceneMgr));
+  auto si = new SceneManagerSI(mSceneMgr);
+  si->initParams();
+  mSceneDir = new AbsDir("scene", si);
   mMovableDir = new AbsDir("movable");
   mNodeDir = new AbsDir("node");
 
@@ -105,6 +112,10 @@ void OgreConsole::initEnumArgHandler() {
       new EnumArgHandler<Ogre::Node::TransformSpace>("en_transformSpace"));
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::SceneMemoryMgrTypes>("en_smmt"));
+  sgArgLib.registerArgHandler(
+      new EnumArgHandler<Ogre::ProjectionType>("en_projectionType"));
+  sgArgLib.registerArgHandler(
+      new EnumArgHandler<Ogre::OrientationMode>("en_orientationMode"));
 }
 
 //------------------------------------------------------------------------------
@@ -205,8 +216,8 @@ void OgreConsole::initStringArgHandler() {
 
   StringArgHandler* affectorType = new StringArgHandler(
       "affectorType", {"LinearForce", "ColourFader", "ColourFader2", "Scaler",
-                       "Rotator", "ColourInterpolator", "ColourImage",
-                       "DeflectorPlane", "DirectionRandomiser"});
+                          "Rotator", "ColourInterpolator", "ColourImage",
+                          "DeflectorPlane", "DirectionRandomiser"});
   sgArgLib.registerArgHandler(affectorType);
 }
 

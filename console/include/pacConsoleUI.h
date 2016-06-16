@@ -60,7 +60,7 @@ public:
   static Alpha msAlpha;
 
 protected:
-  void initParams();
+  void buildParams();
 };
 }
 

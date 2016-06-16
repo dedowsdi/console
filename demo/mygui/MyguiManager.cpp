@@ -78,6 +78,7 @@ void MyguiManager::initGui() {
   mGUI->initialise("MyGUI_Core.xml");
 
   mConsoleUI = new pac::MyguiConsoleUI();
+  mConsoleUI->initParams();
   mConsole = new pac::OgreConsole(mConsoleUI, mSceneManager);
   mConsole->init();
 

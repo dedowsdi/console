@@ -184,4 +184,13 @@ bool OgreUtil::hasMovableObject(
   }
   return false;
 }
+
+//------------------------------------------------------------------------------
+std::string OgreUtil::toString(const Ogre::Plane& p)
+{
+    StringStream ss;
+    ss << Ogre::StringConverter::toString(p.normal);
+    ss << " " << p.d;
+    return ss.str();
+}
 }

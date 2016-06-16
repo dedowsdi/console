@@ -141,6 +141,66 @@ TEST_F(TestOgreScene, testLightSI) {
   }
   EXPECT_TRUE(sgOgreConsole.execute("set lightType LT_DIRECTIONAL"));
 }
+
+TEST_F(TestOgreScene, testFrustumSI) {
+  ASSERT_TRUE(sgOgreConsole.execute("edmo Camera " + mCamera0Nameid));
+  AbsDir* dir = sgOgreConsole.getCwd();
+  ASSERT_EQ(mCamera0Nameid, dir->getName());
+
+  for (int i = 0; i < 10; ++i) {
+    std::string fovy = randRealStr(0, 180);
+    EXPECT_TRUE(sgOgreConsole.execute("set fovy             " + fovy));
+    EXPECT_EQ(fovy, dir->getParameter("fovy"));
+    std::string aspectRatio = randRealStr(0, 2);
+    EXPECT_TRUE(sgOgreConsole.execute("set aspectRatio      " + aspectRatio));
+    EXPECT_EQ(aspectRatio, dir->getParameter("aspectRatio"));
+    std::string focalLength = randRealStr(0, 10);
+    EXPECT_TRUE(sgOgreConsole.execute("set focalLength      " + focalLength));
+    EXPECT_EQ(focalLength, dir->getParameter("focalLength"));
+    std::string frustumOffset = randRealStr(0, 10) + " " + randRealStr(0, 10);
+    EXPECT_TRUE(sgOgreConsole.execute("set frustumOffset    " + frustumOffset));
+    EXPECT_EQ(frustumOffset, dir->getParameter("frustumOffset"));
+    std::string frustumExtents = randRealStr(-10, 0) + " " +
+                                 randRealStr(0, 10) + " " + randRealStr(0, 10) +
+                                 " " + randRealStr(0, -10);
+    EXPECT_TRUE(
+        sgOgreConsole.execute("set frustumExtents   " + frustumExtents));
+    EXPECT_EQ(frustumExtents, dir->getParameter("frustumExtents"));
+    std::string projectionType =
+        enumToString(randBool() ? Ogre::PT_PERSPECTIVE : Ogre::PT_ORTHOGRAPHIC);
+    EXPECT_TRUE(
+        sgOgreConsole.execute("set projectionType   " + projectionType));
+    EXPECT_EQ(projectionType, dir->getParameter("projectionType"));
+    std::string farClipDistance = randRealStr(10, 10000);
+    EXPECT_TRUE(
+        sgOgreConsole.execute("set farClipDistance  " + farClipDistance));
+    EXPECT_EQ(farClipDistance, dir->getParameter("farClipDistance"));
+    std::string nearClipDistance = randRealStr(0.1, 10);
+    EXPECT_TRUE(
+        sgOgreConsole.execute("set nearClipDistance " + nearClipDistance));
+    EXPECT_EQ(nearClipDistance, dir->getParameter("nearClipDistance"));
+// EXPECT_TRUE(sgOgreConsole.execute("set reflectionPlane  " +
+// reflectionPlane
+// ));
+
+#if OGRE_NO_VIEWPORT_ORIENTATIONMODE == 0
+    std::string orientationMode =
+        enumToString(static_cast<Ogre::OrientationMode>(rand() % 4));
+    EXPECT_TRUE(
+        sgOgreConsole.execute("set orientationMode  " + orientationMode));
+    EXPECT_EQ(orientationMode, dir->getParameter("orientationMode"));
+#endif
+    std::string orthoWindowWidth = randRealStr(0, 180);
+    EXPECT_TRUE(
+        sgOgreConsole.execute("set orthoWindowWidth " + orthoWindowWidth));
+    EXPECT_EQ(orthoWindowWidth, dir->getParameter("orthoWindowWidth"));
+    std::string orthoWindowHeight = randRealStr(0, 180);
+    EXPECT_TRUE(
+        sgOgreConsole.execute("set orthoWindowHeight " + orthoWindowHeight));
+    EXPECT_EQ(orthoWindowHeight, dir->getParameter("orthoWindowHeight"));
+  }
+}
+
 TEST_F(TestOgreScene, testCameraSI) {
   ASSERT_TRUE(sgOgreConsole.execute("edmo Camera " + mCamera0Nameid));
   AbsDir* dir = sgOgreConsole.getCwd();
@@ -155,9 +215,9 @@ TEST_F(TestOgreScene, testCameraSI) {
     EXPECT_TRUE(sgOgreConsole.execute("set orientation " + orientation));
     EXPECT_TRUE(cmpRealStrings(orientation, dir->getParameter("orientation")));
     // polygonMode
-    //std::string polygonMode = EnumData<Ogre::PolygonMode>::randomEnumStr();
-    //EXPECT_TRUE(sgOgreConsole.execute("set polygonMode " + polygonMode));
-    //EXPECT_EQ(polygonMode, dir->getParameter("polygonMode"));
+    // std::string polygonMode = EnumData<Ogre::PolygonMode>::randomEnumStr();
+    // EXPECT_TRUE(sgOgreConsole.execute("set polygonMode " + polygonMode));
+    // EXPECT_EQ(polygonMode, dir->getParameter("polygonMode"));
     // direction
     std::string direction = randVector3Str(true);
     EXPECT_TRUE(sgOgreConsole.execute("set direction " + direction));
@@ -169,15 +229,15 @@ TEST_F(TestOgreScene, testSceneSI) {
   ASSERT_TRUE(sgOgreConsole.execute("cd " + d + "scene"));
   AbsDir* dir = sgOgreConsole.getCwd();
   ASSERT_STREQ("scene", dir->getName().c_str());
-  std::string ambientLight = randUnitVector4Str(); 
-  //EXPECT_TRUE(sgOgreConsole.execute("set ambientLight " + ambientLight));
-  //EXPECT_TRUE(cmpRealStrings(ambientLight, dir->getParameter("ambientLight")));
+  std::string ambientLight = randUnitVector4Str();
+  // EXPECT_TRUE(sgOgreConsole.execute("set ambientLight " + ambientLight));
+  // EXPECT_TRUE(cmpRealStrings(ambientLight,
+  // dir->getParameter("ambientLight")));
   std::string shadowColour = randUnitVector4Str();
   EXPECT_TRUE(sgOgreConsole.execute("set shadowColour " + shadowColour));
   EXPECT_TRUE(cmpRealStrings(shadowColour, dir->getParameter("shadowColour")));
 
-  EXPECT_TRUE(sgOgreConsole.execute("set fog FOG_EXP 0.2 0.2 0.2 1 1 2 3") );
-
+  EXPECT_TRUE(sgOgreConsole.execute("set fog FOG_EXP 0.2 0.2 0.2 1 1 2 3"));
 }
 }
 #endif /* TESTOGRESI_HPP */

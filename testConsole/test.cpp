@@ -11,14 +11,13 @@
 #include "testStringUtil.h"
 using namespace pac;
 
-int main(int argc, char **argv) 
-{
-	//init console
-	ImplConsoleUI ui;
-	Console console(&ui);
-	console.init();
-	
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
-}
+int main(int argc, char **argv) {
+  // init console
+  ImplConsoleUI ui;
+  ui.initParams();
+  Console console(&ui);
+  console.init();
 
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

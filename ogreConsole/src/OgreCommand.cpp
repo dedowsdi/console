@@ -587,8 +587,10 @@ bool EdndCmd::doExecute() {
 
   Ogre::SceneNode* sceneNode =
       OgreUtil::getSceneNodeById(sceneMgr, handler->getUniformValue());
+  auto si = new SceneNodeSI(sceneNode);
+  si->initParams();
   AbsDir* dir = sgOgreConsole.getNodeDir()->addUniqueChild(
-      OgreUtil::createNameid(sceneNode), new SceneNodeSI(sceneNode));
+      OgreUtil::createNameid(sceneNode), si);
   sgConsole.setCwd(dir);
   return true;
 }

@@ -45,6 +45,7 @@ void Console::init() {
   initCommand();
   initDir();
   initConoslePattern();
+  initParams();
 }
 
 //------------------------------------------------------------------------------

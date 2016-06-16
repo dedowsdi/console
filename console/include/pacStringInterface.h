@@ -102,17 +102,17 @@ protected:
   /**
    * Internal method for creating a parameter dictionary for the class, if it
    * does not already exist.
-   * @remarks : makesure this function get called at ctor. Remember to build
-   * dictionary for this stringinterface if this function return true.
-   * @param className : unique name for this stringinterface
-   * @return : true if create
    */
   bool createParamDict();
+  virtual void buildParams() {}
 
 public:
   StringInterface(const std::string& name, bool wrapper)
       : mWrapper(wrapper), mName(name), mParamDict(NULL) {}
   virtual ~StringInterface() {}
+
+  // must be called after ctor
+  void initParams();
 
   ParamDictionary* getParamDict(void) { return mParamDict; }
   const ParamDictionary* getParamDict(void) const { return mParamDict; }
@@ -172,9 +172,7 @@ public:
 
   static void cleanupDictionary();
 
-  /**
-   * called when dir was created with this string interface
-   */
+  // called when dir was created with this StringInterface
   virtual void onCreateDir(AbsDir* dir) { (void)dir; }
 
   bool getWrapper() const { return mWrapper; }

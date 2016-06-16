@@ -29,9 +29,23 @@ LightSI::SpotRange LightSI::msSpotRange;
 LightSI::Attenuation LightSI::msAttenuation;
 LightSI::PowerScale LightSI::msPowerScale;
 LightSI::ShadowFarDist LightSI::msShadowFarDist;
+FrustumSI::FOVy FrustumSI::mFOVy;
+FrustumSI::AspectRatio FrustumSI::mAspectRatio;
+FrustumSI::FocalLength FrustumSI::mFocalLength;
+FrustumSI::FrustumOffset FrustumSI::mFrustumOffset;
+FrustumSI::FrustumExtents FrustumSI::mFrustumExtents;
+FrustumSI::ProjectionType FrustumSI::mProjectionType;
+FrustumSI::FarClipDistance FrustumSI::mFarClipDistance;
+FrustumSI::NearClipDistance FrustumSI::mNearClipDistance;
+FrustumSI::ReflectionPlane FrustumSI::mReflectionPlane;
+#if OGRE_NO_VIEWPORT_ORIENTATIONMODE == 0
+FrustumSI::OrientationMode FrustumSI::mOrientationMode;
+#endif
+FrustumSI::OrthoWindowWidth FrustumSI::mOrthoWindowWidth;
+FrustumSI::OrthoWindowHeight FrustumSI::mOrthoWindowHeight;
 CameraSI::Position CameraSI::msPosition;
 CameraSI::Orientation CameraSI::msOrientation;
-//CameraSI::PolygonMode CameraSI::msPolygonMode;
+// CameraSI::PolygonMode CameraSI::msPolygonMode;
 CameraSI::Direction CameraSI::msDirection;
 NodeSI::Position NodeSI::msPosition;
 NodeSI::Scale NodeSI::msScale;
@@ -43,25 +57,30 @@ NodeSI::Roll NodeSI::msRoll;
 SceneNodeSI::Direction SceneNodeSI::msDirection;
 SceneNodeSI::LookAt SceneNodeSI::msLookAt;
 SceneManagerSI::ShadowColour SceneManagerSI::msShadowColour;
-//SceneManagerSI::AmbientLight SceneManagerSI::msAmbientLight;
+// SceneManagerSI::AmbientLight SceneManagerSI::msAmbientLight;
 SceneManagerSI::Fog SceneManagerSI::msFog;
 
 //------------------------------------------------------------------------------
 StringInterface* OgreSiUtil::createMovableSI(Ogre::MovableObject* mo) {
   const std::string& type = mo->getMovableType();
-  if (type == "Light") return new LightSI(static_cast<Ogre::Light*>(mo));
+  StringInterface* si = 0;
+  if (type == "Light")
+    si = new LightSI(static_cast<Ogre::Light*>(mo));
 
-  if (type == "Item") return new ItemSI(static_cast<Ogre::Item*>(mo));
+  else if (type == "Item")
+    si = new ItemSI(static_cast<Ogre::Item*>(mo));
 
-  if (type == "ParticleSystem")
-    return new ParticleSystemSI(static_cast<Ogre::ParticleSystem*>(mo));
+  else if (type == "ParticleSystem")
+    si = new ParticleSystemSI(static_cast<Ogre::ParticleSystem*>(mo));
 
-  if (type == "Camera")
-    return new CameraSI(static_cast<Ogre::Camera*>(mo));
+  else if (type == "Camera")
+    si = new CameraSI(static_cast<Ogre::Camera*>(mo));
 
   else
     PAC_EXCEPT(Exception::ERR_INVALID_STATE,
         "unknown movable type " + mo->getMovableType());
+  si->initParams();
+  return si;
 }
 
 //------------------------------------------------------------------------------
@@ -96,15 +115,13 @@ void MovableSI::ParentNode::doSet(void* target, ArgHandler* handler) {
 
 //------------------------------------------------------------------------------
 MovableSI::MovableSI(Ogre::MovableObject* obj)
-    : StringInterface("movable", true), mMovable(obj) {
-  if (createParamDict()) initParams();
-}
+    : StringInterface(obj->getMovableType(), true), mMovable(obj) {}
 
 //------------------------------------------------------------------------------
 Ogre::MovableObject* MovableSI::getMovable() const { return mMovable; }
 
 //------------------------------------------------------------------------------
-void MovableSI::initParams() {
+void MovableSI::buildParams() {
   mParamDict->addParameter("visible", &msVisible);
   mParamDict->addParameter("parentNode", &msParentNode);
 }
@@ -273,10 +290,7 @@ void LightSI::ShadowFarDist::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-LightSI::LightSI(Ogre::Light* light) : MovableSI(light) {
-  setName(light->getMovableType());
-  if (createParamDict()) initParams();
-}
+LightSI::LightSI(Ogre::Light* light) : MovableSI(light) {}
 
 //------------------------------------------------------------------------------
 Ogre::Light* LightSI::getLight() const {
@@ -284,8 +298,8 @@ Ogre::Light* LightSI::getLight() const {
 }
 
 //------------------------------------------------------------------------------
-void LightSI::initParams() {
-  MovableSI::initParams();
+void LightSI::buildParams() {
+  MovableSI::buildParams();
   mParamDict->addParameter("lightType", &msLightType);
   mParamDict->addParameter("diffuse", &msDiffuse);
   mParamDict->addParameter("specular", &msSpecular);
@@ -301,6 +315,192 @@ void LightSI::initParams() {
 }
 
 //------------------------------------------------------------------------------
+FrustumSI::FrustumSI(Ogre::Frustum* frustum) : MovableSI(frustum) {
+  setName(frustum->getMovableType());
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::FOVy::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return Ogre::StringConverter::toString(frustum->getFOVy().valueDegrees());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::FOVy::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  frustum->setFOVy(Ogre::Degree(
+      Ogre::StringConverter::parseReal(handler->getUniformValue())));
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::AspectRatio::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return Ogre::StringConverter::toString(frustum->getAspectRatio());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::AspectRatio::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  frustum->setAspectRatio(
+      Ogre::StringConverter::parseReal(handler->getUniformValue()));
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::FocalLength::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return Ogre::StringConverter::toString(frustum->getFocalLength());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::FocalLength::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  frustum->setFocalLength(
+      Ogre::StringConverter::parseReal(handler->getUniformValue()));
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::FrustumOffset::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return Ogre::StringConverter::toString(frustum->getFrustumOffset());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::FrustumOffset::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+
+  frustum->setFrustumOffset(
+      Ogre::StringConverter::parseVector2(handler->getUniformValue()));
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::FrustumExtents::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  Real left, right, top, bottom;
+  frustum->getFrustumExtents(left, right, top, bottom);
+  Ogre::StringStream ss;
+  ss << left << " " << right << " " << top << " " << bottom;
+  return ss.str();
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::FrustumExtents::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  Ogre::Vector4 v =
+      Ogre::StringConverter::parseVector4(handler->getUniformValue());
+  frustum->setFrustumExtents(v[0], v[1], v[2], v[3]);
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::ProjectionType::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return enumToString(frustum->getProjectionType());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::ProjectionType::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  frustum->setProjectionType(
+      enumFromString<Ogre::ProjectionType>(handler->getUniformValue()));
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::FarClipDistance::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return Ogre::StringConverter::toString(frustum->getFarClipDistance());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::FarClipDistance::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  frustum->setFarClipDistance(
+      Ogre::StringConverter::parseReal(handler->getUniformValue()));
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::NearClipDistance::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return Ogre::StringConverter::toString(frustum->getNearClipDistance());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::NearClipDistance::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  frustum->setNearClipDistance(
+      Ogre::StringConverter::parseReal(handler->getUniformValue()));
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::ReflectionPlane::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return OgreUtil::toString(frustum->getReflectionPlane());
+}
+
+#if OGRE_NO_VIEWPORT_ORIENTATIONMODE == 0
+//------------------------------------------------------------------------------
+std::string FrustumSI::OrientationMode::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return enumToString(frustum->getOrientationMode());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::OrientationMode::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  frustum->setOrientationMode(
+      enumFromString<Ogre::OrientationMode>(handler->getUniformValue()));
+}
+#endif
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::OrthoWindowWidth::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return Ogre::StringConverter::toString(frustum->getOrthoWindowWidth());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::OrthoWindowWidth::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  frustum->setOrthoWindowWidth(
+      Ogre::StringConverter::parseReal(handler->getUniformValue()));
+}
+
+//------------------------------------------------------------------------------
+std::string FrustumSI::OrthoWindowHeight::doGet(const void* target) const {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  return Ogre::StringConverter::toString(frustum->getOrthoWindowHeight());
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::OrthoWindowHeight::doSet(void* target, ArgHandler* handler) {
+  Ogre::Frustum* frustum = static_cast<const FrustumSI*>(target)->getFrustum();
+  frustum->setOrthoWindowHeight(
+      Ogre::StringConverter::parseReal(handler->getUniformValue()));
+}
+
+//------------------------------------------------------------------------------
+Ogre::Frustum* FrustumSI::getFrustum() const {
+  return static_cast<Ogre::Frustum*>(mMovable);
+}
+
+//------------------------------------------------------------------------------
+void FrustumSI::buildParams() {
+  MovableSI::buildParams();
+  mParamDict->addParameter("fovy", &mFOVy);
+  mParamDict->addParameter("aspectRatio", &mAspectRatio);
+  mParamDict->addParameter("focalLength", &mFocalLength);
+  mParamDict->addParameter("frustumOffset", &mFrustumOffset);
+  mParamDict->addParameter("frustumExtents", &mFrustumExtents);
+  mParamDict->addParameter("projectionType", &mProjectionType);
+  mParamDict->addParameter("farClipDistance", &mFarClipDistance);
+  mParamDict->addParameter("nearClipDistance", &mNearClipDistance);
+  mParamDict->addParameter("reflectionPlane", &mReflectionPlane);
+#if OGRE_NO_VIEWPORT_ORIENTATIONMODE == 0
+  mParamDict->addParameter("orientationMode", &mOrientationMode);
+#endif
+  mParamDict->addParameter("orthoWindowWidth", &mOrthoWindowWidth);
+  mParamDict->addParameter("orthoWindowHeight", &mOrthoWindowHeight);
+}
+
+//------------------------------------------------------------------------------
 std::string CameraSI::Position::doGet(const void* target) const {
   Ogre::Camera* camera = static_cast<const CameraSI*>(target)->getCamera();
   return Ogre::StringConverter::toString(camera->getPosition());
@@ -313,16 +513,16 @@ void CameraSI::Position::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-//std::string CameraSI::PolygonMode::doGet(const void* target) const {
-  //Ogre::Camera* camera = static_cast<const CameraSI*>(target)->getCamera();
-  //return enumToString(camera->getPolygonMode());
+// std::string CameraSI::PolygonMode::doGet(const void* target) const {
+// Ogre::Camera* camera = static_cast<const CameraSI*>(target)->getCamera();
+// return enumToString(camera->getPolygonMode());
 //}
 
 //------------------------------------------------------------------------------
-//void CameraSI::PolygonMode::doSet(void* target, ArgHandler* handler) {
-  //Ogre::Camera* camera = static_cast<const CameraSI*>(target)->getCamera();
-  //camera->setPolygonMode(
-      //enumFromString<Ogre::PolygonMode>(handler->getValue()));
+// void CameraSI::PolygonMode::doSet(void* target, ArgHandler* handler) {
+// Ogre::Camera* camera = static_cast<const CameraSI*>(target)->getCamera();
+// camera->setPolygonMode(
+// enumFromString<Ogre::PolygonMode>(handler->getValue()));
 //}
 
 //------------------------------------------------------------------------------
@@ -352,10 +552,7 @@ void CameraSI::Orientation::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-CameraSI::CameraSI(Ogre::Camera* camera) : MovableSI(camera) {
-  setName(camera->getMovableType());
-  if (createParamDict()) initParams();
-}
+CameraSI::CameraSI(Ogre::Camera* camera) : FrustumSI(camera) {}
 
 //------------------------------------------------------------------------------
 Ogre::Camera* CameraSI::getCamera() const {
@@ -363,19 +560,16 @@ Ogre::Camera* CameraSI::getCamera() const {
 }
 
 //------------------------------------------------------------------------------
-void CameraSI::initParams() {
-  MovableSI::initParams();
+void CameraSI::buildParams() {
+  FrustumSI::buildParams();
   mParamDict->addParameter("position", &msPosition);
   mParamDict->addParameter("orientation", &msOrientation);
-  //mParamDict->addParameter("polygonMode", &msPolygonMode);
+  // mParamDict->addParameter("polygonMode", &msPolygonMode);
   mParamDict->addParameter("direction", &msDirection);
 }
 
 //------------------------------------------------------------------------------
-ItemSI::ItemSI(Ogre::Item* item) : MovableSI(item) {
-  setName(item->getMovableType());
-  if (createParamDict()) initParams();
-}
+ItemSI::ItemSI(Ogre::Item* item) : MovableSI(item) {}
 
 //------------------------------------------------------------------------------
 Ogre::Item* ItemSI::getItem() const {
@@ -383,7 +577,7 @@ Ogre::Item* ItemSI::getItem() const {
 }
 
 //------------------------------------------------------------------------------
-void ItemSI::initParams() { MovableSI::initParams(); }
+void ItemSI::buildParams() { MovableSI::buildParams(); }
 
 //------------------------------------------------------------------------------
 std::string NodeSI::Position::doGet(const void* target) const {
@@ -484,12 +678,11 @@ void NodeSI::Roll::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-NodeSI::NodeSI(Ogre::Node* node) : StringInterface("Node", true), mNode(node) {
-  if (createParamDict()) initParams();
-}
+NodeSI::NodeSI(Ogre::Node* node, const std::string& name /*= "Node" */)
+    : StringInterface(name, true), mNode(node) {}
 
 //------------------------------------------------------------------------------
-void NodeSI::initParams() {
+void NodeSI::buildParams() {
   mParamDict->addParameter("position", &msPosition);
   mParamDict->addParameter("scale", &msScale);
   mParamDict->addParameter("orientation", &msOrientation);
@@ -552,10 +745,9 @@ void SceneNodeSI::LookAt::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-SceneNodeSI::SceneNodeSI(Ogre::SceneNode* sceneNode) : NodeSI(sceneNode) {
-  setName("SceneNode");
-  if (createParamDict()) initParams();
-}
+SceneNodeSI::SceneNodeSI(
+    Ogre::SceneNode* sceneNode, const std::string& name /*="SceneNode"*/)
+    : NodeSI(sceneNode, name) {}
 
 //------------------------------------------------------------------------------
 Ogre::SceneNode* SceneNodeSI::getSceneNode() const {
@@ -563,8 +755,8 @@ Ogre::SceneNode* SceneNodeSI::getSceneNode() const {
 }
 
 //------------------------------------------------------------------------------
-void SceneNodeSI::initParams() {
-  NodeSI::initParams();
+void SceneNodeSI::buildParams() {
+  NodeSI::buildParams();
 
   mParamDict->addParameter("direction", &msDirection);
   mParamDict->addParameter("lookAt", &msLookAt);
@@ -585,18 +777,18 @@ void SceneManagerSI::ShadowColour::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
-//std::string SceneManagerSI::AmbientLight::doGet(const void* target) const {
-  //Ogre::SceneManager* sm =
-      //static_cast<const SceneManagerSI*>(target)->getSceneMgr();
-  //return Ogre::StringConverter::toString(sm->getAmbientLight());
+// std::string SceneManagerSI::AmbientLight::doGet(const void* target) const {
+// Ogre::SceneManager* sm =
+// static_cast<const SceneManagerSI*>(target)->getSceneMgr();
+// return Ogre::StringConverter::toString(sm->getAmbientLight());
 //}
 
 //------------------------------------------------------------------------------
-//void SceneManagerSI::AmbientLight::doSet(void* target, ArgHandler* handler) {
-  //Ogre::SceneManager* sm =
-      //static_cast<const SceneManagerSI*>(target)->getSceneMgr();
-  //sm->setAmbientLight(
-      //Ogre::StringConverter::parseColourValue(handler->getValue()));
+// void SceneManagerSI::AmbientLight::doSet(void* target, ArgHandler* handler) {
+// Ogre::SceneManager* sm =
+// static_cast<const SceneManagerSI*>(target)->getSceneMgr();
+// sm->setAmbientLight(
+// Ogre::StringConverter::parseColourValue(handler->getValue()));
 //}
 
 //------------------------------------------------------------------------------
@@ -631,15 +823,13 @@ void SceneManagerSI::Fog::doSet(void* target, ArgHandler* handler) {
 
 //------------------------------------------------------------------------------
 SceneManagerSI::SceneManagerSI(Ogre::SceneManager* sceneMgr)
-    : StringInterface("SceneManager", true), mSceneMgr(sceneMgr) {
-  if (createParamDict()) initParams();
-}
+    : StringInterface("SceneManager", true), mSceneMgr(sceneMgr) {}
 
 //------------------------------------------------------------------------------
-void SceneManagerSI::initParams() {
+void SceneManagerSI::buildParams() {
   // mParamDict->addParameter("shadowTechnique", &msShadowTechnique);
   mParamDict->addParameter("shadowColour", &msShadowColour);
-  //mParamDict->addParameter("ambientLight", &msAmbientLight);
+  // mParamDict->addParameter("ambientLight", &msAmbientLight);
   mParamDict->addParameter("fog", &msFog);
 }
 }
