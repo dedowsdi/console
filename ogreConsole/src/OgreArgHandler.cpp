@@ -489,7 +489,7 @@ bool DatablockAH::doValidate(const std::string& s) {
 }
 
 //------------------------------------------------------------------------------
-PositionTH::PositionTH() : TreeArgHandler("position") {
+PositionTH::PositionTH() : TreeArgHandler("scene_position") {
   // real3
   mRoot->acn("real3")->eb("0");
   // ltl_posOfNode t_sceneNode ("1")
@@ -512,11 +512,15 @@ std::string PositionTH::getUniformValue() const {
 }
 
 //------------------------------------------------------------------------------
-DirectionTH::DirectionTH() : TreeArgHandler("direction") {
+DirectionTH::DirectionTH() : TreeArgHandler("scene_direction") {
   // real3
   mRoot->acn("real3")->eb("0");
-  // ltl_posOfNode t_sceneNode ("1")
-  mRoot->acn("ltl_dirOfNode")->acn("t_sceneNode")->eb("1");
+  // ltl_dirOfNode t_sceneNode en_transform en_axis ("1")
+  mRoot->acn("ltl_dirOfNode")
+      ->acn("t_sceneNode")
+      ->acn("en_transformSpace")
+      ->acn("en_axis")
+      ->eb("1");
 }
 
 //------------------------------------------------------------------------------
@@ -526,13 +530,24 @@ std::string DirectionTH::getUniformValue() const {
     // real3
     return getMatchedNodeValue("real3");
   } else {
-    // ltl_dirOfNode t_sceneNode ("1")
+    // ltl_dirOfNode t_sceneNode en_transform en_axis ("1")
     Ogre::SceneManager* sceneMgr = sgOgreConsole.getSceneMgr();
     Ogre::SceneNode* node = OgreUtil::getSceneNodeById(
         sceneMgr, getMatchedNodeUniformValue("t_sceneNode"));
+    pac::AXIS axis =
+        enumFromString<pac::AXIS>(getMatchedNodeUniformValue("en_axis"));
+    Ogre::Node::TransformSpace t = enumFromString<Ogre::Node::TransformSpace>(
+        getMatchedNodeUniformValue("en_transform"));
     Ogre::Vector3 v[3];
-    node->_getDerivedOrientationUpdated().ToAxes(v);
-    return Ogre::StringConverter::toString(-v[2]);
+    if (t == Ogre::Node::TS_LOCAL) {
+      node->getOrientation().ToAxes(v);
+    } else if (t == Ogre::Node::TS_WORLD || !node->getParent()) {
+      node->_getDerivedOrientationUpdated().ToAxes(v);
+    } else {
+      node->getParentSceneNode()->_getDerivedOrientationUpdated().ToAxes(v);
+    }
+    int pn = axis > 2 ? -1 : 1;
+    return Ogre::StringConverter::toString(pn * v[axis % 3]);
   }
 }
 }

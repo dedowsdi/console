@@ -2,6 +2,7 @@
 #include "SdlToMygui.h"
 #include <SDL.h>
 
+#include <OgreItem.h>
 #include <Compositor/OgreCompositorManager2.h>
 #include <Compositor/OgreCompositorNodeDef.h>
 #include <Compositor/Pass/OgreCompositorPass.h>
@@ -139,6 +140,28 @@ bool MyguiManager::frameStarted(const Ogre::FrameEvent &evt) {
     mExecuting = false;
   }
   return true;
+}
+
+//------------------------------------------------------------------------------
+void MyguiManager::createScene() {
+  Ogre::Item *ogrehead = mSceneManager->createItem("ogrehead.mesh");
+  Ogre::SceneNode *ogreheadNode =
+      mSceneManager->getRootSceneNode()->createChildSceneNode();
+  ogreheadNode->attachObject(ogrehead);
+
+  Ogre::Light *light = mSceneManager->createLight();
+  Ogre::SceneNode *lightNode =
+      mSceneManager->getRootSceneNode()->createChildSceneNode();
+  lightNode->attachObject(light);
+  light->setType(Ogre::Light::LT_DIRECTIONAL);
+  light->setDirection(Ogre::Vector3(-1, -1, -1));
+}
+
+//------------------------------------------------------------------------------
+void MyguiManager::createCamera() {
+  BaseManager::createCamera();
+  mCamera->setPosition(0, 30, 100);
+  mCamera->lookAt(0,0,0);
 }
 
 int main(int argc, char *argv[]) {

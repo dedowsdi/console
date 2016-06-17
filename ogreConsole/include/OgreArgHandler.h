@@ -212,6 +212,7 @@ protected:
 };
 
 /**
+ * scene_position
  * real3 ("0")
  * ltl_posOfNode t_sceneNode ("1")
  * all the way to locate a position
@@ -223,9 +224,9 @@ public:
 };
 
 /**
+ * scene_direction
  * real3 ("0")
- * ltl_posOfNode t_sceneNode ("1" , negative-z of  node)
- * all the way to locate a direction 
+ * ltl_dirOfNode t_sceneNode en_transform en_axis ("1")
  */
 class _PacExport DirectionTH : public TreeArgHandler {
 public:

@@ -6,6 +6,15 @@
 
 namespace pac {
 
+enum AXIS {
+  AXIS_X,
+  AXIS_Y,
+  AXIS_Z,
+  AXIS_NEGATIVE_X,
+  AXIS_NEGATIVE_Y,
+  AXIS_NEGATIVE_Z
+};
+
 class _PacExport OgreConsole : public Console {
 public:
   OgreConsole(ConsoleUI* ui, Ogre::SceneManager* sceneMgr);

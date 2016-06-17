@@ -25,6 +25,8 @@ public:
   virtual void initGui();
   virtual void setupCompositor();
   virtual bool frameStarted(const Ogre::FrameEvent& evt);
+  virtual void createScene();
+  void createCamera();
 };
 
 #endif /* MYGUIMANAGER_H */

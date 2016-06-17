@@ -47,6 +47,7 @@ CameraSI::Position CameraSI::msPosition;
 CameraSI::Orientation CameraSI::msOrientation;
 // CameraSI::PolygonMode CameraSI::msPolygonMode;
 CameraSI::Direction CameraSI::msDirection;
+CameraSI::LookAt CameraSI::msLookAt;
 NodeSI::Position NodeSI::msPosition;
 NodeSI::Scale NodeSI::msScale;
 NodeSI::Orientation NodeSI::msOrientation;
@@ -539,6 +540,22 @@ void CameraSI::Direction::doSet(void* target, ArgHandler* handler) {
 }
 
 //------------------------------------------------------------------------------
+std::string CameraSI::LookAt::doGet(const void* target) const {
+  Ogre::Camera* camera = static_cast<const CameraSI*>(target)->getCamera();
+  Ogre::Vector3 xAxes, yAxes, zAxes;
+  camera->getOrientation().ToAxes(xAxes, yAxes, zAxes);
+  return Ogre::StringConverter::toString(
+      -zAxes * 100 + camera->getDerivedPosition());
+}
+
+//------------------------------------------------------------------------------
+void CameraSI::LookAt::doSet(void* target, ArgHandler* handler) {
+  Ogre::Camera* camera = static_cast<const CameraSI*>(target)->getCamera();
+  camera->lookAt(
+      Ogre::StringConverter::parseVector3(handler->getUniformValue()));
+}
+
+//------------------------------------------------------------------------------
 std::string CameraSI::Orientation::doGet(const void* target) const {
   Ogre::Camera* camera = static_cast<const CameraSI*>(target)->getCamera();
   return Ogre::StringConverter::toString(camera->getOrientation());
@@ -566,6 +583,7 @@ void CameraSI::buildParams() {
   mParamDict->addParameter("orientation", &msOrientation);
   // mParamDict->addParameter("polygonMode", &msPolygonMode);
   mParamDict->addParameter("direction", &msDirection);
+  mParamDict->addParameter("lookAt", &msLookAt);
 }
 
 //------------------------------------------------------------------------------
@@ -710,7 +728,7 @@ void SceneNodeSI::Direction::doSet(void* target, ArgHandler* handler) {
   auto ts = enumFromString<Ogre::Node::TransformSpace>(
       tree->getMatchedNodeValue("en_transformSpace"));
   const Ogre::Vector3&& dir = Ogre::StringConverter::parseVector3(
-      tree->getMatchedNodeUniformValue("direction"));
+      tree->getMatchedNodeUniformValue("scene_direction"));
   const std::string& localDirectionVector =
       tree->getMatchedNodeValue("localDirectionVector", {"1"});
   Ogre::Vector3 v = Ogre::StringConverter::parseVector3(
@@ -723,9 +741,9 @@ std::string SceneNodeSI::LookAt::doGet(const void* target) const {
   Ogre::SceneNode* node =
       static_cast<const SceneNodeSI*>(target)->getSceneNode();
   Ogre::Vector3 xAxes, yAxes, zAxes;
-  const Ogre::Quaternion& q = node->getOrientation();
-  q.ToAxes(xAxes, yAxes, zAxes);
-  return Ogre::StringConverter::toString(-zAxes * 100 + node->getPosition());
+  node->getOrientation().ToAxes(xAxes, yAxes, zAxes);
+  return Ogre::StringConverter::toString(
+      -zAxes * 100 + node->_getDerivedPositionUpdated());
 }
 
 //------------------------------------------------------------------------------
@@ -736,7 +754,7 @@ void SceneNodeSI::LookAt::doSet(void* target, ArgHandler* handler) {
   auto ts = enumFromString<Ogre::Node::TransformSpace>(
       tree->getMatchedNodeValue("en_transformSpace"));
   const Ogre::Vector3&& pos = Ogre::StringConverter::parseVector3(
-      tree->getMatchedNodeValue("position"));
+      tree->getMatchedNodeValue("scene_position"));
   const std::string& localDirectionVector =
       tree->getMatchedNodeValue("localDirectionVector", {"1"});
   Ogre::Vector3 v = Ogre::StringConverter::parseVector3(

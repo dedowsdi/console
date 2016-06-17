@@ -146,7 +146,7 @@ TEST_F(TestOgreScene, handler_resource) {
 }
 
 TEST_F(TestOgreScene, handler_position) {
-  auto handler = sgArgLib.createArgHandler("position");
+  auto handler = sgArgLib.createArgHandler("scene_position");
   EXPECT_TRUE(handler->validate("1 2 3"));
   EXPECT_TRUE(handler->validate("posOfNode " + mEntNode0Nameid));
   EXPECT_TRUE(cmpRealStrings(
@@ -155,9 +155,9 @@ TEST_F(TestOgreScene, handler_position) {
 }
 
 TEST_F(TestOgreScene, handler_direction) {
-  auto handler = sgArgLib.createArgHandler("direction");
+  auto handler = sgArgLib.createArgHandler("scene_direction");
   EXPECT_TRUE(handler->validate("1 2 3"));
-  EXPECT_TRUE(handler->validate("dirOfNode " + mEntNode0Nameid));
+  EXPECT_TRUE(handler->validate("dirOfNode " + mEntNode0Nameid + " TS_WORLD AXIS_Z"));
   Ogre::Vector3 v[3];
   mEntNode0->_getDerivedOrientationUpdated().ToAxes(v);
   EXPECT_TRUE(cmpRealStrings(
@@ -177,7 +177,7 @@ TEST_F(TestOgreScene, handler_position_transform) {
 TEST_F(TestOgreScene, handler_direction_transform) {
   auto handler = sgArgLib.createArgHandler("sceneNode_direction");
   EXPECT_TRUE(handler->validate("1 2 3 TS_WORLD"));
-  EXPECT_TRUE(handler->validate("dirOfNode " + mEntNode0Nameid + " TS_WORLD"));
+  EXPECT_TRUE(handler->validate("dirOfNode " + mEntNode0Nameid + " TS_WORLD AXIS_Z TS_WORLD "));
   Ogre::Vector3 v[3];
   mEntNode0->_getDerivedOrientationUpdated().ToAxes(v);
   EXPECT_TRUE(cmpRealStrings(

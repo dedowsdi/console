@@ -222,6 +222,8 @@ TEST_F(TestOgreScene, testCameraSI) {
     std::string direction = randVector3Str(true);
     EXPECT_TRUE(sgOgreConsole.execute("set direction " + direction));
     EXPECT_TRUE(cmpRealStrings(direction, dir->getParameter("direction")));
+    EXPECT_TRUE(sgOgreConsole.execute("set lookAt " + direction));
+
   }
 }
 

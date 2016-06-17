@@ -42,7 +42,8 @@ DEFINE_ENUM_CONVERSION(
 DEFINE_ENUM_CONVERSION(Ogre::, OrientationMode,
     (OR_DEGREE_0)(OR_DEGREE_90)(OR_DEGREE_180)(OR_DEGREE_270)(OR_PORTRAIT)(
                            OR_LANDSCAPERIGHT)(OR_LANDSCAPELEFT))
-
+DEFINE_ENUM_CONVERSION(pac::, AXIS,
+    (AXIS_X)(AXIS_Y)(AXIS_Z)(AXIS_NEGATIVE_X)(AXIS_NEGATIVE_Y)(AXIS_NEGATIVE_Z))
 //------------------------------------------------------------------------------
 OgreConsole::OgreConsole(ConsoleUI* ui, Ogre::SceneManager* sceneMgr)
     : Console(ui), mSceneMgr(sceneMgr), mMovableDir(0), mNodeDir(0) {}
@@ -116,6 +117,8 @@ void OgreConsole::initEnumArgHandler() {
       new EnumArgHandler<Ogre::ProjectionType>("en_projectionType"));
   sgArgLib.registerArgHandler(
       new EnumArgHandler<Ogre::OrientationMode>("en_orientationMode"));
+  sgArgLib.registerArgHandler(
+      new EnumArgHandler<pac::AXIS>("en_axis"));
 }
 
 //------------------------------------------------------------------------------
@@ -171,14 +174,14 @@ void OgreConsole::initMiscArgHandler() {
   // used to handle SceneNode::LookAt
   handler = new TreeArgHandler("sceneNode_lookAt");
   root = handler->getRoot();
-  Node* node = root->acn("position")->acn("en_transformSpace");
+  Node* node = root->acn("scene_position")->acn("en_transformSpace");
   node->eb("0");
   node->acn("localDirectionVector", "real3")->eb("1");
   sgArgLib.registerArgHandler(handler);
   // used to handle SceneNode::setDirection
   handler = new TreeArgHandler("sceneNode_direction");
   root = handler->getRoot();
-  node = root->acn("direction")->acn("en_transformSpace");
+  node = root->acn("scene_direction")->acn("en_transformSpace");
   node->eb("0");
   node->acn("localDirectionVector", "real3")->eb("1");
   sgArgLib.registerArgHandler(handler);

@@ -246,7 +246,13 @@ public:
   //};
 
   struct _PacExport Direction : public ParamCmd {
-    Direction() : ParamCmd("real3") {}
+    Direction() : ParamCmd("scene_direction") {}
+    virtual std::string doGet(const void* target) const;
+    virtual void doSet(void* target, ArgHandler* handler);
+  };
+
+  struct _PacExport LookAt : public ParamCmd {
+    LookAt() : ParamCmd("scene_position") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
@@ -256,6 +262,7 @@ public:
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
+
 
   CameraSI(Ogre::Camera* camera);
   Ogre::Camera* getCamera() const;
@@ -268,6 +275,7 @@ protected:
   static Orientation msOrientation;
   // static PolygonMode msPolygonMode;
   static Direction msDirection;
+  static LookAt msLookAt;
 };
 
 class _PacExport ItemSI : public MovableSI {
