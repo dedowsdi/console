@@ -45,10 +45,9 @@ public:
   void setName(const std::string& v) { mName = v; }
 
   /**
-   * Left trim, parse args and options.
-   * @param v : args and options string
+   * @param v : args and options string, must not start with space
    */
-  void setArgsAndOptions(const std::string& v);
+  virtual void setArgsAndOptions(const std::string& v);
 
   ArgHandler* getArgHandler() const;
 
@@ -125,6 +124,13 @@ public:
 
 private:
   CmdMap mCmdMap;
+};
+
+class ManualCommand : public Command {
+public:
+  ManualCommand(const std::string& name, const std::string& ahName = "any");
+  virtual void setArgsAndOptions(const std::string& v);
+protected:
 };
 }
 

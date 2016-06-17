@@ -135,9 +135,10 @@ void CommandLib::registerCommand(Command* cmdProto) {
   // init it, let it build it's own arg handler
   cmdProto->init();
   // check if it's already registerd
-  CmdMap::iterator iter = std::find_if(mCmdMap.begin(), mCmdMap.end(),
-      [&](CmdMap::value_type& v)
-          -> bool { return v.first == cmdProto->getName(); });
+  CmdMap::iterator iter = std::find_if(
+      mCmdMap.begin(), mCmdMap.end(), [&](CmdMap::value_type& v) -> bool {
+        return v.first == cmdProto->getName();
+      });
 
   if (iter == mCmdMap.end()) {
     mCmdMap[cmdProto->getName()] = cmdProto;
@@ -157,6 +158,7 @@ void CommandLib::init() {
   registerCommand(new GetCmd());
   registerCommand(new SzCmd());
   registerCommand(new CtdCmd());
+  registerCommand(new EchoCmd());
 }
 //------------------------------------------------------------------------------
 CommandLib::CmdMap::const_iterator CommandLib::beginCmdMapIterator() const {
@@ -167,6 +169,37 @@ CommandLib::CmdMap::const_iterator CommandLib::beginCmdMapIterator() const {
 CommandLib::CmdMap::const_iterator CommandLib::endCmdMapIterator() const {
   return mCmdMap.end();
 }
+
+//------------------------------------------------------------------------------
+ManualCommand::ManualCommand(
+    const std::string& name, const std::string& ahName /*= "any"*/)
+    : Command(name, ahName) {}
+
+//------------------------------------------------------------------------------
+void ManualCommand::setArgsAndOptions(const std::string& v) {
+  boost::smatch m;
+  // check if - after nonspace
+  boost::regex reInvalid("\\S-");
+  if (boost::regex_search(v, reInvalid))
+    PAC_EXCEPT(Exception::ERR_INVALIDPARAMS,
+        v + " is illegal, - after nonspace character");
+
+  mArgs.clear();
+  mOptions.clear();
+  // extract options, from beginning
+  boost::regex reOptions("^\\s*-([a-z]+)\\s*");
+
+  // get options
+  std::string::const_iterator start = v.begin();
+  std::string::const_iterator end = v.end();
+  while (boost::regex_search(start, end, m, reOptions)) {
+    mOptions += m[1];
+    start = m[0].second;
+  }
+  //get content
+  mArgs = std::string(start, end);
+}
+
 
 template <>
 CommandLib* Singleton<CommandLib>::msSingleton = 0;

@@ -274,4 +274,13 @@ bool SzCmd::buildArgHandler() {
   this->mArgHandler = handler;
   return true;
 }
+
+//------------------------------------------------------------------------------
+EchoCmd::EchoCmd() : ManualCommand("echo") {}
+
+//------------------------------------------------------------------------------
+bool EchoCmd::doExecute() {
+  sgConsole.outputLine(mArgHandler->getValue());
+  return true;
+}
 }

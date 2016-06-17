@@ -931,6 +931,7 @@ void ArgHandlerLib::init() {
   this->registerArgHandler(new ParamArgHandler());
   this->registerArgHandler(new ValueArgHandler());
   this->registerArgHandler(new CmdArgHandler());
+  this->registerArgHandler(new AnyArgHandler());
 }
 
 //------------------------------------------------------------------------------

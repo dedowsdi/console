@@ -275,4 +275,10 @@ std::string QuaternionArgHandler::getUniformValue() const {
   ss << r0 << " " << r1 << " " << r2 << " " << r3 << " ";
   return ss.str();
 }
+
+//------------------------------------------------------------------------------
+void AnyArgHandler::populatePromptBuffer(const std::string& s)
+{
+    appendPromptBuffer("anything you want");
+}
 }

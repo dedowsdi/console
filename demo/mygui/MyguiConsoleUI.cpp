@@ -34,15 +34,11 @@ void MyguiConsoleUI::output(const std::string& output, int type /*= 1*/) {
 
 //------------------------------------------------------------------------------
 void MyguiConsoleUI::setCwd(const std::string& cwd) {
+  //resize cwd
   mwCwd->setCaption(cwd);
-  // resize cwd and cmd
-  // MyGUI::ISubWidgetText* text = mwCwd->getSubWidgetText();
+  mwCwd->setSize(mwCwd->getTextSize());
 
-  // const MyGUI::IntSize size(text->getTextSize().width,
-  // mwCwd->getSize().height);
-  // mwCwd->setSize(size);
-  mwCmd->setSize(mwCmd->getTextSize());
-
+  //resize cmd
   const MyGUI::IntSize& size_view =
       MyGUI::RenderManager::getInstance().getViewSize();
   mwCmd->setPosition(mwCwd->getPosition().left + mwCwd->getTextSize().width,

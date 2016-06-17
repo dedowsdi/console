@@ -132,6 +132,15 @@ protected:
   virtual bool doExecute();
   virtual bool buildArgHandler();
 };
+
+class _PacExport EchoCmd : public ManualCommand {
+public:
+  EchoCmd();
+  virtual Command* clone() { return new EchoCmd(*this); }
+
+protected:
+  virtual bool doExecute();
+};
 };
 
 #endif /* PACINTRINSICCMD_H */

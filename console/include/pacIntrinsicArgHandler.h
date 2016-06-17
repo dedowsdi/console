@@ -33,7 +33,7 @@ protected:
 };
 
 /**
- * Decimal in range. Used to build normalized Real (-1.0 to 1.0)
+ * Decimal in range. Can be used to build normalized Real [-1.0 to 1.0]
  */
 template <class T>
 class _PacExport PriDeciRangeArgHandler : public ArgHandler {
@@ -45,8 +45,8 @@ public:
    * @param name : arg handler name
    * @param min : min value
    * @param max : max value
-   * @param equal : use <= >= or < >
-   * @return :
+   * @param leftEqual : use >=
+   * @param rightEqual : use <=
    */
   PriDeciRangeArgHandler(const std::string& name, T min, T max,
       bool leftEqual = true, bool rightEqual = true)
@@ -303,7 +303,6 @@ class _PacExport ReadonlyArgHandler : public ArgHandler {
 public:
   ReadonlyArgHandler();
   virtual ArgHandler* clone() { return new ReadonlyArgHandler(*this); }
-
   virtual void populatePromptBuffer(const std::string& s);
 
 protected:
@@ -323,6 +322,19 @@ public:
   QuaternionArgHandler();
   virtual ArgHandler* clone() { return new QuaternionArgHandler(*this); }
   std::string getUniformValue() const;
+};
+
+class _PacExport AnyArgHandler : public ArgHandler {
+public:
+  AnyArgHandler() : ArgHandler("any") {}
+  virtual ArgHandler* clone() { return new AnyArgHandler(*this); }
+  virtual void populatePromptBuffer(const std::string& s);
+
+protected:
+  virtual bool doValidate(const std::string& s) {
+    (void)s;
+    return true;
+  }
 };
 }
 
