@@ -311,8 +311,9 @@ Node* Node::addChildNode(const std::string& name,
 //------------------------------------------------------------------------------
 Node* Node::getChildNode(const std::string& name) const {
   NodeVector::const_iterator iter = std::find_if(mChildren.begin(),
-      mChildren.end(), [&](const NodeVector::value_type& v)
-                           -> bool { return v->getName() == name; });
+      mChildren.end(), [&](const NodeVector::value_type& v) -> bool {
+        return v->getName() == name;
+      });
 
   if (iter == mChildren.end())
     PAC_EXCEPT(
@@ -912,6 +913,8 @@ void ArgHandlerLib::init() {
   this->registerArgHandler(sgArgLib.createMonoTree("nmatrix2", "nreal", 4));
   this->registerArgHandler(sgArgLib.createMonoTree("nmatrix3", "nreal", 9));
   this->registerArgHandler(sgArgLib.createMonoTree("nmatrix4", "nreal", 16));
+  this->registerArgHandler(
+      new PriDeciRangeArgHandler<Real>("real_ee_0_180", 0, 180, false, false));
 
   // iteral
   this->registerArgHandler(new LiteralArgHandler("regex"));

@@ -48,11 +48,15 @@ public:
    * @param equal : use <= >= or < >
    * @return :
    */
-  PriDeciRangeArgHandler(
-      const std::string& name, T min, T max, bool equal = true)
-    : ArgHandler(name), mMin(min), mMax(max), mEqual(equal) {
-      setPromptType(PT_PROMPTONLY);
-    }
+  PriDeciRangeArgHandler(const std::string& name, T min, T max,
+      bool leftEqual = true, bool rightEqual = true)
+      : ArgHandler(name),
+        mMin(min),
+        mMax(max),
+        mLeftEqual(leftEqual),
+        mRightEqual(rightEqual) {
+    setPromptType(PT_PROMPTONLY);
+  }
 
   virtual void populatePromptBuffer(const std::string& s) {
     (void)s;
@@ -64,10 +68,9 @@ protected:
   virtual bool doValidate(const std::string& s) {
     if (StringUtil::isPrimitiveDecimal<T>(s)) {
       T t = StringUtil::parsePrimitiveDecimal<T>(s);
-      if (mEqual)
-        return t <= mMax && t >= mMin;
-      else
-        return t < mMax && t > mMin;
+
+      return (t > mMin || (mLeftEqual && t >= mMin)) &&
+             (t < mMax || (mRightEqual && t <= mMax));
     }
 
     return false;
@@ -75,7 +78,7 @@ protected:
 
 private:
   T mMin, mMax;
-  bool mEqual;
+  bool mLeftEqual, mRightEqual;
 };
 
 /**

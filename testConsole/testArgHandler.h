@@ -1164,6 +1164,17 @@ TEST(TestArghandler, id) {
   delete handler;
 }
 
+TEST(TestArghandler, rangeExclude){
+  std::unique_ptr<ArgHandler> handler(sgArgLib.createArgHandler("real_ee_0_180"));
+  EXPECT_TRUE(handler->validate("0.1"));
+  EXPECT_TRUE(handler->validate("100"));
+  EXPECT_TRUE(handler->validate("179"));
+  EXPECT_FALSE(handler->validate("0"));
+  EXPECT_FALSE(handler->validate("180"));
+  EXPECT_FALSE(handler->validate("181"));
+  EXPECT_FALSE(handler->validate("-1"));
+}
+
 enum GE0 { GE0_0, GE0_1, GE0_2 };
 
 class TestEnum : public ::testing::Test {
@@ -1201,7 +1212,7 @@ DEFINE_ENUM_CONVERSION(TestEnum::, CE0, (CE0_0)(CE0_1)(CE0_2))
 TEST_F(TestEnum, global) { testEnum<GE0>("en_ge0"); }
 TEST_F(TestEnum, scope) { testEnum<TestEnum::CE0>("en_ce0"); }
 
-//deviation exists 
+//deviation exists
 //TEST(TestQuaternion, testQuaternion) {
   //ArgHandler* handler = sgArgLib.createArgHandler("quaternion");
   //EXPECT_TRUE(handler->validate("angleAxis 180 0 1 0"));

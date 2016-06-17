@@ -137,7 +137,7 @@ public:
   FrustumSI(Ogre::Frustum* frustum);
 
   struct _PacExport FOVy : public ParamCmd {
-    FOVy() : ParamCmd("real") {}
+    FOVy() : ParamCmd("real_ee_0_180") {}
     virtual std::string doGet(const void* target) const;
     virtual void doSet(void* target, ArgHandler* handler);
   };
