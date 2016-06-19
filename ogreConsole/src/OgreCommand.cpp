@@ -54,6 +54,63 @@ Ogre::ResourceManager* getResourceManager(const std::string& resType) {
 }
 
 //------------------------------------------------------------------------------
+void printNodeTree(Ogre::Node* node, size_t level, size_t maxLevel) {
+  static std::string prefix = "|-- ";
+
+  std::string blank(level >= 1 ? (level - 1) * prefix.size() : 0, ' ');
+  // output extra | if parent bone is not last child of grand bone, do this
+  // recursively until level 0
+  Ogre::Node* parentNode = node->getParent();
+  int grandLevel = level - 2;
+  while (grandLevel >= 0 && parentNode && parentNode->getParent()) {
+    Ogre::Node* grandNode = parentNode->getParent();
+    if (*grandNode->getChildIterator().end() != parentNode) {
+      blank[grandLevel * prefix.size()] = '|';
+    }
+    --grandLevel;
+    parentNode = grandNode;
+  }
+
+  sgConsole.outputLine(
+      blank + (level ? prefix : "") + OgreUtil::createNameid(node));
+
+  if (level >= maxLevel) return;
+
+  Ogre::Node::NodeVecIterator oi = node->getChildIterator();
+
+  while (oi.hasMoreElements()) {
+    printNodeTree(oi.getNext(), level + 1, maxLevel);
+  }
+}
+
+//------------------------------------------------------------------------------
+void printBoneTree(Ogre::Bone* bone, size_t level, size_t maxLevel) {
+  static std::string prefix = "|-- ";
+
+  std::string blank(level >= 1 ? (level - 1) * prefix.size() : 0, ' ');
+  // output extra | if parent bone is not last child of grand bone, do this
+  // recursively until level 0
+  Ogre::Bone* parentBone = bone->getParent();
+  int grandLevel = level - 2;
+  while (grandLevel >= 0 && parentBone && parentBone->getParent()) {
+    Ogre::Bone* grandBone = parentBone->getParent();
+    if (grandBone->getChild(grandBone->getNumChildren() - 1) != parentBone) {
+      blank[grandLevel * prefix.size()] = '|';
+    }
+    --grandLevel;
+    parentBone = grandBone;
+  }
+
+  sgConsole.outputLine(blank + (level ? prefix : "") + bone->getName());
+
+  if (level >= maxLevel) return;
+
+  for (size_t i = 0; i < bone->getNumChildren(); ++i) {
+    printBoneTree(bone->getChild(i), level + 1, maxLevel);
+  }
+}
+
+//------------------------------------------------------------------------------
 LsresCmd::LsresCmd() : Command("lsres") {}
 
 //------------------------------------------------------------------------------
@@ -298,8 +355,9 @@ bool AthCmd::doExecute() {
   mo->setName(id);
 
   if (branch.size() > 0 && branch[0] == 's') {
-    Ogre::SceneNode* sceneNode = handler->getMatchedNodeHandler<SceneNodeTH>(
-                                              "t_sceneNode")->getSceneNode();
+    Ogre::SceneNode* sceneNode =
+        handler->getMatchedNodeHandler<SceneNodeTH>("t_sceneNode")
+            ->getSceneNode();
     sceneNode->attachObject(mo);
   } else if (branch.size() > 0 && branch[0] == 't') {
     Ogre::Item* item = static_cast<Ogre::Item*>(OgreUtil::getMovableByIdtype(
@@ -818,6 +876,70 @@ bool RmafctCmd::buildArgHandler() {
   mArgHandler = handler;
   Node* root = handler->getRoot();
   root->acn("particle")->acn("affectorType")->acn("index", "ushort")->eb("0");
+  return true;
+}
+
+//------------------------------------------------------------------------------
+TsnCmd::TsnCmd() : Command("tsn") {}
+
+//------------------------------------------------------------------------------
+bool TsnCmd::doExecute() {
+  Ogre::SceneManager* mgr = sgOgreConsole.getSceneMgr();
+  TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
+
+  Ogre::SceneNode* node = OgreUtil::getSceneNodeById(
+      mgr, handler->getMatchedNodeUniformValue("t_sceneNode"));
+  size_t maxLevel = Ogre::StringConverter::parseUnsignedInt(
+      handler->getMatchedNodeValue("maxLevel", {"1"}), -1);
+  printNodeTree(node, 0, maxLevel);
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool TsnCmd::buildArgHandler() {
+  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
+  mArgHandler = handler;
+  Node* root = handler->getRoot();
+  Node* node = root->acn("t_sceneNode");
+  // tsn t_sceneNode ("0")
+  node->eb("0");
+  // tsn t_sceneNode maxLevel ("1")
+  node->acn("maxLevel", "uint")->eb("1");
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+TbCmd::TbCmd() : Command("tb") {}
+
+//------------------------------------------------------------------------------
+bool TbCmd::doExecute() {
+  Ogre::SceneManager* mgr = sgOgreConsole.getSceneMgr();
+  TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
+
+  Ogre::Item* item = static_cast<Ogre::Item*>(OgreUtil::getMovableByIdtype(
+      mgr, handler->getMatchedNodeUniformValue("item")));
+
+  auto bone = item->getSkeletonInstance()->getBone(
+      handler->getMatchedNodeValue("bone"));
+
+  size_t maxLevel = Ogre::StringConverter::parseUnsignedInt(
+      handler->getMatchedNodeValue("maxLevel", {"1"}), -1);
+  printBoneTree(bone, 0, maxLevel);
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool TbCmd::buildArgHandler() {
+  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
+  mArgHandler = handler;
+  Node* root = handler->getRoot();
+  Node* node = root->acn("item", "t_item")->acn("bone");
+  // tb t_item bone ("0")
+  node->eb("0");
+  // tb t_item bone maxLevel ("1")
+  node->acn("maxLevel", "uint")->eb("1");
+
   return true;
 }
 }

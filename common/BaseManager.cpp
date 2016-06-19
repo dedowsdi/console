@@ -217,7 +217,7 @@ void BaseManager::setupResources(void) {
     secName = seci.peekNextKey();
     if (secName == "Hlms") {
       registerHlms(cf.getSetting("DoNotUseAsResource", "Hlms", ""));
-      seci.getNext();
+      seci.moveNext();
       continue;
     }
 

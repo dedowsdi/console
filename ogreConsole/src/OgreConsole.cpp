@@ -80,6 +80,8 @@ void OgreConsole::initCommand() {
   sgCmdLib.registerCommand(new RmemitCmd());
   sgCmdLib.registerCommand(new AdafctCmd());
   sgCmdLib.registerCommand(new RmafctCmd());
+  sgCmdLib.registerCommand(new TsnCmd());
+  sgCmdLib.registerCommand(new TbCmd());
 }
 
 //------------------------------------------------------------------------------

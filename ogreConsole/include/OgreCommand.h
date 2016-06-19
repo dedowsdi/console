@@ -8,6 +8,8 @@
 namespace pac {
 
 Ogre::ResourceManager* getResourceManager(const std::string& resType);
+void printNodeTree(Ogre::Node* node, size_t level, size_t maxLevel);
+void printBoneTree(Ogre::Bone* node, size_t level, size_t maxLevel);
 
 /**
  * lsres resType ("0")
@@ -234,6 +236,37 @@ protected:
   virtual bool doExecute();
   virtual bool buildArgHandler();
 };
+
+
+/**
+ * tsn t_sceneNode ("0")
+ * tsn t_sceneNode maxLevel ("1") 
+ */
+class _PacExport TsnCmd : public Command {
+public:
+  TsnCmd();
+  virtual Command* clone() { return new TsnCmd(*this); }
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+};
+
+/**
+ * tb t_sceneNode ("0")
+ * tb t_sceneNode maxLevel ("1") 
+ */
+class _PacExport TbCmd : public Command {
+public:
+  TbCmd();
+  virtual Command* clone() { return new TbCmd(*this); }
+
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+};
+
+
 }
 
 #endif /* OGRECOMMAND_H */

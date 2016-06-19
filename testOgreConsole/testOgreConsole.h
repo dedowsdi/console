@@ -351,6 +351,15 @@ TEST_F(TestOgreScene, testEdmo) {
   // sgOgreConsole.execute("edmo tagPoint sinbad Hand.R Entity rightSword"));
   // EXPECT_STREQ("rightSword", sgOgreConsole.getCwd()->getName().c_str());
 }
+
+TEST_F(TestOgreScene, testTsn){
+  EXPECT_TRUE(sgOgreConsole.execute("tsn " + mEntNode0Nameid));
+  EXPECT_TRUE(sgOgreConsole.execute("tsn " + mEntNode0Nameid + " 5 "));
+}
+TEST_F(TestOgreScene, testTb){
+  EXPECT_TRUE(sgOgreConsole.execute("tb " + mSinbadNameid + " Root"));
+  EXPECT_TRUE(sgOgreConsole.execute("tb " + mSinbadNameid + " Root 3 "));
+}
 }
 
 #endif /* TESTOGRECONSOLE_H */
