@@ -6,11 +6,8 @@
 *.so
 .fuse_hidden*
 tags
-script/pj.viminfo
-script/session.vim
 pj.sh
 bin/
-Dependencies/
+dependencies/
 build/
 thirdlib/
-Hlms/
