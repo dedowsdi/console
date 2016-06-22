@@ -880,6 +880,9 @@ void ArgHandlerLib::init() {
   StringArgHandler* boolHandler =
       new StringArgHandler("bool", {"true", "false"});
   this->registerArgHandler(boolHandler);
+  StringArgHandler* enableHandler =
+      new StringArgHandler("abled", {"enabled", "disable"});
+  this->registerArgHandler(enableHandler);
   // primitive decimal arg handlers
   this->registerArgHandler(new PriDeciArgHandler<short>("short"));
   this->registerArgHandler(new PriDeciArgHandler<unsigned short>("ushort"));

@@ -147,15 +147,18 @@ void MyguiManager::createScene() {
   Ogre::Item *ogrehead = mSceneManager->createItem("ogrehead.mesh");
   Ogre::SceneNode *ogreheadNode =
       mSceneManager->getRootSceneNode()->createChildSceneNode();
+  ogrehead->setName("ogrehead");
   ogreheadNode->attachObject(ogrehead);
   ogreheadNode->setName("ogreheadNode");
 
   Ogre::Item *sinbad = mSceneManager->createItem("Sinbad.mesh");
   Ogre::SceneNode *sinbadNode =
       mSceneManager->getRootSceneNode()->createChildSceneNode();
+  sinbad->setName("sinbad");
   sinbadNode->attachObject(sinbad);
-  sinbadNode->setPosition(0, 50, 50);
+  sinbadNode->setPosition(0, 30, 30);
   sinbadNode->setName("sinbadNode");
+
 
   Ogre::Light *light = mSceneManager->createLight();
   Ogre::SceneNode *lightNode =
@@ -164,7 +167,6 @@ void MyguiManager::createScene() {
   light->setType(Ogre::Light::LT_DIRECTIONAL);
   light->setDirection(Ogre::Vector3(-1, -1, -1));
   lightNode->setName("lightNode");
-
 
 }
 

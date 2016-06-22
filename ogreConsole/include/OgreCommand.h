@@ -62,7 +62,7 @@ private:
 
 /**
  * ath ltl_sceneNode t_sceneNode ltl_light id ("sn0")
- * ath ltl_sceneNode t_sceneNode ltl_item id mesh ("sn1") 
+ * ath ltl_sceneNode t_sceneNode ltl_item id mesh ("sn1")
  * ath ltl_sceneNode t_sceneNode ltl_particle id pst ("sn2")
  * ath ltl_sceneNode t_sceneNode ltl_camera id("sn3")
  * ath ltl_tagPoint item bone ltl_light id ("tag0")
@@ -83,7 +83,7 @@ protected:
 };
 
 /**
- * lsmo moType ("g0") 
+ * lsmo moType ("g0")
  * lsmo moType ltl_regex regex ("g1")
  * lsmo ltl_sceneNode sceneNode ("sn0")
  * lsmo ltl_sceneNode sceneNode moType ("sn1")
@@ -103,7 +103,7 @@ protected:
 };
 
 /**
- * dth moType movable... ("m0")   
+ * dth moType movable... ("m0")
  * dth ltl_sceneNode t_sceneNode ("sn0")
  * dth ltl_sceneNode t_sceneNode moType ("sn1")
  * dth ltl_sceneNode t_sceneNode moType movable("sn2")
@@ -186,7 +186,7 @@ protected:
 };
 
 /**
- * ademit particle emitterType 
+ * ademit particle emitterType
  */
 class _PacExport AdemitCmd : public Command {
 public:
@@ -199,7 +199,7 @@ protected:
 };
 
 /**
- * rmemit particle emitterType index 
+ * rmemit particle emitterType index
  */
 class _PacExport RmemitCmd : public Command {
 public:
@@ -212,7 +212,7 @@ protected:
 };
 
 /**
- * adafct particle affectorType 
+ * adafct particle affectorType
  */
 class _PacExport AdafctCmd : public Command {
 public:
@@ -225,7 +225,7 @@ protected:
 };
 
 /**
- * rmafct particle affectorType index 
+ * rmafct particle affectorType index
  */
 class _PacExport RmafctCmd : public Command {
 public:
@@ -237,10 +237,9 @@ protected:
   virtual bool buildArgHandler();
 };
 
-
 /**
  * tsn t_sceneNode ("0")
- * tsn t_sceneNode maxLevel ("1") 
+ * tsn t_sceneNode maxLevel ("1")
  */
 class _PacExport TsnCmd : public Command {
 public:
@@ -254,7 +253,7 @@ protected:
 
 /**
  * tb t_sceneNode ("0")
- * tb t_sceneNode maxLevel ("1") 
+ * tb t_sceneNode maxLevel ("1")
  */
 class _PacExport TbCmd : public Command {
 public:
@@ -266,7 +265,16 @@ protected:
   virtual bool buildArgHandler();
 };
 
+class _PacExport LswnCmd: public Command {
+public:
+  LswnCmd();
+  virtual Command* clone() { return new LswnCmd(*this); }
 
+protected:
+  virtual bool doExecute();
+  virtual bool buildArgHandler();
+
+};
 }
 
 #endif /* OGRECOMMAND_H */

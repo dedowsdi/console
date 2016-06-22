@@ -82,6 +82,7 @@ void OgreConsole::initCommand() {
   sgCmdLib.registerCommand(new RmafctCmd());
   sgCmdLib.registerCommand(new TsnCmd());
   sgCmdLib.registerCommand(new TbCmd());
+  sgCmdLib.registerCommand(new LswnCmd());
 }
 
 //------------------------------------------------------------------------------
@@ -163,6 +164,11 @@ void OgreConsole::initMiscArgHandler() {
   sgArgLib.registerArgHandler(new MovableTH("t_camera", "camera"));
   sgArgLib.registerArgHandler(new MovableTH("t_item", "item"));
   sgArgLib.registerArgHandler(new MovableTH("t_particle", "particle"));
+
+  // compositor related
+  sgArgLib.registerArgHandler(new CompositorWorkspaceAH());
+  sgArgLib.registerArgHandler(new CompositorNodeAH());
+
   // tree
   sgArgLib.registerArgHandler(new PositionTH());
   sgArgLib.registerArgHandler(new DirectionTH());

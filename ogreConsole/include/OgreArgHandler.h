@@ -55,7 +55,7 @@ private:
   bool mFixType, mAttachedOnly;
   Ogre::Item* mItem;
   Ogre::SceneNode* mSceneNode;
-  Node* mItemNode, *mBoneNode, *mSnNode, *mMoTypeNode;
+  Node *mItemNode, *mBoneNode, *mSnNode, *mMoTypeNode;
   std::string mMoType, mBone;
 };
 
@@ -123,8 +123,8 @@ protected:
 
 private:
   bool mIncludeRoot;
-  Node* mParentSnNode, *mAncestorSnNode, *mSmmtNode;
-  Ogre::SceneNode* mParentSceneNode, *mAncestorSceneNode;
+  Node *mParentSnNode, *mAncestorSnNode, *mSmmtNode;
+  Ogre::SceneNode *mParentSceneNode, *mAncestorSceneNode;
   int mSmmt;
 };
 
@@ -232,6 +232,32 @@ class _PacExport DirectionTH : public TreeArgHandler {
 public:
   DirectionTH();
   std::string getUniformValue() const;
+};
+
+class _PacExport CompositorWorkspaceAH : public ArgHandler {
+public:
+  CompositorWorkspaceAH();
+  virtual ArgHandler* clone() { return new CompositorWorkspaceAH(*this); }
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
+};
+
+class _PacExport CompositorNodeAH : public ArgHandler {
+private:
+  Ogre::CompositorWorkspace* mWorkspace;
+  Node* mWorkspaceNode;
+
+public:
+  CompositorNodeAH();
+  virtual ArgHandler* clone() { return new CompositorNodeAH(*this); }
+  virtual void runtimeInit();
+  virtual void onLinked(Node* grandNode);
+
+protected:
+  virtual void populatePromptBuffer(const std::string& s);
+  virtual bool doValidate(const std::string& s);
 };
 }
 

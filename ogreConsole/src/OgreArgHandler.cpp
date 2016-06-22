@@ -12,6 +12,10 @@
 #include <OgreHlmsManager.h>
 #include <OgreTextureManager.h>
 #include <Animation/OgreSkeletonInstance.h>
+#include <OgreRoot.h>
+#include <Compositor/OgreCompositorManager2.h>
+#include <Compositor/OgreCompositorWorkspace.h>
+#include <Compositor/OgreCompositorNode.h>
 
 namespace pac {
 
@@ -549,5 +553,55 @@ std::string DirectionTH::getUniformValue() const {
     int pn = axis > 2 ? -1 : 1;
     return Ogre::StringConverter::toString(pn * v[axis % 3]);
   }
+}
+
+//------------------------------------------------------------------------------
+CompositorWorkspaceAH::CompositorWorkspaceAH() : ArgHandler("compWorkspace") {
+  setPromptType(PT_PROMPTONLY);
+}
+
+//------------------------------------------------------------------------------
+void CompositorWorkspaceAH::populatePromptBuffer(const std::string& s) {
+  appendPromptBuffer("wordspace index");
+}
+
+//------------------------------------------------------------------------------
+bool CompositorWorkspaceAH::doValidate(const std::string& s) {
+  return Ogre::StringConverter::parseUnsignedInt(s) <
+         Ogre::Root::getSingleton().getCompositorManager2()->getNumWorkspaces();
+}
+
+//------------------------------------------------------------------------------
+CompositorNodeAH::CompositorNodeAH()
+    : ArgHandler("compNode"), mWorkspaceNode(0), mWorkspace(0) {}
+
+//------------------------------------------------------------------------------
+void CompositorNodeAH::runtimeInit() {
+  size_t workspaceIndex =
+      Ogre::StringConverter::parseUnsignedInt(mWorkspaceNode->getValue());
+  mWorkspace =
+      Ogre::Root::getSingleton().getCompositorManager2()->getWorkspaceAt(
+          workspaceIndex);
+}
+
+//------------------------------------------------------------------------------
+void CompositorNodeAH::onLinked(Node* grandNode) {
+  mWorkspaceNode = mNode->getAncestorNode("compWorkspace", 2);
+}
+
+//------------------------------------------------------------------------------
+void CompositorNodeAH::populatePromptBuffer(const std::string& s) {
+  const Ogre::CompositorNodeVec& vec = mWorkspace->getNodeSequence();
+  std::for_each(vec.begin(), vec.end(), [&](decltype(*vec.begin()) v) {
+    if (s.empty() ||
+        Ogre::StringUtil::startsWith(v->getName().getFriendlyText(), s)) {
+      appendPromptBuffer(v->getName().getFriendlyText());
+    }
+  });
+}
+
+//------------------------------------------------------------------------------
+bool CompositorNodeAH::doValidate(const std::string& s) {
+  return mWorkspace->findNode(s);
 }
 }

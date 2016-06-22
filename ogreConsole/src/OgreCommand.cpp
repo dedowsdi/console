@@ -21,7 +21,11 @@
 #include <Animation/OgreBone.h>
 #include <Animation/OgreSkeletonInstance.h>
 #include <OgreCamera.h>
+#include <Compositor/OgreCompositorWorkspace.h>
+#include <Compositor/OgreCompositorManager2.h>
+#include <Compositor/OgreCompositorNode.h>
 #include <boost/regex.hpp>
+
 
 //#include <OgreCompositorManager.h>
 
@@ -939,6 +943,41 @@ bool TbCmd::buildArgHandler() {
   node->eb("0");
   // tb t_item bone maxLevel ("1")
   node->acn("maxLevel", "uint")->eb("1");
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+LswnCmd::LswnCmd():
+    Command("lswn")
+{
+}
+
+//------------------------------------------------------------------------------
+bool LswnCmd::doExecute()
+{
+  TreeArgHandler* handler = static_cast<TreeArgHandler*>(mArgHandler);
+  Ogre::CompositorManager2* cm2 =
+      Ogre::Root::getSingleton().getCompositorManager2();
+  Ogre::CompositorWorkspace* workspace =
+      cm2->getWorkspaceAt(Ogre::StringConverter::parseUnsignedInt(
+          handler->getMatchedNodeUniformValue("compWorkspace")));
+  const Ogre::CompositorNodeVec& vec = workspace->getNodeSequence();
+  RaiiConsoleBuffer rcb;
+      std::for_each(vec.begin(),
+      vec.end(),[&](decltype(*vec.begin()) v) {
+          sgConsole.output(v->getName().getFriendlyText());
+      });
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool LswnCmd::buildArgHandler()
+{
+  TreeArgHandler* handler = new TreeArgHandler(getDefAhName());
+  mArgHandler = handler;
+  Node* root = handler->getRoot();
+  root->acn("compWorkspace")->eb("0");
 
   return true;
 }
